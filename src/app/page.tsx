@@ -1,0 +1,111 @@
+"use client";
+
+import { HeroAnimation } from "@/components/marketing/hero-animation";
+import { SocialProof } from "@/components/marketing/social-proof";
+import { BentoGrid } from "@/components/marketing/bento-grid";
+import RadialOrbitalTimeline from "@/components/marketing/orbital-process";
+import { MinimalFooter } from "@/components/marketing/footer";
+import { Pricing } from "@/components/marketing/pricing";
+import { Brain, Lightbulb, PenTool, Rocket, Search, Settings } from "lucide-react";
+
+const processData = [
+  {
+    id: 1,
+    title: "INITIALIZATION",
+    date: "Phase 01",
+    content: "Comprehensive digital footprint analysis. We deep-dive into your current brand perception, SEO standing, and market gaps to identify why you aren't #1.",
+    category: "Analysis",
+    icon: Search,
+    relatedIds: [2],
+    status: "completed" as const,
+    energy: 100,
+  },
+  {
+    id: 2,
+    title: "ARCHITECTURE",
+    date: "Phase 02",
+    content: "Blueprint for market dominance. Identifying high-value keywords, content opportunities, and the strategic path to immediate wins.",
+    category: "Planning",
+    icon: Brain,
+    relatedIds: [3, 4],
+    status: "completed" as const,
+    energy: 90,
+  },
+  {
+    id: 3,
+    title: "PRODUCTION",
+    date: "Phase 03",
+    content: "Creation of premium visual assets. High-end photography, videography, and branded design that elevates your perceived value instantly.",
+    category: "Creative",
+    icon: PenTool,
+    relatedIds: [4],
+    status: "in-progress" as const,
+    energy: 85,
+  },
+  {
+    id: 4,
+    title: "ENGINEERING",
+    date: "Phase 04",
+    content: "Technical overhaul using Zeniac OS. We implement lightning-fast, mobile-first indexing to maximize speed and conversion rates.",
+    category: "Tech",
+    icon: Settings,
+    relatedIds: [5],
+    status: "pending" as const,
+    energy: 70,
+  },
+  {
+    id: 5,
+    title: "ACTIVATION",
+    date: "Phase 05",
+    content: "Synchronized multi-channel launch. Ads, social campaigns, and GMB updates hit simultaneously to flood your business with leads.",
+    category: "Launch",
+    icon: Rocket,
+    relatedIds: [6],
+    status: "pending" as const,
+    energy: 60,
+  },
+  {
+    id: 6,
+    title: "DOMINANCE",
+    date: "Phase 06",
+    content: "Automated reputation management and continuous optimization to secure your position as the undisputed market leader.",
+    category: "Growth",
+    icon: Lightbulb,
+    relatedIds: [],
+    status: "pending" as const,
+    energy: 50,
+  },
+];
+
+export default function Home() {
+  return (
+    <div className="relative bg-zeniac-black min-h-screen text-foreground selection:bg-zeniac-gold/30">
+
+      <div className="relative z-10">
+        <HeroAnimation />
+
+        <SocialProof />
+
+        <div id="solutions">
+          <BentoGrid />
+        </div>
+
+        <Pricing />
+
+        <section id="process" className="relative py-24 min-h-screen flex flex-col items-center justify-center">
+          <div className="container mx-auto px-4 text-center mb-8 relative z-20">
+            <h2 className="text-3xl md:text-5xl font-mono font-bold text-zeniac-white mb-6">
+              THE <span className="text-zeniac-gold">PROCESS</span>
+            </h2>
+            <p className="text-muted-foreground font-mono max-w-2xl mx-auto">
+              A systematic approach to building world-class digital experiences.
+            </p>
+          </div>
+          <RadialOrbitalTimeline timelineData={processData} />
+        </section>
+
+        <MinimalFooter />
+      </div>
+    </div>
+  );
+}
