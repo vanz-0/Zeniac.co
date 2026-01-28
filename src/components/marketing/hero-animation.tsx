@@ -33,18 +33,18 @@ const labels = [
 const features = [
     {
         icon: Sparkles,
-        label: "Zenith Design",
-        description: "Elevate your brand with our signature 'Front-Style' aesthetic—bold, deep encodings, and gold accents.",
+        label: "Visual Domination",
+        description: "We don't just design; we encode authority. Your brand will look expensive, established, and untouchable from Day 1.",
     },
     {
         icon: Brain,
-        label: "Brainiac Logic",
-        description: "Data-driven marketing strategies tailored for female-centric businesses in Beauty, Wellness, and Fashion.",
+        label: "Predatory Strategy",
+        description: "While others guess, we execute. Data-backed precision that targets, hunts, and converts your ideal client.",
     },
     {
         icon: Zap,
-        label: "Rapid Deployment",
-        description: "Launch your 'Operating System' website faster with our pre-configured, high-performance component library.",
+        label: "Speed is Currency",
+        description: "Launch a full-scale digital empire in days, not months. The market waits for no one.",
     },
 ];
 

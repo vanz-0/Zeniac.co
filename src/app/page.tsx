@@ -98,7 +98,7 @@ export default function Home() {
               THE <span className="text-zeniac-gold">PROCESS</span>
             </h2>
             <p className="text-muted-foreground font-mono max-w-2xl mx-auto">
-              A systematic approach to building world-class digital experiences.
+              A systematic approach to building digital dominance. Whether you're a local startup or a global entity, we engineer your growth.
             </p>
           </div>
           <RadialOrbitalTimeline timelineData={processData} />
