@@ -39,9 +39,11 @@ export function MinimalFooter() {
     ];
 
     const socialLinks = [
-        { icon: <InstagramIcon className="size-4" />, link: '#' },
-        { icon: <TwitterIcon className="size-4" />, link: '#' },
-        { icon: <LinkedinIcon className="size-4" />, link: '#' },
+        { icon: <InstagramIcon className="size-4" />, link: 'https://instagram.com/zen_mrch_' },
+        { icon: <TwitterIcon className="size-4" />, link: 'https://x.com/MerchZenith' },
+        { icon: <LinkedinIcon className="size-4" />, link: 'https://linkedin.com/in/zenith-merch' },
+        { icon: <FacebookIcon className="size-4" />, link: 'https://facebook.com/Zeniac' },
+        { icon: <YoutubeIcon className="size-4" />, link: 'https://youtube.com/@MerchZenith' },
     ];
 
     return (

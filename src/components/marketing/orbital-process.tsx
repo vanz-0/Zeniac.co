@@ -54,6 +54,19 @@ export default function RadialOrbitalTimeline({
         }
     };
 
+    const [radius, setRadius] = useState(140);
+
+    // Responsive Radius
+    useEffect(() => {
+        const updateRadius = () => {
+            setRadius(window.innerWidth < 768 ? 140 : 240);
+        };
+        
+        updateRadius();
+        window.addEventListener('resize', updateRadius);
+        return () => window.removeEventListener('resize', updateRadius);
+    }, []);
+
     const toggleItem = (id: number) => {
         setExpandedItems((prev) => {
             const newState = { ...prev };
@@ -76,7 +89,7 @@ export default function RadialOrbitalTimeline({
                 });
                 setPulseEffect(newPulseEffect);
 
-                centerViewOnNode(id);
+                // centerViewOnNode(id); // Optional: disable auto-centering to keep context
             } else {
                 setActiveNodeId(null);
                 setAutoRotate(true);
@@ -87,38 +100,33 @@ export default function RadialOrbitalTimeline({
         });
     };
 
+    // Smooth Animation Loop
     useEffect(() => {
-        let rotationTimer: NodeJS.Timeout;
+        let animationFrameId: number;
+        let lastTime = performance.now();
 
-        if (autoRotate && viewMode === "orbital") {
-            rotationTimer = setInterval(() => {
-                setRotationAngle((prev) => {
-                    const newAngle = (prev + 0.3) % 360;
-                    return Number(newAngle.toFixed(3));
-                });
-            }, 50);
+        const animate = (time: number) => {
+            if (autoRotate && viewMode === "orbital") {
+                const delta = time - lastTime;
+                if (delta >= 16) { // Cap at ~60fps
+                    setRotationAngle((prev) => (prev + 0.05 * (delta / 16)) % 360); // Smooth scaling
+                    lastTime = time;
+                }
+            }
+            animationFrameId = requestAnimationFrame(animate);
+        };
+
+        if (autoRotate) {
+             animationFrameId = requestAnimationFrame(animate);
         }
 
         return () => {
-            if (rotationTimer) {
-                clearInterval(rotationTimer);
-            }
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
         };
     }, [autoRotate, viewMode]);
 
-    const centerViewOnNode = (nodeId: number) => {
-        if (viewMode !== "orbital" || !nodeRefs.current[nodeId]) return;
-
-        const nodeIndex = timelineData.findIndex((item) => item.id === nodeId);
-        const totalNodes = timelineData.length;
-        const targetAngle = (nodeIndex / totalNodes) * 360;
-
-        setRotationAngle(270 - targetAngle);
-    };
-
     const calculateNodePosition = (index: number, total: number) => {
         const angle = ((index / total) * 360 + rotationAngle) % 360;
-        const radius = 240; // Increased radius for better visibility
         const radian = (angle * Math.PI) / 180;
 
         const x = radius * Math.cos(radian) + centerOffset.x;
@@ -165,7 +173,7 @@ export default function RadialOrbitalTimeline({
         >
             <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.05)_0%,transparent_70%)]" />
 
-            <div className="relative w-full max-w-5xl h-[600px] flex items-center justify-center perspective-1000">
+            <div className="relative w-full max-w-5xl h-[350px] md:h-[600px] flex items-center justify-center perspective-1000">
                 <div
                     className="absolute w-full h-full flex items-center justify-center"
                     ref={orbitRef}
@@ -189,8 +197,10 @@ export default function RadialOrbitalTimeline({
                         </div>
                     </div>
 
-                    <div className="absolute w-[480px] h-[480px] rounded-full border border-white/5 border-dashed animate-spin-slow" style={{ animationDuration: "60s" }}></div>
-                    <div className="absolute w-[600px] h-[600px] rounded-full border border-white/5 opacity-30"></div>
+                    {/* Mobile: 280px, Tablet: 480px, Desktop: 700px (Radius * 2) */}
+                    <div className="absolute w-[280px] h-[280px] md:w-[480px] md:h-[480px] lg:w-[700px] lg:h-[700px] rounded-full border border-white/5 border-dashed animate-spin-slow" style={{ animationDuration: "60s" }}></div>
+                    {/* Outer Ring */}
+                    <div className="absolute w-[350px] h-[350px] md:w-[550px] md:h-[550px] lg:w-[850px] lg:h-[850px] rounded-full border border-white/5 opacity-30"></div>
 
                     {timelineData.map((item, index) => {
                         const position = calculateNodePosition(index, timelineData.length);

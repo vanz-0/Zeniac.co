@@ -1,4 +1,6 @@
-# Directive: Zeniac.Co Website Build
+
+> [!IMPORTANT]
+> **PROTOCOL CHANGE**: Do not ask for permissions or reviews mid-task. Execute the plan, build the finished product, push to GitHub, and THEN ask for review.
 
 ## 1. Objective
 Construct the **Zeniac.Co** "Operating System" website—a premium, high-performance marketing platform for female-centric brands. The site must embody the **Zenith** (High-End/Gold) + **Brainiac** (Smart/Tech) identity using the "Front-Style" aesthetic and specific user-provided components.
