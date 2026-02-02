@@ -94,7 +94,7 @@ export default function Home() {
 
         <section id="process" className="relative py-24 min-h-screen flex flex-col items-center justify-center">
           <div className="container mx-auto px-4 text-center mb-8 relative z-20">
-            <h2 className="text-3xl md:text-5xl font-mono font-bold text-zeniac-white mb-6">
+            <h2 className="text-3xl md:text-5xl font-typewriter font-black text-zeniac-white mb-6">
               THE <span className="text-zeniac-gold">PROCESS</span>
             </h2>
             <p className="text-muted-foreground font-mono max-w-2xl mx-auto">

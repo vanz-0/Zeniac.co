@@ -10,12 +10,13 @@ import {
     Sparkles,
     Zap,
 } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { motion, useAnimation, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SparklesCore } from "@/components/ui/sparkles";
+import { TransformationWizard } from "@/components/marketing/transformation-wizard";
 
 const navigationItems = [
     { title: "SOLUTIONS", href: "#solutions" },
@@ -74,6 +75,8 @@ export function HeroAnimation() {
         setMounted(true);
     }, []);
 
+    const [wizardOpen, setWizardOpen] = React.useState(false);
+
     const logoSrc = mounted && theme === 'light' ? '/logo-for-light-mode.png' : '/logo-for-dark-mode.png';
 
     return (
@@ -115,6 +118,7 @@ export function HeroAnimation() {
                         <ThemeToggle />
                         <Button
                             variant="default"
+                            onClick={() => setWizardOpen(true)}
                             className="rounded-none hidden md:inline-flex bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-mono font-bold"
                         >
                             START PROJECT <ArrowRight className="ml-1 w-4 h-4" />
@@ -127,6 +131,12 @@ export function HeroAnimation() {
                                 </Button>
                             </SheetTrigger>
                             <SheetContent className="bg-zeniac-black border-l-zeniac-gold/20">
+                                <SheetHeader className="sr-only">
+                                    <SheetTitle>Navigation Menu</SheetTitle>
+                                    <SheetDescription>
+                                        Access all sections of our platform.
+                                    </SheetDescription>
+                                </SheetHeader>
                                 <nav className="flex flex-col gap-6 mt-12">
                                     {navigationItems.map((item) => (
                                         <a
@@ -137,7 +147,10 @@ export function HeroAnimation() {
                                             {item.title}
                                         </a>
                                     ))}
-                                    <Button className="cursor-pointer rounded-none bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-mono w-full">
+                                    <Button
+                                        onClick={() => setWizardOpen(true)}
+                                        className="cursor-pointer rounded-none bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-mono w-full"
+                                    >
                                         START PROJECT <ArrowRight className="ml-1 w-4 h-4" />
                                     </Button>
                                 </nav>
@@ -154,7 +167,7 @@ export function HeroAnimation() {
                             initial={{ filter: "blur(10px)", opacity: 0, y: 50 }}
                             animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
-                            className="relative font-mono text-5xl font-bold sm:text-6xl md:text-8xl lg:text-9xl max-w-7xl mx-auto leading-tight text-zeniac-white tracking-tight"
+                            className="relative font-typewriter text-4xl font-black sm:text-5xl md:text-7xl lg:text-8xl max-w-7xl mx-auto leading-tight text-zeniac-white tracking-tight"
                         >
                             {titleWords.map((text, index) => (
                                 <motion.span
@@ -203,7 +216,7 @@ export function HeroAnimation() {
                                     className="flex items-center gap-2 px-6 py-2 border border-white/10 rounded-full bg-white/5 backdrop-blur-sm"
                                 >
                                     <feature.icon className="h-5 w-5 text-zeniac-gold" />
-                                    <span className="text-sm font-mono text-zeniac-white">{feature.label}</span>
+                                    <span className="text-sm font-typewriter text-zeniac-white">{feature.label}</span>
                                 </motion.div>
                             ))}
                         </motion.div>
@@ -221,6 +234,7 @@ export function HeroAnimation() {
                         >
                             <Button
                                 size="lg"
+                                onClick={() => setWizardOpen(true)}
                                 className="cursor-pointer rounded-none mt-12 bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-mono text-lg px-8 py-6"
                             >
                                 TRANSFORM YOUR BUSINESS <ArrowRight className="ml-2 w-5 h-5" />
@@ -275,6 +289,8 @@ export function HeroAnimation() {
                     </motion.div>
                 </section>
             </main>
+
+            <TransformationWizard open={wizardOpen} onOpenChange={setWizardOpen} />
         </div>
     );
 }

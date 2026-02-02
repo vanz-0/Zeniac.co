@@ -292,7 +292,7 @@ export function SocialProof() {
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-zeniac-gold/30 to-transparent" />
 
             <div className="container mx-auto px-4 mb-12 text-center">
-                <h2 className="text-3xl font-mono font-bold text-zeniac-white mb-4">
+                <h2 className="text-3xl font-typewriter font-black text-zeniac-white mb-4">
                     TRUSTED BY <span className="text-zeniac-gold">VISIONARIES</span>
                 </h2>
                 <p className="text-muted-foreground font-mono max-w-xl mx-auto">

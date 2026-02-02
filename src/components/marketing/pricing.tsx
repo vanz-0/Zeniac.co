@@ -96,7 +96,7 @@ export function Pricing() {
         <section className="py-24 relative overflow-hidden" id="pricing">
             <div className="container px-4 md:px-6 mx-auto relative z-10">
                 <div className="text-center max-w-3xl mx-auto mb-16">
-                    <h2 className="text-3xl md:text-5xl font-mono font-bold text-zeniac-white mb-6">
+                    <h2 className="text-3xl md:text-5xl font-typewriter font-black text-zeniac-white mb-6">
                         INVEST IN <span className="text-zeniac-gold">DOMINANCE</span>
                     </h2>
                     <p className="text-muted-foreground font-mono text-lg">
@@ -126,7 +126,7 @@ export function Pricing() {
                             )}
 
                             <div className="mb-6">
-                                <h3 className="text-xl font-mono font-bold text-zeniac-white mb-2">{tier.name}</h3>
+                                <h3 className="text-xl font-typewriter font-black text-zeniac-white mb-2">{tier.name}</h3>
                                 <p className="text-sm text-muted-foreground min-h-[40px]">{tier.description}</p>
                             </div>
 

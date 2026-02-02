@@ -79,7 +79,7 @@ export function BentoGrid({ items = itemsSample }: BentoGridProps) {
     return (
         <section className="py-24 bg-transparent">
             <div className="container mx-auto px-4 mb-16 text-center">
-                <h2 className="text-3xl md:text-5xl font-mono font-bold text-zeniac-white mb-6">
+                <h2 className="text-3xl md:text-5xl font-typewriter font-black text-zeniac-white mb-6">
                     OUR <span className="text-zeniac-gold">SERVICES</span>
                 </h2>
                 <p className="text-muted-foreground font-mono max-w-2xl mx-auto">
@@ -130,7 +130,7 @@ export function BentoGrid({ items = itemsSample }: BentoGridProps) {
                             </div>
 
                             <div className="space-y-4">
-                                <h3 className="text-2xl md:text-3xl font-mono font-bold text-zeniac-white tracking-tight flex items-center">
+                                <h3 className="text-2xl md:text-3xl font-typewriter font-black text-zeniac-white tracking-tight flex items-center">
                                     {item.title}
                                 </h3>
                                 <p className="text-base md:text-lg text-muted-foreground font-mono leading-relaxed">

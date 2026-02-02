@@ -370,24 +370,230 @@ def save_results(results, prefix="leads"):
     print(f"\nResults saved to {filename}")
     return filename
 
+def scrape_competitors(industry, location, exclude_business=None, max_competitors=3):
+    """
+    Find and analyze top local competitors.
+    
+    Args:
+        industry: Business type (e.g., "Dentist", "Plumber", "Digital Marketing")
+        location: Geographic location (e.g., "San Francisco", "New York")
+        exclude_business: Business name to exclude from results (the client)
+        max_competitors: Maximum number of competitors to return (default: 3)
+    
+    Returns:
+        {
+            "competitors": [
+                {
+                    "name": "Acme Corp",
+                    "website": "https://acme.com",
+                    "rating": 4.5,
+                    "review_count": 250,
+                    "snippet": "...",
+                    "estimated_seo_score": 75
+                }
+            ],
+            "analysis": {
+                "avg_rating": 4.3,
+                "avg_reviews": 180,
+                "avg_seo_score": 72,
+                "total_found": 3
+            }
+        }
+    """
+    api_token = os.getenv("APIFY_API_TOKEN")
+    if not api_token:
+        print("Error: APIFY_API_TOKEN not found in .env", file=sys.stderr)
+        return {"competitors": [], "analysis": {}}
+    
+    client = ApifyClient(api_token)
+    
+    # Search query to find competitors
+    search_query = f"{industry} in {location}"
+    
+    print(f"\n🔍 Searching for competitors: '{search_query}'")
+    print(f"Excluding: {exclude_business if exclude_business else 'None'}")
+    print(f"Max results: {max_competitors}")
+    
+    try:
+        # Use Google Search scraper to find competitors
+        run_input = {
+            "queries": search_query,
+            "maxPagesPerQuery": 1,
+            "resultsPerPage": max_competitors * 3,  # Get extra to account for filtering
+            "languageCode": "en",
+            "type": "SEARCH"
+        }
+        
+        run = client.actor("apify/google-search-scraper").call(run_input=run_input)
+        items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+        
+        competitors = []
+        exclude_lower = exclude_business.lower() if exclude_business else ""
+        
+        for item in items:
+            # Skip if this is the excluded business
+            title = item.get("title", "")
+            url = item.get("url", "")
+            
+            if exclude_lower and (exclude_lower in title.lower() or exclude_lower in url.lower()):
+                continue
+            
+            # Extract competitor data
+            competitor = {
+                "name": title,
+                "website": url,
+                "snippet": item.get("description", ""),
+                "rank": item.get("rank", 0)
+            }
+            
+            # Try to extract rating from snippet (many Google results show ratings)
+            snippet = item.get("description", "")
+            rating_match = None
+            import re
+            rating_pattern = r'(\d\.\d)\s*(?:stars?|★|rating)'
+            rating_match = re.search(rating_pattern, snippet.lower())
+            
+            if rating_match:
+                competitor["rating"] = float(rating_match.group(1))
+            else:
+                competitor["rating"] = 0
+            
+            # Extract review count from snippet
+            review_pattern = r'(\d+)\s*(?:reviews?|ratings?)'
+            review_match = re.search(review_pattern, snippet.lower())
+            
+            if review_match:
+                competitor["review_count"] = int(review_match.group(1))
+            else:
+                competitor["review_count"] = 0
+            
+            # Estimate SEO score based on search rank and presence
+            # Higher rank = higher SEO score
+            if competitor["rank"] <= 3:
+                competitor["estimated_seo_score"] = 80 + (10 * (4 - competitor["rank"]))
+            elif competitor["rank"] <= 10:
+                competitor["estimated_seo_score"] = 60 + (competitor["rank"] * 2)
+            else:
+                competitor["estimated_seo_score"] = 50
+            
+            competitors.append(competitor)
+            
+            if len(competitors) >= max_competitors:
+                break
+        
+        # Calculate aggregate benchmarks
+        if competitors:
+            avg_rating = sum(c.get("rating", 0) for c in competitors) / len(competitors)
+            avg_reviews = sum(c.get("review_count", 0) for c in competitors) / len(competitors)
+            avg_seo = sum(c.get("estimated_seo_score", 0) for c in competitors) / len(competitors)
+            
+            analysis = {
+                "avg_rating": round(avg_rating, 2),
+                "avg_reviews": int(avg_reviews),
+                "avg_seo_score": int(avg_seo),
+                "total_found": len(competitors)
+            }
+        else:
+            # Fallback to industry benchmarks
+            analysis = {
+                "avg_rating": 4.0,
+                "avg_reviews": 100,
+                "avg_seo_score": 70,
+                "total_found": 0
+            }
+        
+        result = {
+            "competitors": competitors,
+            "analysis": analysis,
+            "search_query": search_query,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        print(f"\n✅ Found {len(competitors)} competitors")
+        print(f"📊 Avg Rating: {analysis['avg_rating']}")
+        print(f"📊 Avg Reviews: {analysis['avg_reviews']}")
+        print(f"📊 Avg SEO Score: {analysis['avg_seo_score']}")
+        
+        return result
+        
+    except Exception as e:
+        print(f"❌ Competitor research failed: {e}", file=sys.stderr)
+        return {
+            "competitors": [],
+            "analysis": {
+                "avg_rating": 4.0,
+                "avg_reviews": 100,
+                "avg_seo_score": 70,
+                "total_found": 0
+            },
+            "error": str(e)
+        }
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Parallel lead scraping with geographic partitioning",
+        description="Parallel lead scraping with geographic partitioning OR competitor research",
         epilog=f"Supported regions for auto-detection: {', '.join(REGION_MAPS.keys())}"
     )
-    parser.add_argument("--query", required=True, help="Search query (e.g., 'Dentist', 'Plumber')")
-    parser.add_argument("--location", required=True,
-                        help="Location: 'United States', 'EU', 'UK', 'Canada', 'Australia', or comma-separated cities/states")
-    parser.add_argument("--total_count", type=int, required=True, help="Total number of leads desired")
+    
+    # Mode selection (new)
+    parser.add_argument("--mode", default="leads", choices=["leads", "competitors"],
+                        help="Mode: 'leads' for lead scraping, 'competitors' for competitor research")
+    
+    # Lead scraping arguments
+    parser.add_argument("--query", help="Search query (e.g., 'Dentist', 'Plumber') - Required for leads mode")
+    parser.add_argument("--location", help="Location - Required for both modes")
+    parser.add_argument("--total_count", type=int, help="Total number of leads desired - Required for leads mode")
     parser.add_argument("--strategy", default="regions",
                         choices=["regions", "metros", "apac", "global"],
-                        help="Partition strategy: regions (auto-detect by location), metros (8-way US), apac (8-way Asia-Pacific), global (8-way worldwide)")
-    parser.add_argument("--partitions", type=int, default=None, help="Number of partitions (auto-set based on strategy)")
+                        help="Partition strategy (leads mode only)")
+    parser.add_argument("--partitions", type=int, default=None, help="Number of partitions (leads mode only)")
     parser.add_argument("--output_prefix", default="leads", help="Prefix for the output file")
-    parser.add_argument("--company_keywords", nargs='+', help="Company keywords to filter")
-    parser.add_argument("--no-email-filter", action="store_true", help="Don't filter by validated emails")
+    parser.add_argument("--company_keywords", nargs='+', help="Company keywords to filter (leads mode only)")
+    parser.add_argument("--no-email-filter", action="store_true", help="Don't filter by validated emails (leads mode only)")
+    
+    # Competitor research arguments
+    parser.add_argument("--industry", help="Industry/business type - Required for competitors mode")
+    parser.add_argument("--exclude", help="Business name to exclude from competitor results")
+    parser.add_argument("--max", type=int, default=3, help="Maximum competitors to find (default: 3)")
+    parser.add_argument("--output", help="Output file path (for competitors mode)")
 
     args = parser.parse_args()
+
+    # COMPETITOR MODE
+    if args.mode == "competitors":
+        if not args.industry or not args.location:
+            print("Error: --industry and --location are required for competitor research mode")
+            sys.exit(1)
+        
+        results = scrape_competitors(
+            industry=args.industry,
+            location=args.location,
+            exclude_business=args.exclude,
+            max_competitors=args.max
+        )
+        
+        # Save results
+        if args.output:
+            output_file = args.output
+        else:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_file = f".tmp/competitors_{timestamp}.json"
+        
+        os.makedirs(os.path.dirname(output_file) if os.path.dirname(output_file) else ".tmp", exist_ok=True)
+        
+        with open(output_file, "w") as f:
+            json.dump(results, f, indent=2)
+        
+        print(f"\n💾 Results saved to: {output_file}")
+        
+        # Output JSON to stdout for programmatic use
+        print("\n" + json.dumps(results, indent=2))
+        return
+    
+    # LEADS MODE (original functionality)
+    if not args.query or not args.location or not args.total_count:
+        print("Error: --query, --location, and --total_count are required for leads mode")
+        sys.exit(1)
 
     require_email = not args.no_email_filter
 
