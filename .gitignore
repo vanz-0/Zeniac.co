@@ -39,3 +39,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# auth & credentials
+credentials.json
+token.json
+.env*
+.env.local
+
+# intermediates & temp
+.tmp/
+*.txt
+*.pdf
+project.json
+Case_Study_Template.json
+
+# python execution artifacts
+__pycache__/
+*.pyc

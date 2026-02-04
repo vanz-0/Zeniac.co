@@ -2,7 +2,7 @@ import os
 import sys
 import gspread
 import argparse
-import anthropic
+import google.generativeai as genai
 import json
 import concurrent.futures
 import time
@@ -12,7 +12,9 @@ from urllib.parse import urlparse
 # Load environment variables
 load_dotenv()
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 BATCH_SIZE = 50  # Sweet spot - balances speed vs reliability
 MAX_WORKERS = 5  # Reduced to avoid rate limits
 MAX_RETRIES = 3  # Retry failed batches
@@ -34,12 +36,12 @@ def column_letter(n):
         n = n // 26 - 1
     return result
 
-def casualize_batch(records, client, batch_num, total_batches, retry_count=0):
-    """Use Claude to casualize first names, company names, and cities in one call."""
+def casualize_batch(records, model, batch_num, total_batches, retry_count=0):
+    """Use Gemini to casualize first names, company names, and cities in one call."""
     if not records:
         return []
 
-    # Format records as compact JSON (no indent for speed)
+    # Format records as compact JSON
     records_list = []
     for i, record in enumerate(records):
         records_list.append({
@@ -51,7 +53,7 @@ def casualize_batch(records, client, batch_num, total_batches, retry_count=0):
 
     records_json = json.dumps(records_list)
 
-    prompt = f"""Convert to casual forms for cold emails. Return ONLY valid JSON array.
+    prompt = f"""Convert to casual forms for cold emails.
 
 Rules:
 - first_name: Common nicknames (William→Will, Jennifer→Jen), keep if no nickname
@@ -60,20 +62,15 @@ Rules:
 
 Input: {records_json}
 
-Output JSON only (no markdown, no explanations):"""
+Return ONLY the JSON array. Output format: [{{"id": 1, "casual_first_name": "...", "casual_company_name": "...", "casual_city_name": "..."}}]"""
 
     try:
-        message = client.messages.create(
-            model="claude-3-5-haiku-20241022",
-            max_tokens=6000,  # Increased to handle 50 records reliably
-            messages=[{"role": "user", "content": prompt}]
-        )
-        response_text = message.content[0].text.strip()
+        response = model.generate_content(prompt)
+        response_text = response.text.strip()
 
-        # Remove markdown code blocks if present
-        if response_text.startswith("```"):
-            lines = response_text.split('\n')
-            response_text = '\n'.join(lines[1:-1])
+        # Remove markdown code blocks
+        if "```" in response_text:
+            response_text = re.sub(r'```(?:json)?\s*([\s\S]*?)\s*```', r'\1', response_text)
 
         # Parse JSON response
         results = json.loads(response_text)
@@ -92,12 +89,12 @@ Output JSON only (no markdown, no explanations):"""
 
         print(f"  ✓ Batch {batch_num}/{total_batches} complete ({len(records)} records)")
         return results
-    except anthropic.RateLimitError as e:
+    except Exception as e:
         if retry_count < MAX_RETRIES:
-            wait_time = (2 ** retry_count) * 2  # Exponential backoff: 2s, 4s, 8s
-            print(f"  ⏸️  Batch {batch_num}/{total_batches} rate limited, retrying in {wait_time}s...")
+            wait_time = (2 ** retry_count) * 2
+            print(f"  ⏸️  Batch {batch_num}/{total_batches} failed, retrying in {wait_time}s... ({str(e)[:50]})")
             time.sleep(wait_time)
-            return casualize_batch(records, client, batch_num, total_batches, retry_count + 1)
+            return casualize_batch(records, model, batch_num, total_batches, retry_count + 1)
         else:
             print(f"  ✗ Batch {batch_num}/{total_batches} failed after {MAX_RETRIES} retries")
             # Return originals
@@ -107,15 +104,6 @@ Output JSON only (no markdown, no explanations):"""
                 "casual_company_name": record['company_name'],
                 "casual_city_name": record['city']
             } for i, record in enumerate(records)]
-    except Exception as e:
-        print(f"  ✗ Batch {batch_num}/{total_batches} error: {str(e)[:100]}")
-        # Return originals if error
-        return [{
-            "id": i + 1,
-            "casual_first_name": record['first_name'],
-            "casual_company_name": record['company_name'],
-            "casual_city_name": record['city']
-        } for i, record in enumerate(records)]
 
 def main():
     parser = argparse.ArgumentParser(description="Casualize first names, company names, and cities in one pass")
@@ -238,12 +226,12 @@ def main():
     print(f"\nProcessing {total_batches} batches of up to {BATCH_SIZE} records using {args.workers} parallel workers...")
 
     # Process batches in parallel
-    all_results = []
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    print(f"\nInitializing Gemini (gemini-1.5-flash)...")
+    model = genai.GenerativeModel('gemini-1.5-flash')
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
         future_to_batch = {
-            executor.submit(casualize_batch, batch, client, i+1, total_batches): (i, batch)
+            executor.submit(casualize_batch, batch, model, i+1, total_batches): (i, batch)
             for i, batch in enumerate(batches)
         }
 

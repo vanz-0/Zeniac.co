@@ -2,14 +2,17 @@ import os
 import sys
 import gspread
 import argparse
-import anthropic
+import re
+import google.generativeai as genai
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 
 # Load environment variables
 load_dotenv()
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 BATCH_SIZE = 30  # Process 30 companies per API call
 
 def get_sheet_id_from_url(url):
@@ -29,8 +32,8 @@ def column_letter(n):
         n = n // 26 - 1
     return result
 
-def casualize_company_names_batch(company_names, client):
-    """Use Claude to convert multiple company names at once."""
+def casualize_company_names_batch(company_names, model):
+    """Use Gemini to convert multiple company names at once."""
     if not company_names:
         return []
 
@@ -43,18 +46,9 @@ Rules:
 - Remove "The" at the beginning
 - Remove legal suffixes (LLC, Inc, Corp, Ltd, etc.)
 - Remove generic words like: Laboratory, Group, Healthcare, Solutions, Services, Associates, Company, Family, Center, Clinic (unless it's the ONLY identifying word)
-- Keep the core brand name + industry identifier ONLY if the brand name alone is too generic
+- Keep the brand name + industry identifier ONLY if the brand name alone is too generic
 - If the brand name is unique/memorable on its own, drop everything else
 - If the company name is too generic to casualize (like just "Dental" or "Dental Office"), output "you guys" instead
-
-Examples:
-- "Quest Orthodontics" → "Quest"
-- "Simpli Dental" → "Simpli"
-- "Hallmark Dental Laboratory Ltd" → "Hallmark"
-- "Midtown Dental Group" → "Midtown Dental"
-- "The Teal Umbrella Family Dental Healthcare" → "Teal Umbrella"
-- "Dental" → "you guys"
-- "Dental Office" → "you guys"
 
 Company names to convert:
 {company_list}
@@ -67,12 +61,8 @@ Example output:
 4. you guys"""
 
     try:
-        message = client.messages.create(
-            model="claude-3-5-haiku-20241022",
-            max_tokens=1000,
-            messages=[{"role": "user", "content": prompt}]
-        )
-        response_text = message.content[0].text.strip()
+        response = model.generate_content(prompt)
+        response_text = response.text.strip()
 
         # Parse the numbered list response
         casual_names = []
@@ -81,12 +71,12 @@ Example output:
             if not line:
                 continue
             # Remove number prefix (e.g., "1. " or "1) ")
-            if '. ' in line:
-                casual_name = line.split('. ', 1)[1]
-            elif ') ' in line:
-                casual_name = line.split(') ', 1)[1]
+            m = re.match(r'^\d+[\.\)]\s*(.*)', line)
+            if m:
+                casual_name = m.group(1)
             else:
                 casual_name = line
+            
             # Remove quotes if present
             casual_name = casual_name.strip('"').strip("'")
             casual_names.append(casual_name)
@@ -101,7 +91,7 @@ Example output:
         return casual_names
     except Exception as e:
         print(f"  ! API Error: {e}")
-        return company_names  # Return originals if error
+        return company_names
 
 def main():
     parser = argparse.ArgumentParser(description="Casualize company names for cold email (batched)")
@@ -177,8 +167,9 @@ def main():
         headers.append("casual_company_name")
         print(f"Created column at index {casual_idx}")
 
-    # Initialize Claude client
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    # Initialize Gemini model
+    print(f"Initializing Gemini (gemini-1.5-flash)...")
+    model = genai.GenerativeModel('gemini-1.5-flash')
 
     # Collect rows to process
     print(f"\nScanning {len(rows)-1} rows for records with emails...")
@@ -225,7 +216,7 @@ def main():
 
         print(f"[{batch_start+1}-{batch_end}/{total_to_process}] Processing batch of {len(batch_names)} companies...")
 
-        casual_names = casualize_company_names_batch(batch_names, client)
+        casual_names = casualize_company_names_batch(batch_names, model)
 
         # Prepare updates for this batch
         for i, item in enumerate(batch):

@@ -154,14 +154,39 @@ export async function POST(req: NextRequest) {
     try {
         const { url } = await req.json();
 
-        // 1. Firecrawl Deep Scan (Map specific pages for "Services" detection)
-        const crawlResponse = await firecrawl.scrape(url, {
-            formats: ['markdown', 'html'],
-        }) as any;
+        // 1. Firecrawl Deep Scan (Multi-page targeted scan)
+        const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+        const targetPaths = ['', '/about', '/services', '/contact', '/products', '/blog'];
+        const targetUrls = targetPaths.map(path => `${baseUrl}${path}`);
 
-        if (!crawlResponse?.success) throw new Error("Crawl Failed");
-        const markdown = crawlResponse.markdown || "";
-        const html = crawlResponse.html || "";
+        console.log(`🔥 Starting multi-page scan for: ${baseUrl}`);
+
+        // Multi-page scrape in parallel
+        const scrapePromises = targetUrls.map(u =>
+            firecrawl.scrape(u, { formats: ['markdown', 'html'] })
+                .catch(err => {
+                    console.warn(`Scrape failed for ${u}:`, err.message);
+                    return null;
+                })
+        );
+
+        const scrapeResults = await Promise.all(scrapePromises);
+        const validResults = scrapeResults.filter(r => r && (r as any).success) as any[];
+
+        if (validResults.length === 0) throw new Error("Crawl Failed: No pages could be reached");
+
+        // Primary page is usually the first one (homepage)
+        const primaryResult = validResults[0];
+        const markdown = validResults.map(r => r.markdown || "").join("\n\n---\n\n");
+        const html = primaryResult.html || "";
+        const allPagesData = validResults.map(r => ({
+            url: r.metadata?.sourceURL || "",
+            title: r.metadata?.title || "",
+            description: r.metadata?.description || "",
+            markdown: r.markdown || ""
+        }));
+
+        console.log(`✅ Multi-page scan complete. Success on ${validResults.length}/${targetUrls.length} pages.`);
 
         // 2. Apify Social/External Scan (Google Search for Reviews/Competitors)
         let externalData: { reviews: string[], competitors: string[], error?: string } = { reviews: [], competitors: [] };
@@ -366,6 +391,9 @@ export async function POST(req: NextRequest) {
                 return w;
             }),
             recommendations: enhancedRecommendations,
+
+            // Multi-page crawl data
+            allPagesData,
 
             // Metadata
             metadata: {

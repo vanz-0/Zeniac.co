@@ -1,8 +1,8 @@
 """
-Modal webhook server for event-driven Claude orchestration.
+Modal webhook server for event-driven Gemini orchestration.
 
 Deploy: modal deploy execution/modal_webhook.py
-Logs:   modal logs claude-orchestrator
+Logs:   modal logs gemini-orchestrator
 
 Endpoints:
   GET  /test-email              - Test email (hardcoded)
@@ -27,16 +27,16 @@ from pathlib import Path
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("claude-orchestrator")
+logger = logging.getLogger("gemini-orchestrator")
 
 # Define the Modal app
-app = modal.App("claude-orchestrator")
+app = modal.App("gemini-orchestrator")
 
 # Create image with required packages and local files
 image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
-        "anthropic",
+        "google-generativeai",
         "fastapi",
         "google-auth",
         "google-auth-oauthlib",
@@ -46,18 +46,18 @@ image = (
         "gspread",
         "pandas",
         "python-dotenv",
-        "yt-dlp",  # For YouTube video scraping
+        "yt-dlp",
     )
-    .add_local_dir("/Users/nicksaraev/Example Workspace/directives", remote_path="/app/directives")
-    .add_local_dir("/Users/nicksaraev/Example Workspace/execution", remote_path="/app/execution")
-    .add_local_file("/Users/nicksaraev/Example Workspace/execution/webhooks.json", remote_path="/app/webhooks.json")
-    .add_local_file("/Users/nicksaraev/Example Workspace/.tmp/demo_kickoff_call_transcript.md", remote_path="/app/demo_kickoff_call_transcript.md")
-    .add_local_file("/Users/nicksaraev/Example Workspace/.tmp/demo_sales_call_transcript.md", remote_path="/app/demo_sales_call_transcript.md")
+    .add_local_dir(r"c:\Users\Admin\OneDrive\Desktop\Zeniac.Co\directives", remote_path="/app/directives")
+    .add_local_dir(r"c:\Users\Admin\OneDrive\Desktop\Zeniac.Co\execution", remote_path="/app/execution")
+    .add_local_file(r"c:\Users\Admin\OneDrive\Desktop\Zeniac.Co\execution\webhooks.json", remote_path="/app/webhooks.json")
+    .add_local_file(r"c:\Users\Admin\OneDrive\Desktop\Zeniac.Co\.tmp\demo_kickoff_call_transcript.md", remote_path="/app/demo_kickoff_call_transcript.md", ignore_if_missing=True)
+    .add_local_file(r"c:\Users\Admin\OneDrive\Desktop\Zeniac.Co\.tmp\demo_sales_call_transcript.md", remote_path="/app/demo_sales_call_transcript.md", ignore_if_missing=True)
 )
 
 # All secrets
 ALL_SECRETS = [
-    modal.Secret.from_name("anthropic-secret"),
+    modal.Secret.from_name("gemini-secret"),
     modal.Secret.from_name("google-token"),
     modal.Secret.from_name("env-vars"),
     modal.Secret.from_name("slack-webhook"),
@@ -88,7 +88,7 @@ ALL_TOOLS = {
     "send_email": {
         "name": "send_email",
         "description": "Send an email via Gmail.",
-        "input_schema": {
+        "parameters": {
             "type": "object",
             "properties": {
                 "to": {"type": "string", "description": "Recipient email address"},
@@ -101,7 +101,7 @@ ALL_TOOLS = {
     "read_sheet": {
         "name": "read_sheet",
         "description": "Read data from a Google Sheet. Returns all rows as a 2D array.",
-        "input_schema": {
+        "parameters": {
             "type": "object",
             "properties": {
                 "spreadsheet_id": {"type": "string", "description": "The Google Sheet ID"},
@@ -113,7 +113,7 @@ ALL_TOOLS = {
     "update_sheet": {
         "name": "update_sheet",
         "description": "Update cells in a Google Sheet.",
-        "input_schema": {
+        "parameters": {
             "type": "object",
             "properties": {
                 "spreadsheet_id": {"type": "string", "description": "The Google Sheet ID"},
@@ -126,11 +126,11 @@ ALL_TOOLS = {
     "instantly_get_emails": {
         "name": "instantly_get_emails",
         "description": "Get email conversation history from Instantly for a specific lead email address.",
-        "input_schema": {
+        "parameters": {
             "type": "object",
             "properties": {
                 "lead_email": {"type": "string", "description": "The lead's email address to search for"},
-                "limit": {"type": "integer", "description": "Max emails to return (default 10)", "default": 10}
+                "limit": {"type": "integer", "description": "Max emails to return (default 10)"}
             },
             "required": ["lead_email"]
         }
@@ -138,7 +138,7 @@ ALL_TOOLS = {
     "instantly_send_reply": {
         "name": "instantly_send_reply",
         "description": "Send a reply to an email thread in Instantly.",
-        "input_schema": {
+        "parameters": {
             "type": "object",
             "properties": {
                 "eaccount": {"type": "string", "description": "The email account to send from"},
@@ -152,7 +152,7 @@ ALL_TOOLS = {
     "web_search": {
         "name": "web_search",
         "description": "Search the web for information. Use this to research people, companies, products, or any unfamiliar terms.",
-        "input_schema": {
+        "parameters": {
             "type": "object",
             "properties": {
                 "query": {"type": "string", "description": "The search query"}
@@ -163,7 +163,7 @@ ALL_TOOLS = {
     "web_fetch": {
         "name": "web_fetch",
         "description": "Fetch and read content from a specific URL. Returns the text content of the page.",
-        "input_schema": {
+        "parameters": {
             "type": "object",
             "properties": {
                 "url": {"type": "string", "description": "The URL to fetch"}
@@ -174,7 +174,7 @@ ALL_TOOLS = {
     "create_proposal": {
         "name": "create_proposal",
         "description": "Create a PandaDoc proposal document from structured client and project data. Returns document ID and URL.",
-        "input_schema": {
+        "parameters": {
             "type": "object",
             "properties": {
                 "client": {
@@ -651,7 +651,7 @@ PROCEDURAL_SCRIPTS = {
 def run_procedural_script(script_name: str, payload: dict, token_data: dict) -> dict:
     """
     Execute a procedural Python script.
-    Scripts are deterministic - Claude is only called for specific creative tasks within.
+    Scripts are deterministic - Gemini is only called for specific creative tasks within.
     """
     import importlib.util
     import sys
@@ -707,10 +707,10 @@ def run_directive(
     token_data: dict,
     max_turns: int = 15
 ) -> dict:
-    """Execute a directive with scoped tools."""
-    import anthropic
+    """Execute a directive with scoped tools using Gemini."""
+    import google.generativeai as genai
 
-    client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
     # Build prompt with directive + input
     prompt = f"""You are executing a specific directive. Follow it precisely.
@@ -728,12 +728,13 @@ def run_directive(
 
 Execute the directive now."""
 
-    # Filter tools to only allowed ones
+    # Filter tools to only allowed ones and format for Gemini
     tools = [ALL_TOOLS[t] for t in allowed_tools if t in ALL_TOOLS]
 
-    messages = [{"role": "user", "content": prompt}]
+    model = genai.GenerativeModel('gemini-1.5-pro', tools=tools)
+    chat = model.start_chat()
+
     conversation_log = []
-    thinking_log = []
     total_input_tokens = 0
     total_output_tokens = 0
     turn_count = 0
@@ -741,84 +742,68 @@ Execute the directive now."""
     logger.info(f"🎯 Executing directive: {slug}")
     slack_directive_start(slug, slug, input_data)
 
-    request_kwargs = {
-        "model": "claude-opus-4-5-20251101",
-        "max_tokens": 40000,
-        "tools": tools,
-        "messages": messages,
-        "thinking": {"type": "enabled", "budget_tokens": 32000}
-    }
+    response = chat.send_message(prompt)
+    total_input_tokens += response.usage_metadata.prompt_token_count
+    total_output_tokens += response.usage_metadata.candidates_token_count
 
-    response = client.messages.create(**request_kwargs)
-    total_input_tokens += response.usage.input_tokens
-    total_output_tokens += response.usage.output_tokens
-
-    while response.stop_reason == "tool_use" and turn_count < max_turns:
+    while response.candidates[0].content.parts[0].function_call and turn_count < max_turns:
         turn_count += 1
+        
+        tool_results = []
+        for part in response.candidates[0].content.parts:
+            if fn := part.function_call:
+                tool_name = fn.name
+                tool_input = dict(fn.args)
 
-        # Process thinking
-        for block in response.content:
-            if block.type == "thinking":
-                thinking_log.append({"turn": turn_count, "thinking": block.thinking})
-                slack_thinking(turn_count, block.thinking)
-
-        # Find tool call
-        tool_use = next((b for b in response.content if b.type == "tool_use"), None)
-        if not tool_use:
-            break
-
-        # Security check: only execute allowed tools
-        if tool_use.name not in allowed_tools:
-            tool_result = json.dumps({"error": f"Tool '{tool_use.name}' not permitted for this directive"})
-            is_error = True
-        else:
-            slack_tool_call(turn_count, tool_use.name, tool_use.input)
-            conversation_log.append({"turn": turn_count, "tool": tool_use.name, "input": tool_use.input})
-
-            # Execute tool
-            is_error = False
-            try:
-                impl = TOOL_IMPLEMENTATIONS.get(tool_use.name)
-                if impl:
-                    # Add token_data for tools that need it
-                    if tool_use.name in TOOLS_NEEDING_TOKEN:
-                        result = impl(**tool_use.input, token_data=token_data)
-                    else:
-                        result = impl(**tool_use.input)
-                    tool_result = json.dumps(result)
-                else:
-                    tool_result = json.dumps({"error": f"No implementation for {tool_use.name}"})
+                # Security check: only execute allowed tools
+                if tool_name not in allowed_tools:
+                    result = {"error": f"Tool '{tool_name}' not permitted for this directive"}
                     is_error = True
-            except Exception as e:
-                logger.error(f"Tool error: {e}")
-                tool_result = json.dumps({"error": str(e)})
-                is_error = True
+                else:
+                    slack_tool_call(turn_count, tool_name, tool_input)
+                    conversation_log.append({"turn": turn_count, "tool": tool_name, "input": tool_input})
 
-            conversation_log[-1]["result"] = tool_result
-            slack_tool_result(turn_count, tool_use.name, tool_result, is_error)
+                    # Execute tool
+                    is_error = False
+                    try:
+                        impl = TOOL_IMPLEMENTATIONS.get(tool_name)
+                        if impl:
+                            # Add token_data for tools that need it
+                            if tool_name in TOOLS_NEEDING_TOKEN:
+                                result = impl(**tool_input, token_data=token_data)
+                            else:
+                                result = impl(**tool_input)
+                        else:
+                            result = {"error": f"No implementation for {tool_name}"}
+                            is_error = True
+                    except Exception as e:
+                        logger.error(f"Tool error: {e}")
+                        result = {"error": str(e)}
+                        is_error = True
 
-        # Continue conversation
-        messages.append({"role": "assistant", "content": response.content})
-        messages.append({"role": "user", "content": [{"type": "tool_result", "tool_use_id": tool_use.id, "content": tool_result}]})
+                    conversation_log[-1]["result"] = json.dumps(result)
+                    slack_tool_result(turn_count, tool_name, json.dumps(result), is_error)
 
-        response = client.messages.create(**{**request_kwargs, "messages": messages})
-        total_input_tokens += response.usage.input_tokens
-        total_output_tokens += response.usage.output_tokens
+                tool_results.append(genai.protos.Part(
+                    function_response=genai.protos.FunctionResponse(
+                        name=tool_name,
+                        response=result
+                    )
+                ))
+
+        response = chat.send_message(tool_results)
+        total_input_tokens += response.usage_metadata.prompt_token_count
+        total_output_tokens += response.usage_metadata.candidates_token_count
 
     # Extract final response
-    final_text = ""
-    for block in response.content:
-        if hasattr(block, "text"):
-            final_text += block.text
-        if block.type == "thinking":
-            thinking_log.append({"turn": "final", "thinking": block.thinking})
+    final_text = response.text
 
     usage = {"input_tokens": total_input_tokens, "output_tokens": total_output_tokens, "turns": turn_count}
     slack_complete(final_text, usage)
 
     return {
         "response": final_text,
-        "thinking": thinking_log,
+        "thinking": [], # Gemini handle internally
         "conversation": conversation_log,
         "usage": usage
     }
@@ -835,8 +820,8 @@ def directive(slug: str, payload: dict = None):
     Execute a specific directive by slug.
 
     Supports two modes:
-    - Procedural: "script" in config → runs Python script directly (Claude only for creative tasks)
-    - Agentic: "directive" in config → Claude orchestrates using tools
+    - Procedural: "script" in config → runs Python script directly (Gemini only for creative tasks)
+    - Agentic: "directive" in config → Gemini orchestrates using tools
 
     URL: POST /directive?slug={slug}
     Body: {"data": {...}}  (input data for the directive)
@@ -888,7 +873,7 @@ def directive(slug: str, payload: dict = None):
             return {"status": "error", "error": str(e)}
 
     # =========================================================================
-    # AGENTIC MODE: Claude orchestrates using directive + tools
+    # AGENTIC MODE: Gemini orchestrates using directive + tools
     # =========================================================================
     if directive_name:
         allowed_tools = webhook_config.get("tools", ["send_email"])
@@ -1109,10 +1094,10 @@ def call_claude(client, **kwargs) -> tuple:
 @modal.fastapi_endpoint(method="GET")
 def general_agent(query: str = "", format: str = "json"):
     """
-    General-purpose autonomous agent endpoint.
+    General-purpose autonomous agent endpoint using Gemini.
     GET /general-agent?query=Send an email to nick@leftclick.ai
     """
-    import anthropic
+    import google.generativeai as genai
     from fastapi.responses import JSONResponse
 
     # No query = return status
@@ -1126,9 +1111,11 @@ def general_agent(query: str = "", format: str = "json"):
     slack_notify(f"🤖 *Agent Request*\n```{query[:500]}```")
 
     # Get API key
-    api_key = os.getenv("ANTHROPIC_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        return JSONResponse({"error": "ANTHROPIC_API_KEY not set"}, status_code=500)
+        return JSONResponse({"error": "GEMINI_API_KEY not set"}, status_code=500)
+    
+    genai.configure(api_key=api_key)
 
     # Get Google token
     try:
@@ -1136,77 +1123,69 @@ def general_agent(query: str = "", format: str = "json"):
     except:
         token_data = {}
 
-    # Build system prompt
-    system = """You are an autonomous agent. Complete tasks directly.
+    # Gemini uses system instruction in the model constructor
+    system_instruction = """You are an autonomous agent. Complete tasks directly.
 
-Tools available:
-- send_email: Send email. Params: to, subject, body
-- read_sheet: Read Google Sheet. Params: spreadsheet_id, range
-- update_sheet: Write to sheet. Params: spreadsheet_id, range, values
-- list_directives: See available workflows
-- read_directive: Read a directive. Params: name
-
+Available tools include email sending, sheet reading/writing, and workflow listing.
 Be concise. Complete tasks fully."""
 
-    tools = list(AGENT_TOOLS.values())
-    messages = [{"role": "user", "content": query}]
+    # Map AGENT_TOOLS to Gemini format
+    tools = []
+    for t_name, t_cfg in AGENT_TOOLS.items():
+        tools.append({
+            "name": t_name,
+            "description": t_cfg["description"],
+            "parameters": t_cfg.get("parameters", t_cfg.get("input_schema", {}))
+        })
 
-    client = anthropic.Anthropic(api_key=api_key)
+    model = genai.GenerativeModel('gemini-1.5-pro', 
+                                 system_instruction=system_instruction,
+                                 tools=tools)
+    
+    chat = model.start_chat()
     conversation = []
 
     try:
         # Initial call
-        response = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=4096,
-            system=system,
-            tools=tools,
-            messages=messages
-        )
+        response = chat.send_message(query)
 
         # Agentic loop
         turns = 0
         max_turns = 10
 
-        while response.stop_reason == "tool_use" and turns < max_turns:
+        while response.candidates[0].content.parts[0].function_call and turns < max_turns:
             turns += 1
             tool_results = []
 
-            for block in response.content:
-                if block.type == "tool_use":
-                    slack_notify(f"🔧 *Tool: {block.name}*")
+            for part in response.candidates[0].content.parts:
+                if fn := part.function_call:
+                    tool_name = fn.name
+                    tool_input = dict(fn.args)
+                    
+                    slack_notify(f"🔧 *Tool: {tool_name}*")
 
                     try:
-                        result = run_agent_tool(block.name, block.input, token_data)
+                        result = run_agent_tool(tool_name, tool_input, token_data)
                         result_str = json.dumps(result) if isinstance(result, (dict, list)) else str(result)
                         slack_notify(f"✅ Success: {result_str[:200]}")
                     except Exception as e:
-                        result_str = json.dumps({"error": str(e)})
+                        result = {"error": str(e)}
+                        result_str = json.dumps(result)
                         slack_notify(f"❌ Error: {str(e)}")
 
-                    conversation.append({"tool": block.name, "result": result_str[:500]})
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": result_str[:10000]
-                    })
+                    conversation.append({"tool": tool_name, "result": result_str[:500]})
+                    
+                    tool_results.append(genai.protos.Part(
+                        function_response=genai.protos.FunctionResponse(
+                            name=tool_name,
+                            response=result
+                        )
+                    ))
 
-            messages.append({"role": "assistant", "content": response.content})
-            messages.append({"role": "user", "content": tool_results})
-
-            response = client.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=4096,
-                system=system,
-                tools=tools,
-                messages=messages
-            )
+            response = chat.send_message(tool_results)
 
         # Extract final text
-        final = ""
-        for block in response.content:
-            if hasattr(block, "text"):
-                final += block.text
+        final = response.text
 
         slack_notify(f"🏁 *Done*\n{final[:500]}")
 
@@ -1219,6 +1198,7 @@ Be concise. Complete tasks fully."""
         })
 
     except Exception as e:
+        logger.error(f"Agent error: {e}")
         slack_notify(f"💥 *Error*: {str(e)}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -1601,11 +1581,12 @@ def scrape_leads_background(query: str, location: str, limit: int, sheet_id: str
         # ===== STEP 4: Casualize first names, company names, and cities =====
         slack_notify(f"✨ *Step 4/4: Casualizing names (first, company, city)*")
 
-        anthropic_key = os.getenv("ANTHROPIC_API_KEY")
-        if not anthropic_key:
-            slack_notify("⚠️ ANTHROPIC_API_KEY not configured, skipping casualization")
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        if not gemini_key:
+            slack_notify("⚠️ GEMINI_API_KEY not configured, skipping casualization")
         else:
-            claude_client = anthropic.Anthropic(api_key=anthropic_key)
+            genai.configure(api_key=gemini_key)
+            model = genai.GenerativeModel('gemini-1.5-flash')
 
             # Re-fetch data
             all_data = worksheet.get_all_values()
@@ -1619,7 +1600,7 @@ def scrape_leads_background(query: str, location: str, limit: int, sheet_id: str
             casual_company_col = header_row.index("casual_company_name") if "casual_company_name" in header_row else -1
             casual_city_col = header_row.index("casual_city_name") if "casual_city_name" in header_row else -1
 
-            # Batch process 50 at a time (like casualize_batch.py)
+            # Batch process 50 at a time
             BATCH_SIZE = 50
             data_rows = all_data[1:]
             total_batches = (len(data_rows) + BATCH_SIZE - 1) // BATCH_SIZE
@@ -1661,17 +1642,14 @@ Input: {records_json}
 Output JSON only (no markdown, no explanations):"""
 
                 try:
-                    msg = claude_client.messages.create(
-                        model="claude-3-5-haiku-20241022",
-                        max_tokens=6000,
-                        messages=[{"role": "user", "content": prompt}]
-                    )
-                    response_text = msg.content[0].text.strip()
+                    response = model.generate_content(prompt)
+                    response_text = response.text.strip()
 
                     # Remove markdown code blocks if present
-                    if response_text.startswith("```"):
-                        lines = response_text.split('\n')
-                        response_text = '\n'.join(lines[1:-1])
+                    if "```json" in response_text:
+                        response_text = response_text.split("```json")[1].split("```")[0].strip()
+                    elif "```" in response_text:
+                        response_text = response_text.split("```")[1].split("```")[0].strip()
 
                     # Parse JSON response
                     results_json = json.loads(response_text)
@@ -1980,7 +1958,7 @@ def create_proposal_from_transcript(transcript: str = "sales", demo: bool = True
 
     This endpoint:
     1. Reads the demo transcript (stored locally on Modal)
-    2. Uses Claude to extract client info and generate expanded problems/benefits
+    2. Uses Gemini to extract client info and generate expanded problems/benefits
     3. Creates a PandaDoc proposal with all the details
 
     Parameters:
@@ -2012,12 +1990,13 @@ def create_proposal_from_transcript(transcript: str = "sales", demo: bool = True
 
         slack_notify(f"📝 *Step 1/3: Transcript loaded*\n{len(transcript_content)} characters")
 
-        # Step 2: Use Claude to extract info and generate expanded content
-        anthropic_key = os.getenv("ANTHROPIC_API_KEY")
-        if not anthropic_key:
-            raise ValueError("ANTHROPIC_API_KEY not configured")
+        # Step 2: Use Gemini to extract info and generate expanded content
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        if not gemini_key:
+            raise ValueError("GEMINI_API_KEY not configured")
 
-        client = anthropic.Anthropic(api_key=anthropic_key)
+        genai.configure(api_key=gemini_key)
+        model = genai.GenerativeModel('gemini-1.5-pro')
 
         extraction_prompt = f"""Analyze this sales call transcript and extract the following information. Return ONLY valid JSON.
 
@@ -2065,18 +2044,14 @@ RULES for benefits:
 
 Return ONLY the JSON, no markdown code blocks or explanations."""
 
-        msg = client.messages.create(
-            model="claude-opus-4-5-20251101",
-            max_tokens=4000,
-            messages=[{"role": "user", "content": extraction_prompt}]
-        )
-
-        response_text = msg.content[0].text.strip()
+        response = model.generate_content(extraction_prompt)
+        response_text = response.text.strip()
 
         # Remove markdown code blocks if present
-        if response_text.startswith("```"):
-            lines = response_text.split('\n')
-            response_text = '\n'.join(lines[1:-1])
+        if "```json" in response_text:
+            response_text = response_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in response_text:
+            response_text = response_text.split("```")[1].split("```")[0].strip()
 
         extracted_data = json.loads(response_text)
 
@@ -2155,7 +2130,7 @@ Return ONLY the JSON, no markdown code blocks or explanations."""
 
     except json.JSONDecodeError as e:
         logger.error(f"JSON parse error: {e}")
-        slack_error(f"Failed to parse Claude response: {str(e)}")
+        slack_error(f"Failed to parse Gemini response: {str(e)}")
         return JSONResponse({
             "status": "error",
             "error": f"Failed to parse extracted data: {str(e)}",
@@ -2271,8 +2246,8 @@ def fetch_youtube_transcript(video_id, apify_client):
         return None
 
 
-def summarize_youtube_transcript(text, anthropic_client):
-    """Summarize transcript using Claude Sonnet 4.5."""
+def summarize_youtube_transcript(text, model):
+    """Summarize transcript using Gemini."""
     prompt = f"""Analyze this YouTube video transcript and provide a summary for a content creator.
 
 Transcript: {text[:100000]}
@@ -2286,14 +2261,8 @@ Output Format (plain text, no markdown):
 Do not use any markdown formatting (no asterisks, no bullet points, no headers with #). Just plain text with numbered sections."""
 
     try:
-        message = anthropic_client.messages.create(
-            model="claude-sonnet-4-5-20250929",
-            max_tokens=1000,
-            temperature=0.7,
-            system="You are an expert YouTube strategist.",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        return message.content[0].text
+        response = model.generate_content(prompt)
+        return response.text
     except Exception as e:
         return f"Error summarizing: {e}"
 
@@ -2501,7 +2470,7 @@ def youtube_outliers(
                 "2. Fetching channel statistics",
                 "3. Calculating outlier scores",
                 "4. Fetching transcripts via Apify",
-                "5. Summarizing with Claude",
+                "5. Summarizing with Gemini",
                 "6. Uploading to Google Sheet"
             ]
         }, status_code=201)
@@ -2514,7 +2483,7 @@ def youtube_outliers(
 
 @app.local_entrypoint()
 def main():
-    print("Modal Claude Orchestrator - Directive Edition")
+    print("Modal Gemini Orchestrator - Directive Edition")
     print("=" * 50)
     print("Deploy:  modal deploy execution/modal_webhook.py")
     print("Logs:    modal logs claude-orchestrator")

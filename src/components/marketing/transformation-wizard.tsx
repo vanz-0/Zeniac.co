@@ -91,17 +91,22 @@ export function TransformationWizard({ open, onOpenChange }: WizardProps) {
             if (step === "preview" && analysisData && mounted) {
                 setGeneratingPdf(true);
                 try {
+                    console.log("Starting PDF generation for preview...");
                     const blob = await pdf(
                         <AuditPDF
                             analysis={analysisData}
                             website={formData.website}
+                            name={formData.name}
+                            email={formData.email}
                             reportDate={new Date().toLocaleDateString()}
                         />
                     ).toBlob();
+                    console.log("PDF generated successfully as Blob. Size:", blob.size);
                     const url = URL.createObjectURL(blob);
                     setPreviewUrl(url);
+                    console.log("Preview URL set successfully.");
                 } catch (e) {
-                    console.error("PDF Generation failed", e);
+                    console.error("PDF Generation failed at component level:", e);
                 } finally {
                     setGeneratingPdf(false);
                 }
@@ -582,12 +587,27 @@ export function TransformationWizard({ open, onOpenChange }: WizardProps) {
                                         </p>
                                     </div>
                                 </div>
-                                <Button
-                                    onClick={() => onOpenChange(false)}
-                                    className="bg-white/10 text-white hover:bg-white/20 mt-4"
-                                >
-                                    Return to Site
-                                </Button>
+                                <div className="flex flex-col gap-3 w-full mt-6">
+                                    <Button
+                                        asChild
+                                        className="bg-zeniac-gold text-black hover:bg-zeniac-gold/90 font-bold h-12"
+                                    >
+                                        <a
+                                            href={`https://calendly.com/zeniac-dominance?name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&a1=${encodeURIComponent(formData.website)}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            BOOK DISCOVERY CALL <ArrowRight className="ml-2 w-4 h-4" />
+                                        </a>
+                                    </Button>
+                                    <Button
+                                        onClick={() => onOpenChange(false)}
+                                        variant="ghost"
+                                        className="text-gray-400 hover:text-white"
+                                    >
+                                        Return to Site
+                                    </Button>
+                                </div>
                             </div>
                         </StepContainer>
                     )}

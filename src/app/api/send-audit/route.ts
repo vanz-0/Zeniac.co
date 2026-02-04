@@ -18,7 +18,7 @@ if (BREVO_API_KEY) {
 }
 
 // Professional branded HTML email template
-const getEmailHTML = (name: string, website: string, analysis: any): string => {
+const getEmailHTML = (name: string, email: string, website: string, analysis: any): string => {
   const score = analysis?.score || 0;
   const scoreColor = score >= 80 ? '#16a34a' : score >= 60 ? '#D4AF37' : score >= 40 ? '#ea580c' : '#dc2626';
   const topIssues = (analysis?.weaknesses || analysis?.inferredPainPoints || []).slice(0, 3);
@@ -68,7 +68,7 @@ const getEmailHTML = (name: string, website: string, analysis: any): string => {
           </tr>
           <tr>
             <td style="padding: 30px 30px 40px; text-align: center;">
-              <a href="https://calendly.com/zeniac-strategy/consultation" style="display: inline-block; background-color: #D4AF37; color: #000000; text-decoration: none; padding: 16px 40px; border-radius: 4px; font-weight: 700; font-size: 16px; letter-spacing: 0.5px; text-transform: uppercase;">
+              <a href="https://calendly.com/zeniac-dominance?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&a1=${encodeURIComponent(website)}" style="display: inline-block; background-color: #D4AF37; color: #000000; text-decoration: none; padding: 16px 40px; border-radius: 4px; font-weight: 700; font-size: 16px; letter-spacing: 0.5px; text-transform: uppercase;">
                 Book Strategy Call
               </a>
             </td>
@@ -105,6 +105,8 @@ export async function POST(req: NextRequest) {
         React.createElement(AuditPDF, {
           analysis,
           website,
+          name,
+          email,
           reportDate: new Date().toLocaleDateString()
         }) as any
       );
@@ -131,7 +133,7 @@ export async function POST(req: NextRequest) {
         sender: { name: SENDER_NAME, email: SENDER_EMAIL },
         to: [{ email: email, name: name }],
         subject: `🚨 Intelligence Report: ${website} (Score: ${analysis?.score || 0}/100)`,
-        htmlContent: getEmailHTML(name, website, analysis),
+        htmlContent: getEmailHTML(name, email, website, analysis),
         attachment: [
           {
             content: pdfBase64,

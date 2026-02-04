@@ -6,6 +6,10 @@ import { BentoGrid } from "@/components/marketing/bento-grid";
 import RadialOrbitalTimeline from "@/components/marketing/orbital-process";
 import { MinimalFooter } from "@/components/marketing/footer";
 import { Pricing } from "@/components/marketing/pricing";
+import { Reviews } from "@/components/marketing/reviews";
+import { Portfolio } from "@/components/marketing/portfolio";
+import { FAQ } from "@/components/marketing/faq";
+import { PreFooterCTA } from "@/components/marketing/pre-footer-cta";
 import { Brain, Lightbulb, PenTool, Rocket, Search, Settings } from "lucide-react";
 
 const processData = [
@@ -90,7 +94,10 @@ export default function Home() {
           <BentoGrid />
         </div>
 
+        <Portfolio />
         <Pricing />
+
+        <Reviews />
 
         <section id="process" className="relative py-24 min-h-screen flex flex-col items-center justify-center">
           <div className="container mx-auto px-4 text-center mb-8 relative z-20">
@@ -103,6 +110,9 @@ export default function Home() {
           </div>
           <RadialOrbitalTimeline timelineData={processData} />
         </section>
+
+        <FAQ />
+        <PreFooterCTA />
 
         <MinimalFooter />
       </div>

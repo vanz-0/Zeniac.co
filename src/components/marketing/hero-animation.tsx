@@ -21,8 +21,8 @@ import { TransformationWizard } from "@/components/marketing/transformation-wiza
 const navigationItems = [
     { title: "SOLUTIONS", href: "#solutions" },
     { title: "PROCESS", href: "#process" },
-    { title: "RESULTS", href: "#results" },
-    { title: "CONTACT", href: "#contact" },
+    { title: "FAQ", href: "#faq" },
+    { title: "CONTACT", href: "mailto:hello@zeniac.co" },
 ];
 
 const labels = [
@@ -117,6 +117,15 @@ export function HeroAnimation() {
                     <div className="flex items-center space-x-4">
                         <ThemeToggle />
                         <Button
+                            variant="outline"
+                            asChild
+                            className="rounded-none hidden md:inline-flex border-zeniac-gold text-zeniac-gold hover:bg-zeniac-gold hover:text-zeniac-black font-mono font-bold"
+                        >
+                            <a href="https://calendly.com/zeniac-dominance" target="_blank" rel="noopener noreferrer">
+                                BOOK A CALL
+                            </a>
+                        </Button>
+                        <Button
                             variant="default"
                             onClick={() => setWizardOpen(true)}
                             className="rounded-none hidden md:inline-flex bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-mono font-bold"
@@ -147,6 +156,15 @@ export function HeroAnimation() {
                                             {item.title}
                                         </a>
                                     ))}
+                                    <Button
+                                        asChild
+                                        className="cursor-pointer rounded-none border-zeniac-gold text-zeniac-gold hover:bg-zeniac-gold hover:text-zeniac-black font-mono w-full"
+                                        variant="outline"
+                                    >
+                                        <a href="https://calendly.com/zeniac-dominance" target="_blank" rel="noopener noreferrer">
+                                            BOOK A CALL
+                                        </a>
+                                    </Button>
                                     <Button
                                         onClick={() => setWizardOpen(true)}
                                         className="cursor-pointer rounded-none bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-mono w-full"
@@ -231,13 +249,24 @@ export function HeroAnimation() {
                                 stiffness: 100,
                                 damping: 10
                             }}
+                            className="mt-12 flex flex-wrap justify-center gap-6"
                         >
                             <Button
                                 size="lg"
                                 onClick={() => setWizardOpen(true)}
-                                className="cursor-pointer rounded-none mt-12 bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-mono text-lg px-8 py-6"
+                                className="cursor-pointer rounded-none bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-mono text-lg px-8 py-6"
                             >
                                 TRANSFORM YOUR BUSINESS <ArrowRight className="ml-2 w-5 h-5" />
+                            </Button>
+                            <Button
+                                size="lg"
+                                variant="outline"
+                                asChild
+                                className="cursor-pointer rounded-none border-zeniac-gold text-zeniac-gold hover:bg-zeniac-gold hover:text-zeniac-black font-mono text-lg px-8 py-6"
+                            >
+                                <a href="https://calendly.com/zeniac-dominance" target="_blank" rel="noopener noreferrer">
+                                    BOOK DISCOVERY CALL <ArrowRight className="ml-2 w-5 h-5" />
+                                </a>
                             </Button>
                         </motion.div>
                     </div>

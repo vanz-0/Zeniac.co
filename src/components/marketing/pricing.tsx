@@ -9,8 +9,8 @@ const tiers = [
     {
         name: "The 'Taste'",
         id: "taste",
-        href: "#contact",
-        price: "FREE",
+        href: "https://calendly.com/zeniac-dominance",
+        price: { KES: "FREE", USD: "FREE" },
         description: "For skeptical owners who need to see value first.",
         features: [
             "Social Audit (3 actionable improvements)",
@@ -26,8 +26,8 @@ const tiers = [
     {
         name: "The 'Hustle'",
         id: "hustle",
-        href: "#contact",
-        price: "KES 15K - 25K",
+        href: "https://calendly.com/zeniac-dominance",
+        price: { KES: "15K - 25K", USD: "120 - 200" },
         description: "Entry level for Startups & Small Businesses.",
         features: [
             "Social Media: 3 Platforms (IG, FB, TikTok)",
@@ -44,8 +44,8 @@ const tiers = [
     {
         name: "The 'Zenith'",
         id: "zenith",
-        href: "#contact",
-        price: "KES 30K - 50K",
+        href: "https://calendly.com/zeniac-dominance",
+        price: { KES: "30K - 50K", USD: "240 - 400" },
         description: "Growth & Automation for scaling businesses.",
         features: [
             "All Platforms (IG, FB, TikTok, X, LinkedIn, YouTube)",
@@ -62,8 +62,8 @@ const tiers = [
     {
         name: "The 'Brainiac'",
         id: "brainiac",
-        href: "#contact",
-        price: "CUSTOM",
+        href: "https://calendly.com/zeniac-dominance",
+        price: { KES: "CUSTOM", USD: "CUSTOM" },
         description: "Complete digital transformation & high-end storytelling.",
         features: [
             "Everything in Zenith + Premium Execution",
@@ -90,18 +90,33 @@ const addons = [
 ];
 
 export function Pricing() {
-    const [isAnnual, setIsAnnual] = useState(false);
+    const [currency, setCurrency] = useState<"KES" | "USD">("KES");
 
     return (
         <section className="py-24 relative overflow-hidden" id="pricing">
             <div className="container px-4 md:px-6 mx-auto relative z-10">
-                <div className="text-center max-w-3xl mx-auto mb-16">
+                <div className="text-center max-w-3xl mx-auto mb-12">
                     <h2 className="text-3xl md:text-5xl font-typewriter font-black text-zeniac-white mb-6">
                         INVEST IN <span className="text-zeniac-gold">DOMINANCE</span>
                     </h2>
-                    <p className="text-muted-foreground font-mono text-lg">
+                    <p className="text-muted-foreground font-mono text-lg mb-10">
                         Contract-based pricing determined by your specific goals. No hidden fees, just results.
                     </p>
+
+                    {/* Currency Toggle */}
+                    <div className="flex items-center justify-center gap-4 mb-8">
+                        <span className={cn("text-sm font-mono transition-colors", currency === "KES" ? "text-zeniac-gold" : "text-muted-foreground")}>KES</span>
+                        <button
+                            onClick={() => setCurrency(prev => prev === "KES" ? "USD" : "KES")}
+                            className="relative w-14 h-7 rounded-full bg-zeniac-charcoal border border-white/10 p-1 transition-colors hover:border-zeniac-gold/50"
+                        >
+                            <motion.div
+                                animate={{ x: currency === "KES" ? 0 : 28 }}
+                                className="w-5 h-5 rounded-full bg-zeniac-gold shadow-[0_0_10px_rgba(255,215,0,0.5)]"
+                            />
+                        </button>
+                        <span className={cn("text-sm font-mono transition-colors", currency === "USD" ? "text-zeniac-gold" : "text-muted-foreground")}>USD</span>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-7xl mx-auto mb-16">
@@ -132,9 +147,12 @@ export function Pricing() {
 
                             <div className="mb-6">
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-3xl font-bold text-zeniac-gold font-mono">{tier.price}</span>
+                                    <span className="text-sm font-mono text-zeniac-gold mr-1">{currency === "KES" ? "KES" : "$"}</span>
+                                    <span className="text-3xl font-bold text-zeniac-gold font-mono">
+                                        {tier.price[currency]}
+                                    </span>
                                 </div>
-                                {tier.price !== "FREE" && tier.price !== "CUSTOM" && (
+                                {tier.price.KES !== "FREE" && tier.price.KES !== "CUSTOM" && (
                                     <p className="text-xs text-muted-foreground mt-1">Contract Based</p>
                                 )}
                             </div>

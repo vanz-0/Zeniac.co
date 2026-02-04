@@ -12,9 +12,15 @@ import argparse
 from datetime import datetime
 from dotenv import load_dotenv
 from apify_client import ApifyClient
+import google.generativeai as genai
 
 # Load environment variables
 load_dotenv()
+
+# Configure Gemini
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 
 def analyze_google_my_business(business_name, location):
     """
@@ -163,6 +169,35 @@ def calculate_social_score(google_data, facebook_data, linkedin_data):
     
     return min(score, 100)
 
+def generate_strategic_intelligence(data):
+    """
+    Use Gemini to generate a strategic intelligence brief based on social data.
+    """
+    if not GEMINI_API_KEY:
+        return "Gemini API Key missing. Strategic insights could not be generated."
+
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    
+    prompt = f"""
+    Analyze this social media presence data for a business and provide a 3-paragraph "Strategic Intelligence Brief".
+    
+    Data:
+    {json.dumps(data, indent=2)}
+    
+    Format your response as follows:
+    1. CURRENT STATE: A blunt assessment of their visibility and dominance.
+    2. THE GAP: What they are losing by not being number one in their local market.
+    3. DOMINANCE PATH: 3 specific steps Zeniac should take to fix this.
+    
+    Tone: Professional, aggressive, strategic, and focused on "Dominance" and "Speed is Currency".
+    """
+    
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"Error generating intelligence: {str(e)}"
+
 def analyze_social_presence(business_name, location=""):
     """
     Main function to aggregate all social media data.
@@ -199,6 +234,16 @@ def analyze_social_presence(business_name, location=""):
     
     avg_rating = sum(ratings) / len(ratings) if ratings else 0
     
+    # Generate Gemini Intelligence
+    intelligence = generate_strategic_intelligence({
+        "business": business_name,
+        "location": location,
+        "google": google_data,
+        "facebook": facebook_data,
+        "linkedin": linkedin_data,
+        "score": social_score
+    })
+    
     result = {
         "business_name": business_name,
         "location": location,
@@ -206,6 +251,7 @@ def analyze_social_presence(business_name, location=""):
         "google_my_business": google_data,
         "facebook": facebook_data,
         "linkedin": linkedin_data,
+        "strategic_intelligence": intelligence,
         "aggregate": {
             "total_reviews": total_reviews,
             "average_rating": round(avg_rating, 2),
@@ -254,6 +300,10 @@ def main():
     print(f"Total Reviews: {results['aggregate']['total_reviews']}")
     print(f"Average Rating: {results['aggregate']['average_rating']:.1f}/5.0")
     print(f"Total Social Followers: {results['aggregate']['total_followers']:,}")
+    print("=" * 60)
+    print("\n🧠 STRATEGIC INTELLIGENCE BRIEF")
+    print("-" * 60)
+    print(results['strategic_intelligence'])
     print("=" * 60)
     
     # Save to file

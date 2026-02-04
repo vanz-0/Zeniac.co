@@ -2,14 +2,16 @@ import os
 import sys
 import gspread
 import argparse
-import anthropic
+import google.generativeai as genai
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 
 # Load environment variables
 load_dotenv()
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 BATCH_SIZE = 30  # Process 30 cities per API call
 
 def get_sheet_id_from_url(url):
@@ -29,8 +31,8 @@ def column_letter(n):
         n = n // 26 - 1
     return result
 
-def casualize_city_names_batch(city_names, client):
-    """Use Claude to convert multiple city names at once."""
+def casualize_city_names_batch(city_names, model):
+    """Use Gemini to convert multiple city names at once."""
     if not city_names:
         return []
 
@@ -46,22 +48,6 @@ Rules:
 - Remove unnecessary words like "City of", "Greater", etc.
 - Keep it natural and friendly
 
-Examples:
-- "San Francisco" → "SF"
-- "Los Angeles" → "LA"
-- "New York" → "NYC"
-- "Philadelphia" → "Philly"
-- "Indianapolis" → "Indy"
-- "Minneapolis" → "Minneapolis" (no common nickname)
-- "Saint Louis" → "St. Louis"
-- "Fort Worth" → "Fort Worth"
-- "Boston" → "Boston" (already casual)
-- "Washington" → "DC"
-- "Las Vegas" → "Vegas"
-- "New Orleans" → "NOLA"
-- "San Antonio" → "San Antonio"
-- "Pittsburgh" → "Pittsburgh"
-
 City names to convert:
 {city_list}
 
@@ -73,12 +59,8 @@ Example output:
 4. Boston"""
 
     try:
-        message = client.messages.create(
-            model="claude-3-5-haiku-20241022",
-            max_tokens=1000,
-            messages=[{"role": "user", "content": prompt}]
-        )
-        response_text = message.content[0].text.strip()
+        response = model.generate_content(prompt)
+        response_text = response.text.strip()
 
         # Parse the numbered list response
         casual_names = []
@@ -87,12 +69,13 @@ Example output:
             if not line:
                 continue
             # Remove number prefix (e.g., "1. " or "1) ")
-            if '. ' in line:
-                casual_name = line.split('. ', 1)[1]
-            elif ') ' in line:
-                casual_name = line.split(') ', 1)[1]
+            import re
+            m = re.match(r'^\d+[\.\)]\s*(.*)', line)
+            if m:
+                casual_name = m.group(1)
             else:
                 casual_name = line
+            
             # Remove quotes if present
             casual_name = casual_name.strip('"').strip("'")
             casual_names.append(casual_name)
@@ -107,7 +90,7 @@ Example output:
         return casual_names
     except Exception as e:
         print(f"  ! API Error: {e}")
-        return city_names  # Return originals if error
+        return city_names
 
 def main():
     parser = argparse.ArgumentParser(description="Casualize city names for cold email (batched)")
@@ -166,8 +149,9 @@ def main():
         headers.append("casual_city_name")
         print(f"Created column at index {casual_idx}")
 
-    # Initialize Claude client
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    # Initialize Gemini model
+    print(f"Initializing Gemini (gemini-1.5-flash)...")
+    model = genai.GenerativeModel('gemini-1.5-flash')
 
     # Collect rows to process
     print(f"\nScanning {len(rows)-1} rows for records with emails...")
@@ -214,7 +198,7 @@ def main():
 
         print(f"[{batch_start+1}-{batch_end}/{total_to_process}] Processing batch of {len(batch_names)} cities...")
 
-        casual_names = casualize_city_names_batch(batch_names, client)
+        casual_names = casualize_city_names_batch(batch_names, model)
 
         # Prepare updates for this batch
         for i, item in enumerate(batch):

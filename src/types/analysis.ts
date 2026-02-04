@@ -125,6 +125,14 @@ export interface AnalysisData {
     weaknesses?: string[];
     recommendations?: Recommendation[];
 
+    // Multi-page crawl data
+    allPagesData?: Array<{
+        url: string;
+        title: string;
+        description: string;
+        markdown: string;
+    }>;
+
     // Metadata
     metadata?: AnalysisMetadata;
 }

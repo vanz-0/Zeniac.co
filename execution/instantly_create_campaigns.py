@@ -26,11 +26,15 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import requests
-import anthropic
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("instantly-campaigns")
@@ -48,7 +52,7 @@ def load_examples() -> str:
     return ""
 
 
-def generate_campaigns_with_claude(
+def generate_campaigns_with_gemini(
     client_name: str,
     client_description: str,
     offers: list[str],
@@ -57,10 +61,13 @@ def generate_campaigns_with_claude(
     examples: str
 ) -> list[dict]:
     """
-    Use Claude to generate 3 campaigns with email sequences.
+    Use Gemini to generate 3 campaigns with email sequences.
     Returns list of campaign structures ready for Instantly API.
     """
-    client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    if not GEMINI_API_KEY:
+        raise ValueError("GEMINI_API_KEY not found in environment variables")
+
+    model = genai.GenerativeModel('gemini-1.5-pro')
 
     offers_text = "\n".join(f"{i+1}. {offer}" for i, offer in enumerate(offers))
 
@@ -127,25 +134,10 @@ OUTPUT FORMAT (valid JSON array):
 Generate the 3 campaigns now. Output ONLY the JSON array, no other text."""
 
     try:
-        response = client.messages.create(
-            model="claude-opus-4-5-20251101",
-            max_tokens=16000,
-            thinking={
-                "type": "enabled",
-                "budget_tokens": 10000
-            },
-            messages=[{"role": "user", "content": prompt}]
-        )
+        response = model.generate_content(prompt)
+        result_text = response.text.strip()
 
-        # Extract text content
-        result_text = ""
-        for block in response.content:
-            if hasattr(block, "text"):
-                result_text = block.text
-                break
-
-        # Parse JSON from response
-        # Handle case where Claude might wrap in ```json
+        # Extract JSON from response
         if "```json" in result_text:
             result_text = result_text.split("```json")[1].split("```")[0]
         elif "```" in result_text:
@@ -160,11 +152,9 @@ Generate the 3 campaigns now. Output ONLY the JSON array, no other text."""
                     for variant in step.get("variants", []):
                         if "body" in variant:
                             body = variant["body"]
-                            # Split by double newlines (paragraphs) and single newlines
                             paragraphs = body.split("\n\n")
                             html_parts = []
                             for p in paragraphs:
-                                # Replace single newlines with <br> within paragraphs
                                 p = p.replace("\n", "<br>")
                                 if p.strip():
                                     html_parts.append(f"<p>{p}</p>")
@@ -174,11 +164,11 @@ Generate the 3 campaigns now. Output ONLY the JSON array, no other text."""
         return campaigns
 
     except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse Claude response as JSON: {e}")
+        logger.error(f"Failed to parse Gemini response as JSON: {e}")
         logger.error(f"Response was: {result_text[:1000]}")
         raise
     except Exception as e:
-        logger.error(f"Claude API error: {e}")
+        logger.error(f"Gemini API error: {e}")
         raise
 
 
@@ -251,7 +241,14 @@ def create_campaign_in_instantly(campaign_data: dict) -> dict:
 
 def generate_offers_if_missing(client_name: str, client_description: str) -> list[str]:
     """Generate 3 offers if none provided."""
-    client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    if not GEMINI_API_KEY:
+        return [
+            "Free strategy call to discuss your goals",
+            "Custom demo of our solution",
+            "Pilot program with performance guarantee"
+        ]
+
+    model = genai.GenerativeModel('gemini-1.5-flash')
 
     prompt = f"""Generate 3 distinct cold email offers for this business:
 
@@ -271,19 +268,13 @@ Revenue share partnership pilot
 Generate 3 offers now:"""
 
     try:
-        response = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
-            max_tokens=500,
-            messages=[{"role": "user", "content": prompt}]
-        )
-
-        text = response.content[0].text.strip()
+        response = model.generate_content(prompt)
+        text = response.text.strip()
         offers = [line.strip() for line in text.split("\n") if line.strip()]
         return offers[:3]
 
     except Exception as e:
         logger.error(f"Failed to generate offers: {e}")
-        # Return generic fallback offers
         return [
             "Free strategy call to discuss your goals",
             "Custom demo of our solution",
@@ -332,8 +323,8 @@ def main():
         logger.info(f"Loaded {len(examples)} chars of example content")
 
     # Generate campaigns
-    logger.info("Generating campaigns with Claude...")
-    campaigns = generate_campaigns_with_claude(
+    logger.info("Generating campaigns with Gemini...")
+    campaigns = generate_campaigns_with_gemini(
         client_name=args.client_name,
         client_description=args.client_description,
         offers=offers,

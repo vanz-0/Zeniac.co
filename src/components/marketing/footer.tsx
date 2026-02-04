@@ -24,18 +24,23 @@ export function MinimalFooter() {
     const logoSrc = mounted && theme === 'light' ? '/logo-for-dark-mode.png' : '/logo-for-light-mode.png';
 
     const company = [
-        { title: 'About Zeniac', href: '#' },
-        { title: 'Careers', href: '#' },
-        { title: 'Brand Assets', href: '#' },
+        { title: 'The Zeniac Vision', href: '#' },
+        { title: 'Strategy & DOE', href: '#' },
         { title: 'Privacy Policy', href: '#' },
         { title: 'Terms of Service', href: '#' },
     ];
 
     const resources = [
         { title: 'Intelligence Blog', href: '#' },
-        { title: 'Case Studies', href: '#' },
-        { title: 'Client Portal', href: '#' },
-        { title: 'Community', href: '#' },
+        { title: 'Live Case Studies', href: '#' },
+        { title: 'Client Briefings', href: '#' },
+        { title: 'The 30-Day Plan', href: '#' },
+    ];
+
+    const contactLinks = [
+        { title: 'hello@zeniac.co', href: 'mailto:hello@zeniac.co' },
+        { title: '+254 7XX XXX XXX', href: 'tel:+254700000000' },
+        { title: 'Kilimani, Nairobi', href: '#' },
     ];
 
     const socialLinks = [
@@ -80,7 +85,7 @@ export function MinimalFooter() {
                         </div>
                     </div>
 
-                    <div className="col-span-1 md:col-span-3">
+                    <div className="col-span-1 md:col-span-2">
                         <span className="text-zeniac-gold mb-4 block font-mono font-bold text-sm tracking-widest">
                             RESOURCES
                         </span>
@@ -97,10 +102,25 @@ export function MinimalFooter() {
                         </div>
                     </div>
 
-                    <div className="col-span-1 md:col-span-3">
+                    <div className="col-span-1 md:col-span-2">
                         <span className="text-zeniac-gold mb-4 block font-mono font-bold text-sm tracking-widest">COMPANY</span>
                         <div className="flex flex-col gap-2">
                             {company.map(({ href, title }, i) => (
+                                <a
+                                    key={i}
+                                    className="w-max text-sm md:text-base text-gray-400 hover:text-zeniac-gold duration-200 font-mono"
+                                    href={href}
+                                >
+                                    {title}
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="col-span-1 md:col-span-2">
+                        <span className="text-zeniac-gold mb-4 block font-mono font-bold text-sm tracking-widest">CONTACT</span>
+                        <div className="flex flex-col gap-2">
+                            {contactLinks.map(({ href, title }, i) => (
                                 <a
                                     key={i}
                                     className="w-max text-sm md:text-base text-gray-400 hover:text-zeniac-gold duration-200 font-mono"

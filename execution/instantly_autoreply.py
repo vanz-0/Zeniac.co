@@ -14,7 +14,17 @@ import requests
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
-import anthropic
+import google.generativeai as genai
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+else:
+    logging.warning("GEMINI_API_KEY not configured")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("instantly-autoreply")
@@ -102,12 +112,16 @@ def generate_reply(
     conversation_history: list
 ) -> str | None:
     """
-    Use Claude to generate the reply. This is the ONLY place Claude is invoked.
+    Use Gemini to generate the reply.
     Returns HTML reply string, or None if no reply should be sent.
     """
-    client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    if not GEMINI_API_KEY:
+        logger.error("GEMINI_API_KEY not found")
+        return "ERROR: GEMINI_API_KEY missing"
 
-    # Build context for Claude
+    model = genai.GenerativeModel('gemini-1.5-pro')
+
+    # Build context for Gemini
     kb_text = knowledge_base.get("knowledge_base", "")
     examples = knowledge_base.get("reply_examples", "")
 
@@ -134,6 +148,9 @@ CONTEXT (your company/offering):
 TONE EXAMPLES:
 {examples}
 
+HISTORY:
+{history_text}
+
 RULES:
 - Reply as {email_account} (use first name to sign off)
 - Be concise (3-8 sentences), confident, friendly
@@ -150,43 +167,26 @@ ONLY return the single word SKIP if:
 Otherwise, write the reply now:"""
 
     try:
-        response = client.messages.create(
-            model="claude-opus-4-5-20251101",
-            max_tokens=16000,
-            thinking={
-                "type": "enabled",
-                "budget_tokens": 10000
-            },
-            messages=[{"role": "user", "content": prompt}]
-        )
+        response = model.generate_content(prompt)
+        reply_text = response.text.strip()
 
-        # Extract text from response
-        reply_text = ""
-        for block in response.content:
-            if hasattr(block, "text"):
-                reply_text = block.text
-                break
+        logger.info(f"Gemini raw response: {reply_text[:500] if reply_text else 'EMPTY'}")
 
-        logger.info(f"Claude raw response: {reply_text[:500] if reply_text else 'EMPTY'}")
-
-        # Check if we should skip - be more lenient with matching
-        cleaned = reply_text.strip()
-        if cleaned.upper() == "SKIP" or cleaned.upper().startswith("SKIP"):
-            logger.info("Claude decided to SKIP")
+        # Check if we should skip
+        if reply_text.upper() == "SKIP" or reply_text.upper().startswith("SKIP"):
+            logger.info("Gemini decided to SKIP")
             return None
 
-        # Also skip if empty
-        if not cleaned:
-            logger.info("Claude returned empty response")
+        if not reply_text:
+            logger.info("Gemini returned empty response")
             return None
 
-        return cleaned
+        return reply_text
 
     except Exception as e:
-        logger.error(f"Claude API error: {e}")
+        logger.error(f"Gemini API error: {e}")
         import traceback
         logger.error(traceback.format_exc())
-        # Return error message instead of None so we can debug
         return f"ERROR: {str(e)}"
 
 
@@ -242,7 +242,7 @@ def run(payload: dict, token_data: dict, slack_notify=None) -> dict:
         logger.info(msg)
 
     # Debug: verify setup
-    notify(f"📦 API key present: {bool(os.getenv('ANTHROPIC_API_KEY'))}")
+    notify(f"📦 API key present: {bool(os.getenv('GEMINI_API_KEY'))}")
 
     # Step 1: Extract campaign ID
     campaign_id = payload.get("campaign_id")
@@ -272,13 +272,13 @@ def run(payload: dict, token_data: dict, slack_notify=None) -> dict:
     history = get_conversation_history(payload.get("lead_email", ""))
     notify(f"💬 Retrieved {len(history)} prior emails")
 
-    # Step 4: Generate reply (THIS IS WHERE CLAUDE IS CALLED)
-    notify("🤖 Generating reply with Claude...")
+    # Step 4: Generate reply (THIS IS WHERE GEMINI IS CALLED)
+    notify("🤖 Generating reply with Gemini...")
     reply = generate_reply(payload, kb, history)
 
     if not reply:
-        notify("⏭️ Claude decided to skip (no reply needed)")
-        return {"status": "success", "skipped": True, "reason": "claude_skip", "debug": "reply was None or empty"}
+        notify("⏭️ Gemini decided to skip (no reply needed)")
+        return {"status": "success", "skipped": True, "reason": "gemini_skip", "debug": "reply was None or empty"}
 
     notify(f"✍️ Generated reply ({len(reply)} chars): {reply[:200]}...")
 

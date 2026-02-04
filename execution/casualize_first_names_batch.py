@@ -2,14 +2,16 @@ import os
 import sys
 import gspread
 import argparse
-import anthropic
+import google.generativeai as genai
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 
 # Load environment variables
 load_dotenv()
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 BATCH_SIZE = 30  # Process 30 names per API call
 
 def get_sheet_id_from_url(url):
@@ -29,8 +31,8 @@ def column_letter(n):
         n = n // 26 - 1
     return result
 
-def casualize_first_names_batch(first_names, client):
-    """Use Claude to convert multiple first names to casual nicknames."""
+def casualize_first_names_batch(first_names, model):
+    """Use Gemini to convert multiple first names to casual nicknames."""
     if not first_names:
         return []
 
@@ -45,39 +47,6 @@ Rules:
 - Keep it professional - avoid overly casual or childish nicknames
 - When in doubt, keep the original
 
-Common examples:
-- "William" → "Will"
-- "Robert" → "Rob"
-- "Jennifer" → "Jen"
-- "Michael" → "Mike"
-- "Christopher" → "Chris"
-- "Elizabeth" → "Liz"
-- "Matthew" → "Matt"
-- "Daniel" → "Dan"
-- "Richard" → "Rick"
-- "Katherine" → "Kate"
-- "Nicholas" → "Nick"
-- "Benjamin" → "Ben"
-- "Alexander" → "Alex"
-- "Rebecca" → "Becca"
-- "Jonathan" → "Jon"
-- "Anthony" → "Tony"
-- "Timothy" → "Tim"
-- "Andrew" → "Andy"
-- "Joseph" → "Joe"
-- "Thomas" → "Tom"
-
-Names that typically stay the same:
-- "John" → "John"
-- "Sarah" → "Sarah"
-- "David" → "David" (though "Dave" is also common)
-- "Mark" → "Mark"
-- "Paul" → "Paul"
-- "Lisa" → "Lisa"
-- "Amy" → "Amy"
-- "Eric" → "Eric"
-- "Ryan" → "Ryan"
-
 First names to convert:
 {name_list}
 
@@ -89,12 +58,8 @@ Example output:
 4. John"""
 
     try:
-        message = client.messages.create(
-            model="claude-3-5-haiku-20241022",
-            max_tokens=1000,
-            messages=[{"role": "user", "content": prompt}]
-        )
-        response_text = message.content[0].text.strip()
+        response = model.generate_content(prompt)
+        response_text = response.text.strip()
 
         # Parse the numbered list response
         casual_names = []
@@ -103,12 +68,13 @@ Example output:
             if not line:
                 continue
             # Remove number prefix (e.g., "1. " or "1) ")
-            if '. ' in line:
-                casual_name = line.split('. ', 1)[1]
-            elif ') ' in line:
-                casual_name = line.split(') ', 1)[1]
+            import re
+            m = re.match(r'^\d+[\.\)]\s*(.*)', line)
+            if m:
+                casual_name = m.group(1)
             else:
                 casual_name = line
+            
             # Remove quotes if present
             casual_name = casual_name.strip('"').strip("'")
             casual_names.append(casual_name)
@@ -123,7 +89,7 @@ Example output:
         return casual_names
     except Exception as e:
         print(f"  ! API Error: {e}")
-        return first_names  # Return originals if error
+        return first_names
 
 def main():
     parser = argparse.ArgumentParser(description="Casualize first names to nicknames for cold email (batched)")
@@ -182,8 +148,9 @@ def main():
         headers.append("casual_first_name")
         print(f"Created column at index {casual_idx}")
 
-    # Initialize Claude client
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    # Initialize Gemini model
+    print(f"Initializing Gemini (gemini-1.5-flash)...")
+    model = genai.GenerativeModel('gemini-1.5-flash')
 
     # Collect rows to process
     print(f"\nScanning {len(rows)-1} rows for records with emails...")
@@ -230,7 +197,7 @@ def main():
 
         print(f"[{batch_start+1}-{batch_end}/{total_to_process}] Processing batch of {len(batch_names)} names...")
 
-        casual_names = casualize_first_names_batch(batch_names, client)
+        casual_names = casualize_first_names_batch(batch_names, model)
 
         # Prepare updates for this batch
         for i, item in enumerate(batch):
