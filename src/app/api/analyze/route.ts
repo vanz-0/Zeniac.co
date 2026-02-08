@@ -13,7 +13,15 @@ import { getRecentAnalysis, saveAnalysisResult } from '@/lib/db-actions';
 
 // const execAsync = promisify(exec); // Removed
 
-const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY || "placeholder_key" });
+// Lazy-load Firecrawl to prevent build-time crashes (it validates API keys in constructor)
+let firecrawl: FirecrawlApp | null = null;
+function getFirecrawl() {
+    if (!firecrawl && process.env.FIRECRAWL_API_KEY) {
+        firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
+    }
+    return firecrawl;
+}
+
 const apify = new ApifyClient({ token: process.env.APIFY_API_KEY || "placeholder_token" });
 
 // Replaced Python execution with native TS function calls
@@ -136,9 +144,15 @@ export async function POST(req: NextRequest) {
 
         console.log(`🔥 Starting multi-page scan for: ${baseUrl}`);
 
+        // Get Firecrawl client (returns null if API key missing)
+        const firecrawlClient = getFirecrawl();
+        if (!firecrawlClient) {
+            throw new Error('Firecrawl API key not configured. Please set FIRECRAWL_API_KEY environment variable.');
+        }
+
         // Multi-page scrape in parallel
         const scrapePromises = targetUrls.map(u =>
-            firecrawl.scrape(u, { formats: ['markdown', 'html'] })
+            firecrawlClient.scrape(u, { formats: ['markdown', 'html'] })
                 .catch(err => {
                     console.warn(`Scrape failed for ${u}:`, err.message);
                     return null;
