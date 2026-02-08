@@ -3,12 +3,12 @@
 > **PROTOCOL CHANGE**: Do not ask for permissions or reviews mid-task. Execute the plan, build the finished product, push to GitHub, and THEN ask for review.
 
 ## 1. Objective
-Construct the **Zeniac.Co** "Operating System" website—a premium, high-performance marketing platform for female-centric brands. The site must embody the **Zenith** (High-End/Gold) + **Brainiac** (Smart/Tech) identity using the "Front-Style" aesthetic and specific user-provided components.
+Construct the **Zeniac.Co** "Operating System" website—a premium, high-performance marketing and operations platform for small businesses. The site must embody the **Zenith** (High-End/Gold) + **Brainiac** (Smart/Tech) identity using the "Front-Style" aesthetic, primarily serving female-centric brands but positioned as a comprehensive operations partner for all high-growth small businesses.
 
 ## 2. Inputs & Context
 *   **Brand Identity:** "Dark Mode Front". Deep Zinc backgrounds (`#09090b`), Zenith Gold (`#FFD700`) accents, crisp White text.
-*   **Target Audience:** Women-owned businesses in Beauty, Wellness, and Fashion.
-*   **Voice:** "The Smart Business Partner" (Confident, Direct, Strategic).
+*   **Target Audience:** High-growth small businesses, primarily (but not exclusively) women-owned businesses in Beauty, Wellness, and Fashion.
+*   **Voice:** "The Strategic Operations Partner" (Confident, Direct, Strategic).
 *   **Component Library:** `resources/Components/`
 
 ## 3. Technology Stack (Execution Layer)

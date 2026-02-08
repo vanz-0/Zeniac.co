@@ -39,23 +39,23 @@ export function MinimalFooter() {
 
     const contactLinks = [
         { title: 'hello@zeniac.co', href: 'mailto:hello@zeniac.co' },
-        { title: '+254 7XX XXX XXX', href: 'tel:+254700000000' },
-        { title: 'Kilimani, Nairobi', href: '#' },
+        { title: '+254 724 898 620', href: 'tel:+254724898620' },
+        { title: 'Nairobi, Kenya', href: '#' },
     ];
 
     const socialLinks = [
-        { icon: <InstagramIcon className="size-4" />, link: 'https://instagram.com/zen_mrch_' },
-        { icon: <TwitterIcon className="size-4" />, link: 'https://x.com/MerchZenith' },
-        { icon: <LinkedinIcon className="size-4" />, link: 'https://www.linkedin.com/in/zenith-merch-ba1638329/' },
-        { icon: <FacebookIcon className="size-4" />, link: 'https://web.facebook.com/profile.php?id=61571639987761' },
-        { icon: <YoutubeIcon className="size-4" />, link: 'https://www.youtube.com/@Zeniac101' },
+        { icon: <InstagramIcon className="size-4" />, link: 'https://instagram.com/zeniac.co' },
+        { icon: <TwitterIcon className="size-4" />, link: 'https://x.com/ZeniacCo' },
+        { icon: <LinkedinIcon className="size-4" />, link: 'https://www.linkedin.com/company/zeniac' },
+        { icon: <FacebookIcon className="size-4" />, link: 'https://facebook.com/zeniac.co' },
+        { icon: <YoutubeIcon className="size-4" />, link: 'https://youtube.com/@ZeniacCo' },
         {
             icon: (
                 <svg viewBox="0 0 24 24" fill="currentColor" className="size-4">
                     <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
                 </svg>
             ),
-            link: 'https://www.tiktok.com/@zen_mrch_'
+            link: 'https://tiktok.com/@zeniac.co'
         },
     ];
 
@@ -69,7 +69,7 @@ export function MinimalFooter() {
                             <span className="font-mono text-xl font-bold tracking-tighter text-zeniac-white">ZENIAC</span>
                         </a>
                         <p className="text-muted-foreground max-w-sm font-mono text-sm leading-relaxed">
-                            The operating system for modern brands. From local startups to international powerhouses, we blend high-end aesthetics with deep strategic intelligence.
+                            The operating system for high-growth small businesses. Primarily serving female-centric brands with high-end aesthetics and deep operational intelligence.
                         </p>
                         <div className="flex gap-2">
                             {socialLinks.map((item, i) => (

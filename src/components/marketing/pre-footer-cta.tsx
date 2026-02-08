@@ -1,8 +1,8 @@
 "use client";
 import { motion } from "framer-motion";
-import { LeadForm } from "./lead-form";
 
-export function PreFooterCTA() {
+
+export function PreFooterCTA({ onOpenWizard }: { onOpenWizard: () => void }) {
     return (
         <section className="py-24 relative overflow-hidden bg-zeniac-black border-t border-white/5">
             <div className="container mx-auto px-4 relative z-10">
@@ -29,12 +29,17 @@ export function PreFooterCTA() {
 
                         <div className="relative">
                             <div className="absolute -inset-1 bg-zeniac-gold/20 blur-xl rounded-none pointer-events-none" />
-                            <div className="relative bg-black/40 border border-white/10 p-6">
-                                <h3 className="text-sm font-mono text-zeniac-gold mb-6 uppercase tracking-widest text-center">Engagement Terminal</h3>
-                                <LeadForm
-                                    serviceId="business-intelligence"
-                                    resourceName="The Zeniac Intelligence Brief"
-                                />
+                            <div className="relative bg-black/40 border border-white/10 p-6 flex flex-col items-center text-center space-y-6">
+                                <h3 className="text-sm font-mono text-zeniac-gold uppercase tracking-widest">Engagement Terminal</h3>
+                                <p className="text-xs text-muted-foreground font-mono">
+                                    Initiate a deep-scan analysis of your digital footprint to identify critical revenue leaks.
+                                </p>
+                                <button
+                                    onClick={onOpenWizard}
+                                    className="w-full bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-typewriter font-black uppercase py-4 tracking-tighter transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                >
+                                    INITIATE SYSTEM SCAN
+                                </button>
                             </div>
                         </div>
                     </div>

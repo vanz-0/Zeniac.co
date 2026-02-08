@@ -1,13 +1,163 @@
 [
   {
-    "title": "Visual Identity",
-    "category": "Visual Identity",
-    "description": "Strategic Visual Identity work.",
+    "title": "Deliverables",
+    "category": "Brand Architecture",
+    "description": "Strategic Brand Architecture work.",
     "result": "Dominance Engineered",
     "tags": [
-      "Visual Identity"
+      "Brand Architecture"
     ],
-    "image": "/images/portfolio/1imRV5zug3IlVkkKNhOm8K6pZYbpvaY2A_Screenshot_2025-08-12_053618.png",
-    "id": "1imRV5zug3IlVkkKNhOm8K6pZYbpvaY2A"
+    "carousel": [
+      {
+        "path": "/images/portfolio/1n_9du1iz2xbkZRqvTU290PI5sLXhV3tx_2.png",
+        "type": "image",
+        "folder": "Business Cards"
+      },
+      {
+        "path": "/images/portfolio/1P9yRO8l1w9d3ea8LW73XfZkLBlKEacBZ_1.png",
+        "type": "image",
+        "folder": "Business Cards"
+      }
+    ],
+    "image": "/images/portfolio/1n_9du1iz2xbkZRqvTU290PI5sLXhV3tx_2.png",
+    "id": "1BQMduFCK-i1W_VkKJQrNRXpnecRFCwzn"
+  },
+  {
+    "title": "Templates",
+    "category": "Brand Architecture",
+    "description": "Strategic Brand Architecture work.",
+    "result": "Dominance Engineered",
+    "tags": [
+      "Brand Architecture"
+    ],
+    "carousel": [
+      {
+        "path": "/images/portfolio/1waOehJsrkbfbhpWntZcmLPxItJWvng-F_3.png",
+        "type": "image",
+        "folder": "Copy of DIGITAL NOMAD Carousel template (What to know)"
+      },
+      {
+        "path": "/images/portfolio/1RWpVh0bmCG0Q0nNeOCaSmwEYq6yKdfa5_1.png",
+        "type": "image",
+        "folder": "Copy of DIGITAL NOMAD Carousel template (What to know)"
+      },
+      {
+        "path": "/images/portfolio/1lTUE8NSXAkUfBImSgwmEoasDG4kE9FDo_2.png",
+        "type": "image",
+        "folder": "Copy of DIGITAL NOMAD Carousel template (What to know)"
+      }
+    ],
+    "image": "/images/portfolio/1waOehJsrkbfbhpWntZcmLPxItJWvng-F_3.png",
+    "id": "1r_z8oGWweLlbPzH5KRyQj2gqH5IL_8aw"
+  },
+  {
+    "title": "ads & promotions",
+    "category": "Brand Architecture",
+    "description": "Strategic Brand Architecture work.",
+    "result": "Dominance Engineered",
+    "tags": [
+      "Brand Architecture"
+    ],
+    "carousel": [
+      {
+        "path": "/images/portfolio/1Tkib-vw4fCLq-PyMiyg2S7TNU2mLnWPM_Screenshot_2026-02-07_231249.png",
+        "type": "image",
+        "folder": "ads & promotions"
+      },
+      {
+        "path": "/images/portfolio/1GSxQtW5jBThzizcc5C9YvcHMADsKBedd_Screenshot_2026-02-07_230956.png",
+        "type": "image",
+        "folder": "ads & promotions"
+      },
+      {
+        "path": "/images/portfolio/1wNfHuCOTOxy98h1gsO7HWKLFXmohfxhM_Screenshot_2026-02-07_230524.png",
+        "type": "image",
+        "folder": "ads & promotions"
+      },
+      {
+        "path": "/images/portfolio/1QwekXpWxQVTs5W3rdAAKGm-dTiuAcBU2_Screenshot_2026-02-07_230101.png",
+        "type": "image",
+        "folder": "ads & promotions"
+      }
+    ],
+    "image": "/images/portfolio/1Tkib-vw4fCLq-PyMiyg2S7TNU2mLnWPM_Screenshot_2026-02-07_231249.png",
+    "id": "1PZAbRT_HWyKwxwrRUTZvMSeK4QutQoHD"
+  },
+  {
+    "id": "combined-testimonials",
+    "title": "Evidence of Impact",
+    "category": "Clients' Businesses Testimonials",
+    "description": "Real results from our ecosystem partners.",
+    "result": "Market Dominance",
+    "tags": [
+      "Testimonials",
+      "Results"
+    ],
+    "carousel": [
+      {
+        "path": "/images/portfolio/1Rnjq2wIec45uoUn3mpK7DJCs7u5SaJdJ_Screenshot_2026-02-08_002358.png",
+        "type": "image",
+        "folder": "Comments"
+      },
+      {
+        "path": "/images/portfolio/1JucDGcssGBqrNweXmqZb7P3cOhuI_C_u_Screenshot_2026-02-08_002301.png",
+        "type": "image",
+        "folder": "Comments"
+      },
+      {
+        "path": "/images/portfolio/1nkL1Gt19r9yla0oesEkBFDJkxCuVmiLA_Screenshot_2026-02-08_002213.png",
+        "type": "image",
+        "folder": "Comments"
+      },
+      {
+        "path": "/images/portfolio/1EHb03WXkOobsRR4DPdjFSWB55nMN0G0Z_Screenshot_2026-02-08_000859.png",
+        "type": "image",
+        "folder": "Comments"
+      },
+      {
+        "path": "/images/portfolio/1Qp6JV5ZMCCyDUeJlVI0ecmpb6nXmTuno_4.png",
+        "type": "image",
+        "folder": "Comments"
+      },
+      {
+        "path": "/images/portfolio/1ClIDh51SY3BiIXFErA_EaYYg6rR-OjTI_3.png",
+        "type": "image",
+        "folder": "Comments"
+      },
+      {
+        "path": "/images/portfolio/15azvnK4VvLTTXOmBez2Oe64uVVeMYL41_Nuga_Best_Beds.mp4",
+        "type": "video",
+        "folder": "Videos",
+        "url": "https://www.tiktok.com/@1healthessentials/video/7582999258408717579"
+      }
+    ],
+    "image": "/images/portfolio/1Rnjq2wIec45uoUn3mpK7DJCs7u5SaJdJ_Screenshot_2026-02-08_002358.png"
+  },
+  {
+    "title": "Brand Transformation",
+    "category": "Brand Architecture",
+    "description": "from this to this",
+    "result": "Dominance Engineered",
+    "tags": [
+      "Brand Architecture"
+    ],
+    "carousel": [
+      {
+        "path": "/images/portfolio/1ywHR9W4TAyUstC6YaqAyT2yfjrSHoNWm_Screenshot_2026-02-08_030722.png",
+        "type": "image",
+        "folder": "FTTT"
+      },
+      {
+        "path": "/images/portfolio/1PtyEZzqKKrOEZY_-pz8fooK7KMIE-R7j_Screenshot_2026-02-08_030650.png",
+        "type": "image",
+        "folder": "FTTT"
+      }
+    ],
+    "image": "/images/portfolio/1ywHR9W4TAyUstC6YaqAyT2yfjrSHoNWm_Screenshot_2026-02-08_030722.png",
+    "before_after": [
+      "/images/portfolio/1PtyEZzqKKrOEZY_-pz8fooK7KMIE-R7j_Screenshot_2026-02-08_030650.png",
+      "/images/portfolio/1ywHR9W4TAyUstC6YaqAyT2yfjrSHoNWm_Screenshot_2026-02-08_030722.png"
+    ],
+    "id": "1rOoy06VBveZsAKFG-Cpl6yzDPcaO-rcO"
   }
 ]

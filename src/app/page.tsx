@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { HeroAnimation } from "@/components/marketing/hero-animation";
 import { SocialProof } from "@/components/marketing/social-proof";
 import { BentoGrid } from "@/components/marketing/bento-grid";
@@ -11,6 +12,7 @@ import { Portfolio } from "@/components/marketing/portfolio";
 import { FAQ } from "@/components/marketing/faq";
 import { PreFooterCTA } from "@/components/marketing/pre-footer-cta";
 import { Brain, Lightbulb, PenTool, Rocket, Search, Settings } from "lucide-react";
+import { TransformationWizard } from "@/components/marketing/transformation-wizard";
 
 const processData = [
   {
@@ -82,11 +84,13 @@ const processData = [
 ];
 
 export default function Home() {
+  const [wizardOpen, setWizardOpen] = useState(false);
+
   return (
     <div className="relative bg-zeniac-black min-h-screen text-foreground selection:bg-zeniac-gold/30">
 
       <div className="relative z-10">
-        <HeroAnimation />
+        <HeroAnimation onOpenWizard={() => setWizardOpen(true)} />
 
         <SocialProof />
 
@@ -105,17 +109,19 @@ export default function Home() {
               THE <span className="text-zeniac-gold">PROCESS</span>
             </h2>
             <p className="text-muted-foreground font-mono max-w-2xl mx-auto">
-              A systematic approach to building digital dominance. Whether you're a local startup or a global entity, we engineer your growth.
+              A systematic approach to building operational sovereignty and digital dominance. Whether you're a local startup or a scaling entity, we engineer your systems.
             </p>
           </div>
           <RadialOrbitalTimeline timelineData={processData} />
         </section>
 
         <FAQ />
-        <PreFooterCTA />
+        <PreFooterCTA onOpenWizard={() => setWizardOpen(true)} />
 
         <MinimalFooter />
       </div>
+
+      <TransformationWizard open={wizardOpen} onOpenChange={setWizardOpen} />
     </div>
   );
 }

@@ -10,11 +10,6 @@ export const FREEBIES = {
         link: "https://drive.google.com/open?id=MOCK_LINK_2",
         description: "Localized guide for GMB dominance in the Kenyan market (Westlands, Kiambu focus)."
     },
-    "business-intelligence": {
-        name: "The Zeniac Intelligence Brief",
-        link: "https://drive.google.com/open?id=MOCK_LINK_3",
-        description: "A 6-page comprehensive audit of your website, SEO, and competitive landscape."
-    },
     "automation": {
         name: "The Conversion Leak Map",
         link: "https://drive.google.com/open?id=MOCK_LINK_4",

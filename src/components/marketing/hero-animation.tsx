@@ -49,7 +49,7 @@ const features = [
     },
 ];
 
-export function HeroAnimation() {
+export function HeroAnimation({ onOpenWizard }: { onOpenWizard?: () => void }) {
     const controls = useAnimation();
     const ref = React.useRef(null);
     const isInView = useInView(ref, { once: true, amount: 0.1 });
@@ -74,8 +74,6 @@ export function HeroAnimation() {
     React.useEffect(() => {
         setMounted(true);
     }, []);
-
-    const [wizardOpen, setWizardOpen] = React.useState(false);
 
     const logoSrc = mounted && theme === 'light' ? '/logo-for-light-mode.png' : '/logo-for-dark-mode.png';
 
@@ -127,7 +125,7 @@ export function HeroAnimation() {
                         </Button>
                         <Button
                             variant="default"
-                            onClick={() => setWizardOpen(true)}
+                            onClick={onOpenWizard}
                             className="rounded-none hidden md:inline-flex bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-mono font-bold"
                         >
                             START PROJECT <ArrowRight className="ml-1 w-4 h-4" />
@@ -166,7 +164,7 @@ export function HeroAnimation() {
                                         </a>
                                     </Button>
                                     <Button
-                                        onClick={() => setWizardOpen(true)}
+                                        onClick={onOpenWizard}
                                         className="cursor-pointer rounded-none bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-mono w-full"
                                     >
                                         START PROJECT <ArrowRight className="ml-1 w-4 h-4" />
@@ -210,7 +208,7 @@ export function HeroAnimation() {
                             transition={{ delay: 0.8, duration: 0.6 }}
                             className="mx-auto mt-12 max-w-3xl text-2xl md:text-3xl text-zeniac-white/90 font-mono leading-normal"
                         >
-                            Elevating local businesses with high-end content creation and strategic digital improvements. We turn local presence into market dominance.
+                            The strategic operations partner for high-growth small businesses. Elevating brands with premium assets and precision digital engineering.
                         </motion.p>
 
                         <motion.div
@@ -253,7 +251,7 @@ export function HeroAnimation() {
                         >
                             <Button
                                 size="lg"
-                                onClick={() => setWizardOpen(true)}
+                                onClick={onOpenWizard}
                                 className="cursor-pointer rounded-none bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-mono text-lg px-8 py-6"
                             >
                                 TRANSFORM YOUR BUSINESS <ArrowRight className="ml-2 w-5 h-5" />
@@ -318,8 +316,6 @@ export function HeroAnimation() {
                     </motion.div>
                 </section>
             </main>
-
-            <TransformationWizard open={wizardOpen} onOpenChange={setWizardOpen} />
         </div>
     );
 }

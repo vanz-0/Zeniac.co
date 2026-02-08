@@ -9,6 +9,7 @@ import {
     Smartphone,
     TrendingUp,
     Globe,
+    ExternalLink,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { LeadForm } from "./lead-form";
@@ -35,74 +36,64 @@ interface BentoGridProps {
 
 const itemsSample: BentoItem[] = [
     {
-        id: "visual-identity",
-        title: "Visual Identity",
-        meta: "Dominance",
-        description:
-            "Design that signals premium authority. We engineer logos, high-fidelity menu systems, and signage meant to command attention.",
-        icon: <Palette className="w-5 h-5 text-zeniac-gold" />,
-        status: "High-End",
-        tags: ["Branding", "Signage", "Print"],
-        colSpan: 2,
-        hasPersistentHover: true,
-        cta: "View Portfolio",
-        portfolioUrl: "https://drive.google.com/drive/folders/1imRV5zug3IlVkkKNhOm8K6pZYbpvaY2A",
-    },
-    {
-        id: "seo-optimization",
-        title: "Local SEO Dominance",
-        meta: "Visibility",
-        description: "Google Maps 3-pack engineering. We optimize your local profile to capture every high-intent search in your radius.",
-        icon: <Globe className="w-5 h-5 text-zeniac-gold" />,
-        status: "Priority",
-        tags: ["GMB", "Maps", "Reviews"],
-        cta: "View Portfolio",
-        portfolioUrl: "https://drive.google.com/drive/folders/1aZCBosvYmuBQ_VRQvNnTbSFWmia7fx_E",
-    },
-    {
         id: "content-creation",
         title: "Content Firepower",
-        meta: "Social",
-        description: "30-day strategic calendars and high-conversion video assets (Reels/TikTok) designed to turn attention into currency.",
+        description: "30-day viral calendars and high-retention video assets engineered for small businesses. We track every view, like, and comment to turn attention into operational revenue.",
         icon: <Smartphone className="w-5 h-5 text-zeniac-gold" />,
-        tags: ["4K Video", "Strategy", "Reels"],
+        status: "Launch",
+        tags: ["4K Video", "Analytics", "Viral Strategy"],
         colSpan: 1,
-        cta: "View Portfolio",
+        hasPersistentHover: true,
+        cta: "Claim Viral Playbook",
         portfolioUrl: "https://drive.google.com/drive/folders/1FSEk8ZS8PW-s8YY08BhiS2PpxTdSJ6zw",
     },
     {
-        id: "business-intelligence",
-        title: "Reputation Engineering",
-        meta: "Trust",
-        description: "Automated 5-star review loops and aggressive sentiment management to build an unshakable wall of social proof.",
-        icon: <TrendingUp className="w-5 h-5 text-zeniac-gold" />,
+        id: "visual-identity",
+        title: "Brand Architecture",
+        description: "Premium brand systems and high-end aesthetic engineering that positions your business as the undisputed leader in your niche.",
+        icon: <Palette className="w-5 h-5 text-zeniac-gold" />,
         status: "Live",
-        tags: ["Trust", "Automation", "Proof"],
+        tags: ["Identity", "Design", "Authority"],
         colSpan: 2,
-        cta: "View Portfolio",
-        portfolioUrl: "https://drive.google.com/drive/folders/161njPp1CIeEBnC82wzFStv_4Y1Aj50VL",
+        hasPersistentHover: true,
+        cta: "Get Brand Brief",
+        portfolioUrl: "https://drive.google.com/drive/folders/1imRV5zug3IlVkkKNhOm8K6pZYbpvaY2A",
     },
     {
         id: "paid-advertising",
-        title: "Paid Acquisition",
-        meta: "Traffic",
-        description: "Localized, ROI-tracked ad campaigns that drive physical walk-ins and digital bookings with surgical precision.",
+        title: "Paid Plans",
+        description: "ROI-tracked acquisition systems targeting high-value small business segments. We build the paid engines that drive consistent digital bookings and physical growth.",
         icon: <Megaphone className="w-5 h-5 text-zeniac-gold" />,
-        colSpan: 1,
-        tags: ["Search Ads", "Meta Ads"],
-        cta: "View Portfolio",
+        status: "Live",
+        tags: ["ROI Ads", "Meta", "Scale"],
+        colSpan: 2,
+        hasPersistentHover: true,
+        cta: "View Shadow Report",
         portfolioUrl: "https://drive.google.com/drive/folders/1_pAhSmxCiRi2XDgIVqqJPNdpMohJN6q4",
     },
     {
-        id: "ai-automations",
+        id: "automation",
         title: "AI & Workflows",
-        meta: "Efficiency",
-        description: "Intelligent LLM agent integration and DOE-layered automations that 10x your capacity while you focus on growth.",
+        description: "Intelligent LLM agent integration and deep-layered automations using n8n, Make, and Zapier to 10x your operational capacity while you focus on vision.",
         icon: <Brain className="w-5 h-5 text-zeniac-gold" />,
-        colSpan: 2,
-        tags: ["Agents", "Workflows", "Scale"],
-        cta: "View Portfolio",
+        status: "Launch",
+        tags: ["n8n", "Make", "Automations"],
+        colSpan: 1,
+        hasPersistentHover: true,
+        cta: "Get Leak Map",
         portfolioUrl: "https://drive.google.com/drive/folders/1JyfIIa1S-V1xzoUkXj-G0mOLnwb1qt0L",
+    },
+    {
+        id: "seo-optimization",
+        title: "Search Dominance",
+        description: "Hyper-localized GMB optimization and search intent mapping to capture high-value local traffic before your competitors even wake up.",
+        icon: <Globe className="w-5 h-5 text-zeniac-gold" />,
+        status: "Live",
+        tags: ["SEO", "GMB Rank #1", "Local"],
+        colSpan: 1,
+        hasPersistentHover: true,
+        cta: "Get SEO Blueprint",
+        portfolioUrl: "https://drive.google.com/drive/folders/1aZCBosvYmuBQ_VRQvNnTbSFWmia7fx_E",
     },
 ];
 
@@ -115,7 +106,7 @@ export function BentoGrid({ items = itemsSample }: BentoGridProps) {
                     OUR <span className="text-zeniac-gold">SERVICES</span>
                 </h2>
                 <p className="text-muted-foreground font-mono text-lg max-w-2xl mx-auto">
-                    Precise digital engineering and creative firepower. We don't just "do marketing"—we build systems for market dominance.
+                    Precise digital engineering and strategic operations. We don't just "do marketing"—we build the systems that small businesses need for market dominance.
                 </p>
             </div>
 
@@ -148,13 +139,20 @@ export function BentoGrid({ items = itemsSample }: BentoGridProps) {
 
                             <div className="relative flex flex-col space-y-4 h-full justify-between">
                                 <div className="flex items-center justify-between">
-                                    <div className="w-10 h-10 rounded-none flex items-center justify-center bg-white/5 border border-white/10 group-hover:bg-zeniac-gold/10 group-hover:border-zeniac-gold/30 transition-all duration-300">
+                                    <div className={cn(
+                                        "w-10 h-10 rounded-none flex items-center justify-center transition-all duration-300",
+                                        item.hasPersistentHover
+                                            ? "bg-zeniac-gold/10 border border-zeniac-gold/30"
+                                            : "bg-white/5 border border-white/10 group-hover:bg-zeniac-gold/10 group-hover:border-zeniac-gold/30"
+                                    )}>
                                         {item.icon}
                                     </div>
                                     <span
                                         className={cn(
                                             "text-[10px] font-mono uppercase tracking-wider px-2 py-1 border",
-                                            "bg-transparent border-white/20 text-white/60",
+                                            item.hasPersistentHover
+                                                ? "border-zeniac-gold/50 text-zeniac-gold"
+                                                : "bg-transparent border-white/20 text-white/60",
                                             "transition-colors duration-300 group-hover:border-zeniac-gold/50 group-hover:text-zeniac-gold"
                                         )}
                                     >
@@ -183,31 +181,36 @@ export function BentoGrid({ items = itemsSample }: BentoGridProps) {
                                         ))}
                                     </div>
 
-                                    {item.portfolioUrl ? (
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            asChild
-                                            className="font-mono text-[10px] uppercase border-zeniac-gold/30 text-zeniac-gold hover:bg-zeniac-gold hover:text-black rounded-none px-4 h-8 transition-all duration-300"
-                                        >
-                                            <a href={item.portfolioUrl} target="_blank" rel="noopener noreferrer">
-                                                {item.cta}
-                                            </a>
-                                        </Button>
-                                    ) : item.cta ? (
-                                        <DialogTrigger asChild>
+                                    <div className="flex items-center gap-2">
+                                        {item.portfolioUrl && (
                                             <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setSelectedService(item)}
-                                                className="font-mono text-[10px] uppercase border-zeniac-gold/30 text-zeniac-gold hover:bg-zeniac-gold hover:text-black rounded-none px-4 h-8 transition-all duration-300"
+                                                variant="ghost"
+                                                size="icon"
+                                                asChild
+                                                className="w-8 h-8 rounded-none border border-white/5 hover:border-zeniac-gold/50 text-white/40 hover:text-zeniac-gold transition-all duration-300"
+                                                title="View Direct Proof"
                                             >
-                                                {item.cta}
+                                                <a href={item.portfolioUrl} target="_blank" rel="noopener noreferrer">
+                                                    <ExternalLink className="w-4 h-4" />
+                                                </a>
                                             </Button>
-                                        </DialogTrigger>
-                                    ) : (
-                                        <div className="w-6 h-6 border-r border-b border-zeniac-gold/20 group-hover:border-zeniac-gold transition-colors" />
-                                    )}
+                                        )}
+                                        {item.cta && (
+                                            <DialogTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setSelectedService(item)}
+                                                    className="font-mono text-[10px] uppercase border-zeniac-gold/30 text-zeniac-gold hover:bg-zeniac-gold hover:text-black rounded-none px-4 h-8 transition-all duration-300"
+                                                >
+                                                    {item.cta}
+                                                </Button>
+                                            </DialogTrigger>
+                                        )}
+                                        {!item.cta && !item.portfolioUrl && (
+                                            <div className="w-6 h-6 border-r border-b border-zeniac-gold/20 group-hover:border-zeniac-gold transition-colors" />
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>

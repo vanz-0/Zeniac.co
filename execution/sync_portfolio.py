@@ -46,11 +46,12 @@ def sync():
     service_folders = results.get('files', [])
     all_projects = []
     
+    # Testimonial aggregation
+    testimonials_found = []
+
     for sf in service_folders:
         print(f"Checking Service: {sf['name']}...")
         
-        # Determine if this folder should be treated as a Project itself or a container of Projects
-        # 1. Check for immediate project.json or images in sf
         immediate_results = service.files().list(
             q=f"'{sf['id']}' in parents and trashed = false",
             fields="files(id, name, mimeType)"
@@ -58,13 +59,10 @@ def sync():
         
         immediate_files = immediate_results.get('files', [])
         has_subfolders = any(f['mimeType'] == 'application/vnd.google-apps.folder' for f in immediate_files)
-        has_assets = any(f['mimeType'].startswith('image/') or f['name'] == 'project.json' for f in immediate_files)
+        has_assets = any(f['mimeType'].startswith('image/') or f['name'] == 'project.json' or f['mimeType'].startswith('video/') for f in immediate_files)
         
-        # List of folder-data pairs to process [(folder_id, folder_name, parent_name)]
         to_process = []
-        
         if has_subfolders:
-            # Process subfolders as separate projects
             proj_results = service.files().list(
                 q=f"'{sf['id']}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false",
                 fields="files(id, name)"
@@ -72,7 +70,6 @@ def sync():
             for pf in proj_results.get('files', []):
                 to_process.append((pf['id'], pf['name'], sf['name']))
         elif has_assets:
-            # Treat the service folder itself as a single project for now
             to_process.append((sf['id'], sf['name'], sf['name']))
             
         for p_id, p_name, s_name in to_process:
@@ -104,41 +101,102 @@ def sync():
                     "tags": [s_name]
                 }
             
-            # 3. Find image
-            image_name = project_data.get('featured_image')
-            target_img_id = None
+            # Recursive media collection
+            carousel = []
+            def collect_recursive(folder_id, folder_name=""):
+                print(f"    Scanning folder: {folder_name}...")
+                results = service.files().list(
+                    q=f"'{folder_id}' in parents and trashed = false",
+                    fields="files(id, name, mimeType)"
+                ).execute().get('files', [])
+                
+                for f in results:
+                    if f['mimeType'] == 'application/vnd.google-apps.folder':
+                        collect_recursive(f['id'], f['name'])
+                    elif "image/" in f['mimeType'] or "video/" in f['mimeType']:
+                        local_name = f"{f['id']}_{f['name'].replace(' ', '_')}"
+                        local_path = os.path.join(PUBLIC_IMAGES_DIR, local_name)
+                        download_file(service, f['id'], f['name'], local_path)
+                        item = {
+                            "path": f"/images/portfolio/{local_name}", 
+                            "type": "image" if "image" in f['mimeType'] else "video",
+                            "folder": folder_name or p_name
+                        }
+                        if item["type"] == "video":
+                            item["url"] = f"https://drive.google.com/file/d/{f['id']}/view"
+                        carousel.append(item)
             
-            if image_name:
-                img_results = service.files().list(
-                    q=f"'{p_id}' in parents and name = '{image_name}' and trashed = false",
-                    fields="files(id, name)"
-                ).execute()
-                if img_results.get('files'):
-                    target_img_id = img_results['files'][0]['id']
-            else:
-                img_results = service.files().list(
-                    q=f"'{p_id}' in parents and (mimeType = 'image/jpeg' or mimeType = 'image/png') and trashed = false",
-                    pageSize=1,
-                    fields="files(id, name)"
-                ).execute()
-                if img_results.get('files'):
-                    target_img_id = img_results['files'][0]['id']
-                    image_name = img_results['files'][0]['name']
+            collect_recursive(p_id, p_name)
+            
+            if carousel:
+                project_data['carousel'] = carousel
+                project_data['image'] = carousel[0]['path'] # Fallback
 
-            if target_img_id:
-                local_img_filename = f"{p_id}_{image_name.replace(' ', '_')}"
-                local_img_path = os.path.join(PUBLIC_IMAGES_DIR, local_img_filename)
-                download_file(service, target_img_id, image_name, local_img_path)
-                project_data['image'] = f"/images/portfolio/{local_img_filename}"
-            
+            # 3. Special Case: Before/After (FTTT)
+            if p_name == "FTTT" or "from this to this" in p_name.lower():
+                project_data['description'] = "from this to this"
+                project_data['title'] = "Brand Transformation"
+                # Swap logic: user said "interchanged before and after"
+                # If carousel has 2+ items, treat them as Before/After
+                if len(carousel) >= 2:
+                    # Swapping current order (assuming Drive order was reversed)
+                    # Use the first two images for the comparison grid
+                    project_data['before_after'] = [carousel[1]['path'], carousel[0]['path']]
+                
+            # 4. Special Case: Testimonials
+            if s_name == "Testimonials":
+                project_data['category'] = "Clients' Businesses Testimonials"
+                testimonials_found.append(project_data)
+                continue # Aggregate later
+
             project_data['id'] = p_id
             all_projects.append(project_data)
 
+    # Aggregate Testimonials into one entry if found
+    # Aggregate Testimonials into one entry if found
+    if testimonials_found:
+        combined_carousel = []
+        for t in testimonials_found:
+            for item in t.get('carousel', []):
+                # Hardcode the specific TikTok link if it's a video
+                if item['type'] == 'video' or 'mp4' in item['path']:
+                    item['url'] = "https://www.tiktok.com/@1healthessentials/video/7582999258408717579"
+                    item['type'] = 'video' # Ensure type is video
+                combined_carousel.append(item)
+        
+        testimonial_project = {
+            "id": "combined-testimonials",
+            "title": "Evidence of Impact",
+            "category": "Clients' Businesses Testimonials",
+            "description": "Real results from our ecosystem partners.",
+            "result": "Market Dominance",
+            "tags": ["Testimonials", "Results"],
+            "carousel": combined_carousel,
+            "image": combined_carousel[0]['path'] if combined_carousel else ""
+        }
+        all_projects.append(testimonial_project)
+
+    # REORDERING LOGIC
+    # 1. Move "Brand Transformation" (FTTT) to the END
+    
+    fttt_project = None
+    other_projects = []
+    
+    for p in all_projects:
+        if p.get('title') == "Brand Transformation" or p.get('title') == "FTTT":
+            fttt_project = p
+        else:
+            other_projects.append(p)
+            
+    final_projects = other_projects
+    if fttt_project:
+        final_projects.append(fttt_project)
+        
     # 5. Save updated portfolio.json
-    if all_projects:
+    if final_projects:
         with open(PORTFOLIO_JSON_PATH, 'w') as f:
-            json.dump(all_projects, f, indent=2)
-        print(f"Sync Complete. {len(all_projects)} projects synced.")
+            json.dump(final_projects, f, indent=2)
+        print(f"Sync Complete. {len(final_projects)} projects synced.")
     else:
         print("No dynamic projects found in Drive. Site will retain existing data if any.")
 
