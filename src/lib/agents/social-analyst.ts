@@ -1,9 +1,9 @@
 import { ApifyClient } from 'apify-client';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize clients
+// Initialize clients with fallback to prevent build-time crashes
 const apify = new ApifyClient({
-    token: process.env.APIFY_API_KEY || process.env.APIFY_API_TOKEN,
+    token: process.env.APIFY_API_KEY || process.env.APIFY_API_TOKEN || "placeholder_token",
 });
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");

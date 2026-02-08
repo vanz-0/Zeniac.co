@@ -1,7 +1,7 @@
 import { ApifyClient } from 'apify-client';
 
 const apify = new ApifyClient({
-    token: process.env.APIFY_API_KEY || process.env.APIFY_API_TOKEN,
+    token: process.env.APIFY_API_KEY || process.env.APIFY_API_TOKEN || "placeholder_token",
 });
 
 interface CompetitorResult {

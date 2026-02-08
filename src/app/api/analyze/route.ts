@@ -13,8 +13,8 @@ import { getRecentAnalysis, saveAnalysisResult } from '@/lib/db-actions';
 
 // const execAsync = promisify(exec); // Removed
 
-const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
-const apify = new ApifyClient({ token: process.env.APIFY_API_KEY });
+const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY || "placeholder_key" });
+const apify = new ApifyClient({ token: process.env.APIFY_API_KEY || "placeholder_token" });
 
 // Replaced Python execution with native TS function calls
 async function executeSocialPresenceAnalysis(businessName: string, location: string): Promise<any> {
