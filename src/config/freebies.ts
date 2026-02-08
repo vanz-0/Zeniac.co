@@ -24,5 +24,10 @@ export const FREEBIES = {
         name: "Digital Brand Brief",
         link: "https://drive.google.com/open?id=MOCK_LINK_6",
         description: "A professional roadmap for high-end visual presence and local brand authority."
+    },
+    "portfolio-inquiry": {
+        name: "Project Discovery Package",
+        link: "https://drive.google.com/drive/folders/15azvnK4VvLTTXOmBez2Oe64uVVeMYL41",
+        description: "Access our full portfolio and learn how we can help scale your business."
     }
 };

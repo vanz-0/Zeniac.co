@@ -236,7 +236,10 @@ function ProjectCard({ project, index }: { project: PortfolioItem, index: number
                             <button className="w-full h-full cursor-pointer outline-none"></button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[425px] bg-zinc-950 border-zinc-900">
-                            <LeadForm source={`Portfolio - ${project.title}`} />
+                            <LeadForm
+                                serviceId="portfolio-inquiry"
+                                resourceName={project.title}
+                            />
                         </DialogContent>
                     </Dialog>
                 </div>
