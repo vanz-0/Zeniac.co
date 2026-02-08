@@ -9,6 +9,7 @@ import path from 'path';
 // Import new TypeScript Agents
 import { analyzeSocialPresence } from '@/lib/agents/social-analyst';
 import { analyzeCompetitors } from '@/lib/agents/competitor-analyst';
+import { getRecentAnalysis, saveAnalysisResult } from '@/lib/db-actions';
 
 // const execAsync = promisify(exec); // Removed
 
@@ -114,7 +115,19 @@ function calculateRevenueImpact(
 
 export async function POST(req: NextRequest) {
     try {
-        const { url } = await req.json();
+        const { url, userId } = await req.json();
+
+        // 0. Check for recent analysis (Caching Layer)
+        // ---------------------------------------------------------
+        const cachedAnalysis = await getRecentAnalysis(url);
+        if (cachedAnalysis) {
+            console.log(`⚡ Serving cached analysis for: ${url}`);
+            return NextResponse.json({
+                success: true,
+                data: cachedAnalysis.report_data,
+                _meta: { source: 'cache', timestamp: cachedAnalysis.created_at }
+            });
+        }
 
         // 1. Firecrawl Deep Scan (Multi-page targeted scan)
         const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
@@ -396,6 +409,11 @@ export async function POST(req: NextRequest) {
                 }
             }
         };
+
+        // 6. Save to Supabase (Persistence Layer)
+        // ---------------------------------------------------------
+        await saveAnalysisResult(url, analysisData as any, userId);
+        console.log(`💾 Analysis saved to Supabase for: ${url}`);
 
         return NextResponse.json({ success: true, data: analysisData });
 
