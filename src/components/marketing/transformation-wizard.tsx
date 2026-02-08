@@ -56,18 +56,20 @@ export function TransformationWizard({ open, onOpenChange }: WizardProps) {
                 setAnalysisData(data.data);
             }
         } catch (error) {
-            console.error("Analysis failed", error);
-            // Fallback for demo if API fails
+            console.error("Analysis failed:", error);
+            // Fallback for demo if API fails, but log it
+            // TODO: Remove this fallback once API signals are verified
             setAnalysisData({
                 score: 42,
-                techStack: "Undetected",
+                techStack: "Undetected (API Error)",
                 competitorGap: "High",
                 hasSocialProof: false,
                 hasClearCTA: false,
                 businessType: "Unknown",
                 services: [],
-                inferredPainPoints: ["Analysis API unreachable"],
-                location: "Unknown"
+                inferredPainPoints: ["Analysis API unreachable", "Check console for details"],
+                location: "Unknown",
+                debug: null // Fallback
             });
         } finally {
             setStep("results");
@@ -593,13 +595,70 @@ export function TransformationWizard({ open, onOpenChange }: WizardProps) {
                                         className="bg-zeniac-gold text-black hover:bg-zeniac-gold/90 font-bold h-12"
                                     >
                                         <a
-                                            href={`https://calendly.com/zeniac-dominance?name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&a1=${encodeURIComponent(formData.website)}`}
+                                            href={`mailto:march.zenith@gmail.com?subject=Discovery Meeting Request: ${encodeURIComponent(formData.name)}&body=Hi Zeniac Team,%0D%0A%0D%0AI would like to request a discovery call to discuss my audit results.%0D%0A%0D%0APlease schedule via:%0D%0A[ ] Google Meet%0D%0A[ ] WhatsApp Call%0D%0A[ ] Phone Call (Kenya Only)%0D%0A%0D%0AMy Details:%0D%0AName: ${encodeURIComponent(formData.name)}%0D%0AEmail: ${encodeURIComponent(formData.email)}%0D%0AWebsite: ${encodeURIComponent(formData.website)}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >
                                             BOOK DISCOVERY CALL <ArrowRight className="ml-2 w-4 h-4" />
                                         </a>
                                     </Button>
+
+                                    {/* Debug Info Section */}
+                                    {analysisData.debug && (
+                                        <div className="mt-8 border-t border-white/10 pt-6 text-left w-full">
+                                            <details className="group">
+                                                <summary className="cursor-pointer text-xs text-zeniac-gray hover:text-white flex items-center gap-2">
+                                                    <span>🛠️ Debug Info (API Diagnostics)</span>
+                                                    <span className="group-open:rotate-180 transition-transform">▼</span>
+                                                </summary>
+                                                <div className="mt-4 space-y-4 text-xs font-mono bg-black/50 p-4 rounded-lg overflow-x-auto">
+                                                    <div>
+                                                        <h4 className="text-zeniac-gold mb-1">Social Analysis Script</h4>
+                                                        <div className="grid grid-cols-[100px_1fr] gap-2">
+                                                            <span className="text-gray-500">Status:</span>
+                                                            <span className={analysisData.debug.social.status === 'success' ? 'text-green-400' : 'text-red-400'}>
+                                                                {analysisData.debug.social.status}
+                                                            </span>
+                                                            {analysisData.debug.social.error && (
+                                                                <>
+                                                                    <span className="text-gray-500">Error:</span>
+                                                                    <span className="text-red-300">{analysisData.debug.social.error}</span>
+                                                                </>
+                                                            )}
+                                                            {analysisData.debug.social.stderr && (
+                                                                <>
+                                                                    <span className="text-gray-500">Stderr:</span>
+                                                                    <pre className="text-orange-300 whitespace-pre-wrap">{analysisData.debug.social.stderr}</pre>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="border-t border-white/10 pt-4">
+                                                        <h4 className="text-zeniac-gold mb-1">Competitor Research Script</h4>
+                                                        <div className="grid grid-cols-[100px_1fr] gap-2">
+                                                            <span className="text-gray-500">Status:</span>
+                                                            <span className={analysisData.debug.competitor.status === 'success' ? 'text-green-400' : 'text-red-400'}>
+                                                                {analysisData.debug.competitor.status}
+                                                            </span>
+                                                            {analysisData.debug.competitor.error && (
+                                                                <>
+                                                                    <span className="text-gray-500">Error:</span>
+                                                                    <span className="text-red-300">{analysisData.debug.competitor.error}</span>
+                                                                </>
+                                                            )}
+                                                            {analysisData.debug.competitor.stderr && (
+                                                                <>
+                                                                    <span className="text-gray-500">Stderr:</span>
+                                                                    <pre className="text-orange-300 whitespace-pre-wrap">{analysisData.debug.competitor.stderr}</pre>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </details>
+                                        </div>
+                                    )}
                                     <Button
                                         onClick={() => onOpenChange(false)}
                                         variant="ghost"

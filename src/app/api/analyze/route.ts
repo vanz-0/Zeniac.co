@@ -1,100 +1,62 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import FirecrawlApp from '@mendable/firecrawl-js';
 import { ApifyClient } from 'apify-client';
-import { PageSpeedMetrics, PageSpeedResponse } from '@/types/pagespeed';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { PageSpeedMetrics, PageSpeedResponse, AnalysisData } from '@/types/analysis';
+// import { exec } from 'child_process'; // Removed for Vercel compatibility
+// import { promisify } from 'util';
 import path from 'path';
 
-const execAsync = promisify(exec);
+// Import new TypeScript Agents
+import { analyzeSocialPresence } from '@/lib/agents/social-analyst';
+import { analyzeCompetitors } from '@/lib/agents/competitor-analyst';
+
+// const execAsync = promisify(exec); // Removed
 
 const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
 const apify = new ApifyClient({ token: process.env.APIFY_API_KEY });
 
-// Python script execution helpers
+// Replaced Python execution with native TS function calls
 async function executeSocialPresenceAnalysis(businessName: string, location: string): Promise<any> {
     try {
-        const projectRoot = process.cwd();
-        const scriptPath = path.join(projectRoot, 'execution', 'analyze_social_presence.py');
-        const timestamp = Date.now();
-        const outputPath = path.join(projectRoot, '.tmp', `social_${timestamp}.json`);
+        console.log(`🤖 Invoking Social Analyst Agent for: ${businessName}`);
+        const result = await analyzeSocialPresence(businessName, location);
 
-        console.log(`🐍 Executing social presence analysis for: ${businessName}`);
-
-        const command = `python "${scriptPath}" --business "${businessName}" --location "${location}" --output "${outputPath}"`;
-
-        const { stdout, stderr } = await execAsync(command, {
-            cwd: projectRoot,
-            timeout: 30000 // 30 second timeout
-        });
-
-        // Parse JSON from stdout (script outputs JSON at the end)
-        const jsonMatch = stdout.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            const result = JSON.parse(jsonMatch[0]);
-            console.log(`✅ Social analysis complete. Score: ${result.aggregate.social_presence_score}`);
-            return result;
-        }
-
-        throw new Error("Failed to parse social analysis output");
+        console.log(`✅ Social analysis complete. Score: ${result.aggregate.social_presence_score}`);
+        return {
+            ...result,
+            _debug: { status: "success", method: "TypeScript Agent" }
+        };
 
     } catch (error: any) {
         console.warn(`⚠️ Social presence analysis failed: ${error.message}`);
         return {
-            error: "Social presence analysis unavailable",
-            aggregate: {
-                social_presence_score: 0,
-                total_reviews: 0,
-                average_rating: 0,
-                total_followers: 0
-            }
+            error: "Social analysis failed",
+            aggregate: { social_presence_score: 0, total_reviews: 0, average_rating: 0, total_followers: 0 },
+            _debug: { status: "failed", error: error.message, method: "TypeScript Agent" }
         };
     }
 }
-
 async function executeCompetitorResearch(industry: string, location: string, excludeBusiness: string): Promise<any> {
     try {
-        const projectRoot = process.cwd();
-        const scriptPath = path.join(projectRoot, 'execution', 'scrape_apify_parallel.py');
-        const timestamp = Date.now();
-        const outputPath = path.join(projectRoot, '.tmp', `competitors_${timestamp}.json`);
+        console.log(`🤖 Invoking Competitor Analyst Agent for: ${industry} in ${location}`);
+        const result = await analyzeCompetitors(industry, location, excludeBusiness);
 
-        console.log(`🐍 Executing competitor research: ${industry} in ${location}`);
-
-        const command = `python "${scriptPath}" --mode competitors --industry "${industry}" --location "${location}" --exclude "${excludeBusiness}" --max 3 --output "${outputPath}"`;
-
-        const { stdout, stderr } = await execAsync(command, {
-            cwd: projectRoot,
-            timeout: 60000 // 60 second timeout for competitor research
-        });
-
-        // Parse JSON from stdout
-        const jsonMatch = stdout.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            const result = JSON.parse(jsonMatch[0]);
-            console.log(`✅ Competitor research complete. Found: ${result.analysis.total_found} competitors`);
-            return result;
-        }
-
-        throw new Error("Failed to parse competitor research output");
+        console.log(`✅ Competitor research complete. Found: ${result.analysis.total_found} competitors`);
+        return {
+            ...result,
+            _debug: { status: "success", method: "TypeScript Agent" }
+        };
 
     } catch (error: any) {
         console.warn(`⚠️ Competitor research failed: ${error.message}`);
-        // Return industry benchmarks as fallback
         return {
             competitors: [],
-            analysis: {
-                avg_rating: 4.0,
-                avg_reviews: 100,
-                avg_seo_score: 70,
-                total_found: 0
-            },
-            error: "Competitor research unavailable - using industry benchmarks"
+            analysis: { avg_rating: 4.0, avg_reviews: 100, avg_seo_score: 70, total_found: 0 },
+            error: "Competitor research unavailable",
+            _debug: { status: "failed", error: error.message, method: "TypeScript Agent" }
         };
     }
 }
-
 
 const PAIN_POINTS_RULES = [
     { id: "seo", trigger: (md: string) => !md.includes("# ") || md.length < 500, label: "Critical SEO Gaps (Thin Content / No H1)" },
@@ -423,6 +385,15 @@ export async function POST(req: NextRequest) {
                     ...(!competitorData ? ["Competitor research unavailable - using industry benchmarks"] : []),
                     "Multi-page scanning pending - currently homepage only"
                 ]
+            },
+            debug: {
+                social: socialPresenceData?._debug || { status: "unknown" },
+                competitor: competitorData?._debug || { status: "unknown" },
+                firecrawl: {
+                    pagesAttempted: targetUrls.length,
+                    pagesScraped: validResults.length,
+                    success: validResults.length > 0
+                }
             }
         };
 

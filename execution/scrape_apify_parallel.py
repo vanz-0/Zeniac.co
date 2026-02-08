@@ -125,7 +125,7 @@ def scrape_partition(partition_id, query, locations, max_items, company_keywords
     """
     start_time = time.time()
 
-    api_token = os.getenv("APIFY_API_TOKEN")
+    api_token = os.getenv("APIFY_API_TOKEN") or os.getenv("APIFY_API_KEY")
     if not api_token:
         print(f"[Partition {partition_id}] Error: APIFY_API_TOKEN not found in .env", file=sys.stderr)
         return (partition_id, None, 0)
@@ -400,7 +400,7 @@ def scrape_competitors(industry, location, exclude_business=None, max_competitor
             }
         }
     """
-    api_token = os.getenv("APIFY_API_TOKEN")
+    api_token = os.getenv("APIFY_API_TOKEN") or os.getenv("APIFY_API_KEY")
     if not api_token:
         print("Error: APIFY_API_TOKEN not found in .env", file=sys.stderr)
         return {"competitors": [], "analysis": {}}
@@ -584,7 +584,7 @@ def main():
         with open(output_file, "w") as f:
             json.dump(results, f, indent=2)
         
-        print(f"\n💾 Results saved to: {output_file}")
+        print(f"\n[SAVED] Results saved to: {output_file}")
         
         # Output JSON to stdout for programmatic use
         print("\n" + json.dumps(results, indent=2))

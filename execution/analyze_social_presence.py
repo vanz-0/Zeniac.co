@@ -27,7 +27,7 @@ def analyze_google_my_business(business_name, location):
     Scrape Google My Business listing data.
     Uses Apify's Google Maps scraper.
     """
-    api_token = os.getenv("APIFY_API_TOKEN")
+    api_token = os.getenv("APIFY_API_TOKEN") or os.getenv("APIFY_API_KEY")
     if not api_token:
         print("Warning: APIFY_API_TOKEN not found", file=sys.stderr)
         return None
@@ -75,7 +75,7 @@ def analyze_facebook_page(business_name):
     Scrape Facebook Business Page metrics.
     Uses Apify's Facebook Pages Scraper.
     """
-    api_token = os.getenv("APIFY_API_TOKEN")
+    api_token = os.getenv("APIFY_API_TOKEN") or os.getenv("APIFY_API_KEY")
     if not api_token:
         return None
 
@@ -102,7 +102,7 @@ def analyze_linkedin_company(business_name):
     Scrape LinkedIn Company Page data.
     Uses Apify's LinkedIn Company Scraper.
     """
-    api_token = os.getenv("APIFY_API_TOKEN")
+    api_token = os.getenv("APIFY_API_TOKEN") or os.getenv("APIFY_API_KEY")
     if not api_token:
         return None
 

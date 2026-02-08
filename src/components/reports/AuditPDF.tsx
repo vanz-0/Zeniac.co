@@ -528,7 +528,7 @@ const Footer = () => (
 );
 
 export const AuditPDF: React.FC<AuditPDFProps> = ({ analysis, website, name, email, reportDate }) => {
-    const calendlyUrl = `https://calendly.com/zeniac-dominance?name=${encodeURIComponent(name || '')}&email=${encodeURIComponent(email || '')}&a1=${encodeURIComponent(website || '')}`;
+    const calendlyUrl = `mailto:march.zenith@gmail.com?subject=Discovery Meeting Request: ${encodeURIComponent(name || '')}&body=Hi Zeniac Team,%0D%0A%0D%0AI would like to request a discovery call.%0D%0A%0D%0APlease schedule via:%0D%0A[ ] Google Meet%0D%0A[ ] WhatsApp Call%0D%0A[ ] Phone Call (Kenya Only)%0D%0A%0D%0AMy Details:%0D%0AName: ${encodeURIComponent(name || '')}%0D%0AEmail: ${encodeURIComponent(email || '')}%0D%0AWebsite: ${encodeURIComponent(website || '')}`;
     const categories = analysis.categoryScores || {
         websiteQuality: { score: analysis.score, label: "Website", issues: [], strengths: [] },
         seoPerformance: { score: analysis.score - 5, label: "SEO", issues: [], strengths: [] },
@@ -621,9 +621,187 @@ export const AuditPDF: React.FC<AuditPDFProps> = ({ analysis, website, name, ema
                 <Footer />
             </Page>
 
-            {/* PAGE 3: ANALYTICAL DASHBOARD */}
+            {/* PAGE 3: TECHNICAL DEEP DIVE (NEW - FIRECRAWL DATA) */}
             <Page size="A4" style={{ ...styles.page, ...styles.standardPage }}>
                 <Header pageNum={3} total={totalPages} date={reportDate} />
+                <Text style={styles.sectionTitle}>Technical Deep Dive</Text>
+
+                <View style={{ marginBottom: 20 }}>
+                    <Text style={{ fontSize: 11, color: '#666', marginBottom: 10 }}>
+                        We performed a multi-page crawl analysis to identify structural and technical bottlenecks
+                        hindering your search performance.
+                    </Text>
+
+                    <View style={{ flexDirection: 'row', gap: 15, marginBottom: 20 }}>
+                        <View style={{ flex: 1, padding: 15, backgroundColor: '#f8f9fa', borderRadius: 4, alignItems: 'center' }}>
+                            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#000' }}>
+                                {analysis.allPagesData?.length || 1}
+                            </Text>
+                            <Text style={{ fontSize: 9, color: '#666', textTransform: 'uppercase' }}>Pages Scanned</Text>
+                        </View>
+                        <View style={{ flex: 1, padding: 15, backgroundColor: '#f8f9fa', borderRadius: 4, alignItems: 'center' }}>
+                            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#000' }}>
+                                {analysis.techStack || 'Unknown'}
+                            </Text>
+                            <Text style={{ fontSize: 9, color: '#666', textTransform: 'uppercase' }}>Tech Stack</Text>
+                        </View>
+                        <View style={{ flex: 1, padding: 15, backgroundColor: '#f8f9fa', borderRadius: 4, alignItems: 'center' }}>
+                            <Text style={{ fontSize: 24, fontWeight: 'bold', color: getScoreColor(analysis.performanceMetrics?.performanceScore || 0) }}>
+                                {analysis.performanceMetrics?.performanceScore || 'N/A'}
+                            </Text>
+                            <Text style={{ fontSize: 9, color: '#666', textTransform: 'uppercase' }}>Core Web Vitals</Text>
+                        </View>
+                    </View>
+
+                    <Text style={styles.insightTitle}>Page-Level Analysis</Text>
+                    <View style={styles.competitorTable}>
+                        <View style={styles.tableHeader}>
+                            <Text style={{ ...styles.tableHeaderText, width: '40%' }}>URL Path</Text>
+                            <Text style={{ ...styles.tableHeaderText, width: '40%' }}>Title Tag</Text>
+                            <Text style={{ ...styles.tableHeaderText, width: '20%' }}>Status</Text>
+                        </View>
+                        {(analysis.allPagesData || [{ url: website, title: 'Home', description: '' }]).slice(0, 8).map((page, i) => (
+                            <View key={i} style={styles.tableRow}>
+                                <Text style={{ ...styles.tableCell, width: '40%' }}>
+                                    {page.url.replace(website, '').substring(0, 35) || '/'}
+                                </Text>
+                                <Text style={{ ...styles.tableCell, width: '40%' }}>
+                                    {page.title ? page.title.substring(0, 30) + (page.title.length > 30 ? '...' : '') : 'Missing Title Tag'}
+                                </Text>
+                                <Text style={{ ...styles.tableCell, width: '20%', color: page.title ? '#16a34a' : '#dc2626' }}>
+                                    {page.title ? 'Indexed' : 'Issues Found'}
+                                </Text>
+                            </View>
+                        ))}
+                    </View>
+                </View>
+
+                {/* Performance Metrics Section */}
+                {analysis.performanceMetrics && (
+                    <View style={{ marginTop: 20, padding: 15, backgroundColor: '#f0f9ff', borderLeft: '4px solid #3b82f6' }}>
+                        <Text style={{ fontSize: 12, fontWeight: 'bold', marginBottom: 10, color: '#1e40af' }}>⚡ Performance & Speed (Mobile)</Text>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                            <View style={{ width: '30%' }}>
+                                <Text style={{ fontSize: 8, color: '#666' }}>LCP (Load Time)</Text>
+                                <Text style={{ fontSize: 11, fontWeight: 'bold' }}>{(analysis.performanceMetrics.largestContentfulPaint / 1000).toFixed(1)}s</Text>
+                            </View>
+                            <View style={{ width: '30%' }}>
+                                <Text style={{ fontSize: 8, color: '#666' }}>FCP (First Paint)</Text>
+                                <Text style={{ fontSize: 11, fontWeight: 'bold' }}>{(analysis.performanceMetrics.firstContentfulPaint / 1000).toFixed(1)}s</Text>
+                            </View>
+                            <View style={{ width: '30%' }}>
+                                <Text style={{ fontSize: 8, color: '#666' }}>CLS (Stability)</Text>
+                                <Text style={{ fontSize: 11, fontWeight: 'bold' }}>{analysis.performanceMetrics.cumulativeLayoutShift.toFixed(2)}</Text>
+                            </View>
+                        </View>
+                        <PerformanceGauge score={analysis.performanceMetrics.performanceScore || analysis.score} />
+                    </View>
+                )}
+
+                <Footer />
+            </Page>
+
+            {/* PAGE 4: SOCIAL PRESENCE AUDIT (NEW - PYTHON DATA) */}
+            <Page size="A4" style={{ ...styles.page, ...styles.standardPage }}>
+                <Header pageNum={4} total={totalPages} date={reportDate} />
+                <Text style={styles.sectionTitle}>Social Presence Audit</Text>
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+                    <View style={{ width: '48%' }}>
+                        <View style={styles.scoreHero}>
+                            <Text style={{ ...styles.mainScoreValue, fontSize: 60, color: getScoreColor(analysis.socialPresenceAnalysis?.aggregate?.social_presence_score || 0) }}>
+                                {analysis.socialPresenceAnalysis?.aggregate?.social_presence_score || 0}
+                            </Text>
+                            <Text style={styles.mainScoreLabel}>Social Authority</Text>
+                        </View>
+                    </View>
+                    <View style={{ width: '48%', justifyContent: 'center' }}>
+                        <View style={{ marginBottom: 10 }}>
+                            <Text style={{ fontSize: 9, color: '#666' }}>TOTAL FOLLOWERS</Text>
+                            <Text style={{ fontSize: 18, fontWeight: 'bold' }}>
+                                {analysis.socialPresenceAnalysis?.aggregate?.total_followers?.toLocaleString() || 0}
+                            </Text>
+                        </View>
+                        <View style={{ marginBottom: 10 }}>
+                            <Text style={{ fontSize: 9, color: '#666' }}>TOTAL REVIEWS</Text>
+                            <Text style={{ fontSize: 18, fontWeight: 'bold' }}>
+                                {analysis.socialPresenceAnalysis?.aggregate?.total_reviews || 0}
+                            </Text>
+                        </View>
+                        <View>
+                            <Text style={{ fontSize: 9, color: '#666' }}>AVG RATING</Text>
+                            <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#D4AF37' }}>
+                                {(analysis.socialPresenceAnalysis?.aggregate?.average_rating || 0).toFixed(1)} / 5.0
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+
+                <Text style={styles.insightTitle}>Platform Breakdown</Text>
+                <View style={styles.competitorTable}>
+                    <View style={styles.tableHeader}>
+                        <Text style={{ ...styles.tableHeaderText, width: '30%' }}>Platform</Text>
+                        <Text style={{ ...styles.tableHeaderText, width: '25%' }}>Status</Text>
+                        <Text style={{ ...styles.tableHeaderText, width: '25%' }}>Followers</Text>
+                        <Text style={{ ...styles.tableHeaderText, width: '20%' }}>Engagement</Text>
+                    </View>
+
+                    {/* Google Business Profile */}
+                    <View style={styles.tableRow}>
+                        <Text style={{ ...styles.tableCell, width: '30%', fontWeight: 'bold' }}>Google Business</Text>
+                        <Text style={{ ...styles.tableCell, width: '25%' }}>
+                            {analysis.socialPresenceAnalysis?.platforms?.google_business?.title ? '✅ Verified' : '❌ Not Found'}
+                        </Text>
+                        <Text style={{ ...styles.tableCell, width: '25%' }}>
+                            {analysis.socialPresenceAnalysis?.platforms?.google_business?.reviewsCount || 0} Reviews
+                        </Text>
+                        <Text style={{ ...styles.tableCell, width: '20%' }}>
+                            {analysis.socialPresenceAnalysis?.platforms?.google_business?.totalScore || 0} ⭐
+                        </Text>
+                    </View>
+
+                    {/* Facebook */}
+                    <View style={styles.tableRow}>
+                        <Text style={{ ...styles.tableCell, width: '30%', fontWeight: 'bold' }}>Facebook</Text>
+                        <Text style={{ ...styles.tableCell, width: '25%' }}>
+                            {analysis.socialPresenceAnalysis?.platforms?.facebook?.likes ? '✅ Active' : '❌ Inactive'}
+                        </Text>
+                        <Text style={{ ...styles.tableCell, width: '25%' }}>
+                            {analysis.socialPresenceAnalysis?.platforms?.facebook?.likes || 0} Likes
+                        </Text>
+                        <Text style={{ ...styles.tableCell, width: '20%' }}>
+                            {analysis.socialPresenceAnalysis?.platforms?.facebook?.followers || 0} Foll.
+                        </Text>
+                    </View>
+
+                    {/* LinkedIn */}
+                    <View style={styles.tableRow}>
+                        <Text style={{ ...styles.tableCell, width: '30%', fontWeight: 'bold' }}>LinkedIn</Text>
+                        <Text style={{ ...styles.tableCell, width: '25%' }}>
+                            {analysis.socialPresenceAnalysis?.platforms?.linkedin?.followerCount ? '✅ Active' : '❌ Inactive'}
+                        </Text>
+                        <Text style={{ ...styles.tableCell, width: '25%' }}>
+                            {analysis.socialPresenceAnalysis?.platforms?.linkedin?.followerCount || 0} Followers
+                        </Text>
+                        <Text style={{ ...styles.tableCell, width: '20%' }}>-</Text>
+                    </View>
+                </View>
+
+                {analysis.socialPresenceAnalysis?.ai_analysis?.strategic_brief && (
+                    <View style={styles.insightBox}>
+                        <Text style={styles.insightTitle}>🤖 AI Strategic Analysis</Text>
+                        <Text style={{ fontSize: 10, lineHeight: 1.4, color: '#333' }}>
+                            {analysis.socialPresenceAnalysis.ai_analysis.strategic_brief}
+                        </Text>
+                    </View>
+                )}
+
+                <Footer />
+            </Page>
+
+            {/* PAGE 5: ANALYTICAL DASHBOARD (LEGACY RE-ORDERED) */}
+            <Page size="A4" style={{ ...styles.page, ...styles.standardPage }}>
+                <Header pageNum={5} total={totalPages} date={reportDate} />
                 <Text style={styles.sectionTitle}>Analytical Dashboard</Text>
 
                 <View style={styles.categoryGrid}>
@@ -635,28 +813,6 @@ export const AuditPDF: React.FC<AuditPDFProps> = ({ analysis, website, name, ema
                         </View>
                     ))}
                 </View>
-
-                {/* Performance Metrics Section */}
-                {analysis.performanceMetrics && (
-                    <View style={{ marginTop: 20, padding: 15, backgroundColor: '#f0f9ff', borderLeft: '4px solid #3b82f6' }}>
-                        <Text style={{ fontSize: 12, fontWeight: 'bold', marginBottom: 10, color: '#1e40af' }}>⚡ Core Web Vitals</Text>
-                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-                            <View style={{ width: '30%' }}>
-                                <Text style={{ fontSize: 8, color: '#666' }}>LCP</Text>
-                                <Text style={{ fontSize: 11, fontWeight: 'bold' }}>{(analysis.performanceMetrics.largestContentfulPaint / 1000).toFixed(1)}s</Text>
-                            </View>
-                            <View style={{ width: '30%' }}>
-                                <Text style={{ fontSize: 8, color: '#666' }}>FCP</Text>
-                                <Text style={{ fontSize: 11, fontWeight: 'bold' }}>{(analysis.performanceMetrics.firstContentfulPaint / 1000).toFixed(1)}s</Text>
-                            </View>
-                            <View style={{ width: '30%' }}>
-                                <Text style={{ fontSize: 8, color: '#666' }}>CLS</Text>
-                                <Text style={{ fontSize: 11, fontWeight: 'bold' }}>{analysis.performanceMetrics.cumulativeLayoutShift.toFixed(2)}</Text>
-                            </View>
-                        </View>
-                        <PerformanceGauge score={analysis.performanceMetrics.performanceScore || analysis.score} />
-                    </View>
-                )}
 
                 {/* Performance Context */}
                 <View style={styles.insightBox}>
@@ -680,9 +836,9 @@ export const AuditPDF: React.FC<AuditPDFProps> = ({ analysis, website, name, ema
                 <Footer />
             </Page>
 
-            {/* PAGE 4: COMPETITIVE INTELLIGENCE (NEW) */}
+            {/* PAGE 6: COMPETITIVE INTELLIGENCE (ENHANCED) */}
             <Page size="A4" style={{ ...styles.page, ...styles.standardPage }}>
-                <Header pageNum={4} total={totalPages} date={reportDate} />
+                <Header pageNum={6} total={totalPages} date={reportDate} />
                 <Text style={styles.sectionTitle}>Competitive Intelligence</Text>
 
                 {/* Competitive Radar Chart */}

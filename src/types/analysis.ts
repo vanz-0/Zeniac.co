@@ -24,6 +24,47 @@ export interface AnalysisMetadata {
     limitations: string[];
 }
 
+export interface PageSpeedMetrics {
+    performanceScore: number;
+    firstContentfulPaint: number;
+    largestContentfulPaint: number;
+    totalBlockingTime: number;
+    cumulativeLayoutShift: number;
+    speedIndex: number;
+}
+
+export interface PageSpeedResponse {
+    lighthouseResult: {
+        categories: {
+            performance: {
+                score: number;
+            };
+        };
+        audits: {
+            'first-contentful-paint': {
+                displayValue: string;
+                numericValue: number;
+            };
+            'largest-contentful-paint': {
+                displayValue: string;
+                numericValue: number;
+            };
+            'total-blocking-time': {
+                displayValue: string;
+                numericValue: number;
+            };
+            'cumulative-layout-shift': {
+                displayValue: string;
+                numericValue: number;
+            };
+            'speed-index': {
+                displayValue: string;
+                numericValue: number;
+            };
+        };
+    };
+}
+
 export interface AnalysisData {
     // Overall
     score: number;
@@ -47,17 +88,9 @@ export interface AnalysisData {
         performance?: CategoryScore; // Optional, only when PageSpeed API is enabled
     };
 
-    // Performance metrics (from PageSpeed Insights API)
-    performanceMetrics?: {
-        performanceScore: number;
-        firstContentfulPaint: number;
-        largestContentfulPaint: number;
-        totalBlockingTime: number;
-        cumulativeLayoutShift: number;
-        speedIndex: number;
-    };
+    // Performance metrics (PageSpeed Insights data)
+    performanceMetrics?: PageSpeedMetrics;
 
-    // Revenue Impact Analysis
     revenueImpact?: {
         estimatedMonthlyTraffic: number;
         competitorAvgTraffic: number;
@@ -106,11 +139,23 @@ export interface AnalysisData {
         error?: string;
     };
 
-    // Social Presence Analysis (from Python script)
+    // Social Presence Analysis (from TypeScript agent)
     socialPresenceAnalysis?: {
+        business_name?: string;
+        location?: string;
+        analyzed_at?: string;
+        platforms?: {
+            google_business?: any;
+            facebook?: any;
+            linkedin?: any;
+        };
+        // Legacy fields for backward compatibility
         google_my_business?: any;
         facebook?: any;
         linkedin?: any;
+        ai_analysis?: {
+            strategic_brief?: string;
+        };
         aggregate: {
             social_presence_score: number;
             total_reviews: number;
