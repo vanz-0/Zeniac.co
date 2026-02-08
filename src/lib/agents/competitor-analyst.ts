@@ -50,17 +50,32 @@ export async function analyzeCompetitors(industry: string, location: string, exc
                     !title.includes("Best"); // Filter out listicles
             })
             .slice(0, 5)
-            .map((item: any) => ({
-                name: item.title,
-                website: item.url,
-                description: item.description,
-                // Synthetic metrics since Google Search Scraper doesn't give ratings/reviews directly
-                // In a real scenario, we'd chain this with Google Maps Scraper or similar
-                rating: Number((4.0 + Math.random()).toFixed(1)), // Simulate 4.0-5.0
-                review_count: Math.floor(Math.random() * 500) + 50,
-                estimated_seo_score: Math.floor(Math.random() * (95 - 60) + 60),
-                rank: item.rank || 0
-            }));
+            .map((item: any) => {
+                const snippet = item.description || "";
+
+                // Extract rating using regex (e.g., "4.5 stars", "4.8 rating")
+                const ratingMatch = snippet.match(/(\d\.\d)\s*(?:stars?|★|rating)/i);
+                const rating = ratingMatch ? parseFloat(ratingMatch[1]) : 0;
+
+                // Extract review count using regex (e.g., "150 reviews")
+                const reviewMatch = snippet.match(/(\d+)\s*(?:reviews?|ratings?)/i);
+                const reviewCount = reviewMatch ? parseInt(reviewMatch[1].replace(/,/g, ''), 10) : 0;
+
+                // Estimate SEO score based on rank (1-10)
+                // Rank 1 = ~90, Rank 10 = ~60
+                const rank = item.rank || 5;
+                const estimatedSeoScore = Math.max(50, 100 - (rank * 4));
+
+                return {
+                    name: item.title,
+                    website: item.url,
+                    description: snippet,
+                    rating: rating || 0, // Default to 0 if not found
+                    review_count: reviewCount || 0,
+                    estimated_seo_score: estimatedSeoScore,
+                    rank: rank
+                };
+            });
 
         // Analysis Stats
         const total = competitors.length;
