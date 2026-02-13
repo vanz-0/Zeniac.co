@@ -528,7 +528,7 @@ const Footer = () => (
 );
 
 export const AuditPDF: React.FC<AuditPDFProps> = ({ analysis, website, name, email, reportDate }) => {
-    const calendlyUrl = `mailto:march.zenith@gmail.com?subject=Discovery Meeting Request: ${encodeURIComponent(name || '')}&body=Hi Zeniac Team,%0D%0A%0D%0AI would like to request a discovery call.%0D%0A%0D%0APlease schedule via:%0D%0A[ ] Google Meet%0D%0A[ ] WhatsApp Call%0D%0A[ ] Phone Call (Kenya Only)%0D%0A%0D%0AMy Details:%0D%0AName: ${encodeURIComponent(name || '')}%0D%0AEmail: ${encodeURIComponent(email || '')}%0D%0AWebsite: ${encodeURIComponent(website || '')}`;
+    const bookingUrl = `mailto:merchzenith@gmail.com?subject=Discovery Meeting Request: ${encodeURIComponent(name || '')}&body=Hi Zeniac Team,%0D%0A%0D%0AI would like to request a discovery call for ${encodeURIComponent(website || '')}.%0D%0A%0D%0AMy Details:%0D%0AName: ${encodeURIComponent(name || '')}%0D%0AEmail: ${encodeURIComponent(email || '')}`;
     const categories = analysis.categoryScores || {
         websiteQuality: { score: analysis.score, label: "Website", issues: [], strengths: [] },
         seoPerformance: { score: analysis.score - 5, label: "SEO", issues: [], strengths: [] },
@@ -1484,7 +1484,7 @@ export const AuditPDF: React.FC<AuditPDFProps> = ({ analysis, website, name, ema
                 <View style={styles.ctaBox}>
                     <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#D4AF37' }}>Book Your Implementation Audit</Text>
                     <Text style={{ fontSize: 10, color: '#D4AF37', fontWeight: 'bold' }}>
-                        {calendlyUrl}
+                        Email: hello@zeniac.co
                     </Text>
                 </View>
 
@@ -1523,7 +1523,7 @@ export const AuditPDF: React.FC<AuditPDFProps> = ({ analysis, website, name, ema
                         We'll walk through this audit and create a custom action plan.
                     </Text>
                     <Text style={{ fontSize: 10, color: '#D4AF37', fontWeight: 'bold' }}>
-                        https://calendly.com/zeniac-dominance
+                        hello@zeniac.co
                     </Text>
                 </View>
 

@@ -2,20 +2,20 @@
 import { Check, ArrowRight, Zap, Star } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 const tiers = [
     {
         name: "The 'Taste'",
         id: "taste",
-        href: "https://calendly.com/zeniac-dominance",
+        href: "mailto:merchzenith@gmail.com?subject=Plan Inquiry",
         price: { KES: "FREE", USD: "FREE" },
         description: "For skeptical owners who need to see value first.",
         features: [
-            "Social Audit (3 actionable improvements)",
+            "Digital Dominance Audit (5-Page PDF)",
+            "Competitor Gap Analysis",
             "Google Maps Optimization (Fix/Claim pin)",
-            "2 Branded Graphic Posts",
             "1 Strategy Call (30-min)"
         ],
         cta: "Start Free Trial",
@@ -26,7 +26,7 @@ const tiers = [
     {
         name: "The 'Hustle'",
         id: "hustle",
-        href: "https://calendly.com/zeniac-dominance",
+        href: "mailto:merchzenith@gmail.com?subject=Plan Inquiry",
         price: { KES: "15K - 25K", USD: "120 - 200" },
         description: "Entry level for Startups & Small Businesses.",
         features: [
@@ -44,7 +44,7 @@ const tiers = [
     {
         name: "The 'Zenith'",
         id: "zenith",
-        href: "https://calendly.com/zeniac-dominance",
+        href: "mailto:merchzenith@gmail.com?subject=Plan Inquiry",
         price: { KES: "30K - 50K", USD: "240 - 400" },
         description: "Growth & Automation for scaling businesses.",
         features: [
@@ -62,7 +62,7 @@ const tiers = [
     {
         name: "The 'Brainiac'",
         id: "brainiac",
-        href: "https://calendly.com/zeniac-dominance",
+        href: "mailto:merchzenith@gmail.com?subject=Plan Inquiry",
         price: { KES: "CUSTOM", USD: "CUSTOM" },
         description: "Complete digital transformation & high-end storytelling.",
         features: [

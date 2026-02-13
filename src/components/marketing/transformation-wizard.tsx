@@ -595,7 +595,7 @@ export function TransformationWizard({ open, onOpenChange }: WizardProps) {
                                         className="bg-zeniac-gold text-black hover:bg-zeniac-gold/90 font-bold h-12"
                                     >
                                         <a
-                                            href={`mailto:march.zenith@gmail.com?subject=Discovery Meeting Request: ${encodeURIComponent(formData.name)}&body=Hi Zeniac Team,%0D%0A%0D%0AI would like to request a discovery call to discuss my audit results.%0D%0A%0D%0APlease schedule via:%0D%0A[ ] Google Meet%0D%0A[ ] WhatsApp Call%0D%0A[ ] Phone Call (Kenya Only)%0D%0A%0D%0AMy Details:%0D%0AName: ${encodeURIComponent(formData.name)}%0D%0AEmail: ${encodeURIComponent(formData.email)}%0D%0AWebsite: ${encodeURIComponent(formData.website)}`}
+                                            href={`mailto:merchzenith@gmail.com?subject=Discovery Meeting Request: ${encodeURIComponent(formData.name)}&body=Hi Zeniac Team,%0D%0A%0D%0AI would like to request a discovery call to discuss my audit results.%0D%0A%0D%0APlease schedule via:%0D%0A[ ] Google Meet%0D%0A[ ] WhatsApp Call%0D%0A[ ] Phone Call (Kenya Only)%0D%0A%0D%0AMy Details:%0D%0AName: ${encodeURIComponent(formData.name)}%0D%0AEmail: ${encodeURIComponent(formData.email)}%0D%0AWebsite: ${encodeURIComponent(formData.website)}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >

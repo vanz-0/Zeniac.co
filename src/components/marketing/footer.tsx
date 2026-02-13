@@ -1,3 +1,5 @@
+import { NewsletterForm } from "@/components/marketing/newsletter-form";
+import Link from "next/link";
 import {
     FacebookIcon,
     GithubIcon,
@@ -8,6 +10,8 @@ import {
     YoutubeIcon,
     Copyright
 } from 'lucide-react';
+
+// ... existing imports ...
 
 import { useTheme } from "next-themes";
 import * as React from "react";
@@ -38,7 +42,7 @@ export function MinimalFooter() {
     ];
 
     const contactLinks = [
-        { title: 'hello@zeniac.co', href: 'mailto:hello@zeniac.co' },
+        { title: 'merchzenith@gmail.com', href: 'mailto:merchzenith@gmail.com' },
         { title: '+254 724 898 620', href: 'tel:+254724898620' },
         { title: 'Nairobi, Kenya', href: '#' },
     ];
@@ -60,17 +64,23 @@ export function MinimalFooter() {
     ];
 
     return (
-        <footer className="relative bg-zeniac-black border-t border-white/10 mt-24">
+        <footer id="contact" className="relative bg-zeniac-black border-t border-white/10 mt-24">
             <div className="mx-auto max-w-7xl px-4 py-12 md:py-16 lg:py-20">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8">
                     <div className="col-span-1 md:col-span-5 flex flex-col gap-6">
-                        <a href="#" className="flex items-center gap-2 w-max">
+                        <Link href="/" className="flex items-center gap-2 w-max">
                             <img src={logoSrc} alt="Zeniac Logo" className="h-8 w-auto" />
                             <span className="font-mono text-xl font-bold tracking-tighter text-zeniac-white">ZENIAC</span>
-                        </a>
+                        </Link>
                         <p className="text-muted-foreground max-w-sm font-mono text-sm leading-relaxed">
-                            The operating system for high-growth small businesses. Primarily serving female-centric brands with high-end aesthetics and deep operational intelligence.
+                            The operating system for high-growth small businesses. Dedicated to scaling local brands struggling with social platforms, digital marketing, and overall online presence.
                         </p>
+
+                        <div className="py-2 space-y-4">
+                            <h3 className="text-zeniac-gold font-mono font-bold text-sm tracking-widest uppercase">REACH OUT</h3>
+                            <NewsletterForm />
+                        </div>
+
                         <div className="flex gap-2">
                             {socialLinks.map((item, i) => (
                                 <a

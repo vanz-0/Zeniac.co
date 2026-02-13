@@ -426,7 +426,7 @@ export async function POST(req: NextRequest) {
 
         // 6. Save to Supabase (Persistence Layer)
         // ---------------------------------------------------------
-        await saveAnalysisResult(url, analysisData as any, userId);
+        await saveAnalysisResult(userId, url, analysisData.score, analysisData as any);
         console.log(`💾 Analysis saved to Supabase for: ${url}`);
 
         return NextResponse.json({ success: true, data: analysisData });

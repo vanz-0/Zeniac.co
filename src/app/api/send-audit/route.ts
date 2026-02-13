@@ -68,7 +68,7 @@ const getEmailHTML = (name: string, email: string, website: string, analysis: an
           </tr>
           <tr>
             <td style="padding: 30px 30px 40px; text-align: center;">
-              <a href="https://calendly.com/zeniac-dominance?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&a1=${encodeURIComponent(website)}" style="display: inline-block; background-color: #D4AF37; color: #000000; text-decoration: none; padding: 16px 40px; border-radius: 4px; font-weight: 700; font-size: 16px; letter-spacing: 0.5px; text-transform: uppercase;">
+              <a href="mailto:merchzenith@gmail.com?subject=Audit Consultation Request&body=Hi, I'd like to discuss my audit results. (Website: ${website})" style="display: inline-block; background-color: #D4AF37; color: #000000; text-decoration: none; padding: 16px 40px; border-radius: 4px; font-weight: 700; font-size: 16px; letter-spacing: 0.5px; text-transform: uppercase;">
                 Book Strategy Call
               </a>
             </td>

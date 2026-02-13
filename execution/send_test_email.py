@@ -8,7 +8,7 @@ load_dotenv()
 api_key = os.getenv("BREVO_API_KEY")
 sender_email = os.getenv("BREVO_SENDER_EMAIL")
 # The user's email from the prompt/history seems to be evansmakaz@gmail.com
-recipient_email = "evansmakaz@gmail.com" 
+recipient_email = "merchzenith@gmail.com" 
 
 if not api_key:
     print("ERROR: BREVO_API_KEY not found in .env")

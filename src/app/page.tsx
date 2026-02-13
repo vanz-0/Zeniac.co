@@ -13,6 +13,7 @@ import { FAQ } from "@/components/marketing/faq";
 import { PreFooterCTA } from "@/components/marketing/pre-footer-cta";
 import { Brain, Lightbulb, PenTool, Rocket, Search, Settings } from "lucide-react";
 import { TransformationWizard } from "@/components/marketing/transformation-wizard";
+import { Navbar } from "@/components/marketing/navbar";
 
 const processData = [
   {
@@ -88,6 +89,7 @@ export default function Home() {
 
   return (
     <div className="relative bg-zeniac-black min-h-screen text-foreground selection:bg-zeniac-gold/30">
+      <Navbar onOpenWizard={() => setWizardOpen(true)} />
 
       <div className="relative z-10">
         <HeroAnimation onOpenWizard={() => setWizardOpen(true)} />
