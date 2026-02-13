@@ -210,7 +210,7 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[700px] w-[95vw] max-h-[95vh] bg-zeniac-black/95 border-white/10 text-white backdrop-blur-xl p-0 overflow-hidden flex flex-col">
+            <DialogContent className="sm:max-w-[700px] w-full sm:w-[95vw] h-full sm:h-auto sm:max-h-[95vh] bg-zeniac-black border-none sm:border-white/10 text-white backdrop-blur-xl p-0 overflow-hidden flex flex-col">
                 <DialogTitle className="sr-only">Zeniac Transformation Wizard</DialogTitle>
                 <DialogDescription className="sr-only">
                     Interactive questionnaire to analyze your digital presence and generate a strategic roadmap.
@@ -460,18 +460,34 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                 title="Report Preview"
                                 subtitle="Review your strategic roadmap before downloading."
                             />
-                            <div className="mt-4 border border-white/10 rounded-lg p-1 bg-white/5 h-[350px] md:h-[450px] overflow-hidden relative group flex items-center justify-center">
+                            <div className="mt-4 border border-white/10 rounded-lg p-1 bg-white/5 h-[300px] md:h-[450px] overflow-hidden relative group flex items-center justify-center">
                                 {generatingPdf ? (
                                     <div className="flex flex-col items-center text-gray-400 animate-pulse">
                                         <Loader2 className="w-8 h-8 animate-spin mb-2 text-zeniac-gold" />
                                         <p>Generating PDF Report...</p>
                                     </div>
                                 ) : previewUrl ? (
-                                    <iframe
-                                        src={previewUrl}
-                                        className="w-full h-full rounded bg-white"
-                                        title="Report Preview"
-                                    />
+                                    <div className="w-full h-full relative">
+                                        <iframe
+                                            src={previewUrl}
+                                            className="hidden md:block w-full h-full rounded bg-white"
+                                            title="Report Preview"
+                                        />
+                                        <div className="md:hidden flex flex-col items-center justify-center h-full gap-4 p-6 text-center">
+                                            <div className="w-16 h-16 rounded-full bg-zeniac-gold/10 flex items-center justify-center mb-2">
+                                                <Trophy className="w-8 h-8 text-zeniac-gold" />
+                                            </div>
+                                            <p className="text-gray-300 font-medium">Your Report is Ready!</p>
+                                            <p className="text-xs text-gray-500">PDF previews are often blocked on mobile browsers.</p>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => window.open(previewUrl, '_blank')}
+                                                className="border-zeniac-gold/30 text-zeniac-gold"
+                                            >
+                                                OPEN REPORT PREVIEW
+                                            </Button>
+                                        </div>
+                                    </div>
                                 ) : (
                                     <div className="flex flex-col items-center gap-4 text-center p-4">
                                         <p className="text-red-400">Preview Failed to Load</p>
@@ -700,9 +716,11 @@ function StepContainer({ children }: { children: React.ReactNode }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex-1 p-6 md:p-8 overflow-y-auto overflow-x-hidden max-h-[calc(90vh-100px)] flex flex-col"
+            className="flex-1 p-6 md:p-8 overflow-y-auto overflow-x-hidden flex flex-col h-full"
         >
-            {children}
+            <div className="flex-1 w-full max-w-2xl mx-auto flex flex-col justify-center">
+                {children}
+            </div>
         </motion.div>
     );
 }

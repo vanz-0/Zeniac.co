@@ -66,17 +66,20 @@ export async function saveAnalysisResult(
 ) {
     const client = supabaseAdmin || supabase;
 
+    // Normalize domain before saving to ensure cache hits
+    const normalizedDomain = domain.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/$/, '');
+
     // 1. Insert Analysis
     const { data: analysis, error: insertError } = await client
         .from('analyses')
         .insert({
             user_id: userId,
-            domain,
+            domain: normalizedDomain, // Saved normalized!
             score,
             report_data: reportData,
             user_name: userName,
             user_email: userEmail,
-            meta_hash: `${domain}-${Date.now()}`
+            meta_hash: `${normalizedDomain}-${Date.now()}`
         })
         .select()
         .single();
@@ -90,10 +93,10 @@ export async function saveAnalysisResult(
             .from('analyses')
             .insert({
                 user_id: userId,
-                domain,
+                domain: normalizedDomain,
                 score,
                 report_data: reportData,
-                meta_hash: `${domain}-${Date.now()}`
+                meta_hash: `${normalizedDomain}-${Date.now()}`
             })
             .select()
             .single();

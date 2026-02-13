@@ -124,18 +124,20 @@ function calculateRevenueImpact(
 export async function POST(req: NextRequest) {
     try {
         const { url, userId, name } = await req.json();
+        console.log(`🔍 Received analysis request for: ${url} (User: ${name || 'Guest'})`);
 
         // 0. Check for recent analysis (Caching Layer - 10 Days)
         // ---------------------------------------------------------
         const cachedAnalysis = await getRecentAnalysis(url);
         if (cachedAnalysis) {
-            console.log(`⚡ Serving cached analysis for: ${url}`);
+            console.log(`⚡ [CACHE HIT] Serving existing analysis for: ${url}`);
             return NextResponse.json({
                 success: true,
                 data: cachedAnalysis.report_data,
                 _meta: { source: 'cache', timestamp: cachedAnalysis.created_at }
             });
         }
+        console.log(`🆕 [CACHE MISS] Starting fresh scan for: ${url}`);
 
         // 1. Firecrawl Deep Scan (Multi-page targeted scan)
         const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
