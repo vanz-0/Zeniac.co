@@ -1,7 +1,7 @@
 import { supabaseAdmin, supabase } from '@/lib/supabase';
 import { AnalysisData } from '@/types/analysis';
 
-export async function getRecentAnalysis(domain: string, days = 30) {
+export async function getRecentAnalysis(domain: string) {
     // Validate inputs
     if (!domain) return null;
 
@@ -67,7 +67,7 @@ export async function saveAnalysisResult(
     const client = supabaseAdmin || supabase;
 
     // 1. Insert Analysis
-    let { data: analysis, error: insertError } = await client
+    const { data: analysis, error: insertError } = await client
         .from('analyses')
         .insert({
             user_id: userId,
@@ -80,6 +80,8 @@ export async function saveAnalysisResult(
         })
         .select()
         .single();
+
+    let finalAnalysis = analysis;
 
     if (insertError) {
         console.warn('⚠️ Standard insert failed, attempting fallback (Metadata columns may be missing):', insertError.message);
@@ -100,7 +102,7 @@ export async function saveAnalysisResult(
             console.error('❌ Failed to save analysis (Fallback also failed):', fallbackError);
             return null;
         }
-        analysis = fallbackAnalysis;
+        finalAnalysis = fallbackAnalysis;
     }
 
     // 2. Decrement Credits (if user exists)
@@ -116,5 +118,5 @@ export async function saveAnalysisResult(
         }
     }
 
-    return analysis;
+    return finalAnalysis;
 }

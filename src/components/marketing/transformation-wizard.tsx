@@ -210,7 +210,7 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[700px] w-[95vw] max-h-[80vh] bg-zeniac-black/95 border-white/10 text-white backdrop-blur-xl p-0 overflow-hidden flex flex-col">
+            <DialogContent className="sm:max-w-[700px] w-[95vw] max-h-[95vh] bg-zeniac-black/95 border-white/10 text-white backdrop-blur-xl p-0 overflow-hidden flex flex-col">
                 <DialogTitle className="sr-only">Zeniac Transformation Wizard</DialogTitle>
                 <DialogDescription className="sr-only">
                     Interactive questionnaire to analyze your digital presence and generate a strategic roadmap.
@@ -436,17 +436,17 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                 </ul>
                             </div>
 
-                            <div className="flex gap-4 mt-8">
+                            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-8">
                                 <Button
                                     variant="outline"
                                     onClick={() => onOpenChange(false)}
-                                    className="flex-1 border-white/10 hover:bg-white/5 text-gray-400"
+                                    className="flex-1 border-white/10 hover:bg-white/5 text-gray-400 order-2 sm:order-1"
                                 >
                                     Close
                                 </Button>
                                 <Button
                                     onClick={handleNext}
-                                    className="flex-[2] bg-zeniac-gold text-black hover:bg-zeniac-gold/90 font-bold"
+                                    className="flex-[2] bg-zeniac-gold text-black hover:bg-zeniac-gold/90 font-bold order-1 sm:order-2"
                                 >
                                     Preview Full Report
                                 </Button>
@@ -487,11 +487,11 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                 )}
                             </div>
 
-                            <div className="flex gap-4 mt-8">
+                            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-8">
                                 <Button
                                     variant="outline"
                                     onClick={() => setStep("details")}
-                                    className="flex-1 border-white/10 hover:bg-white/5 text-gray-400"
+                                    className="flex-1 border-white/10 hover:bg-white/5 text-gray-400 order-3 sm:order-1"
                                 >
                                     Iterate / Edit
                                 </Button>
@@ -507,13 +507,13 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                         }
                                     }}
                                     disabled={!previewUrl}
-                                    className="flex-1 bg-white/10 hover:bg-white/20 text-white"
+                                    className="flex-1 bg-white/10 hover:bg-white/20 text-white order-2 sm:order-2"
                                 >
                                     Download PDF
                                 </Button>
                                 <Button
                                     onClick={handleNext}
-                                    className="flex-1 bg-zeniac-gold text-black hover:bg-zeniac-gold/90 font-bold"
+                                    className="flex-1 bg-zeniac-gold text-black hover:bg-zeniac-gold/90 font-bold order-1 sm:order-3"
                                 >
                                     Email Report
                                 </Button>
@@ -583,7 +583,7 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                     Sent.
                                 </h2>
                                 <p className="text-gray-400">
-                                    Check your inbox for a document titled <strong>"Zeniac_Intelligence_Report.pdf"</strong>.
+                                    Check your inbox for a document titled <strong>&quot;Zeniac_Intelligence_Report.pdf&quot;</strong>.
                                 </p>
                                 <div className="bg-white/5 p-6 rounded-lg border border-white/10 w-full mt-6 space-y-4">
                                     <div className="flex items-start gap-3">
@@ -591,7 +591,7 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                             <span className="text-zeniac-gold text-xs font-bold">1</span>
                                         </div>
                                         <p className="text-sm text-gray-300">
-                                            Check your <strong>Spam/Junk</strong> folder if it doesn't appear in 1-2 minutes.
+                                            Check your <strong>Spam/Junk</strong> folder if it doesn&apos;t appear in 1-2 minutes.
                                         </p>
                                     </div>
                                     <div className="flex items-start gap-3">
@@ -599,7 +599,7 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                             <span className="text-zeniac-gold text-xs font-bold">2</span>
                                         </div>
                                         <p className="text-sm text-gray-300">
-                                            Mark it as <strong>"Not Spam"</strong> to ensure you receive future competitive updates.
+                                            Mark it as <strong>&quot;Not Spam&quot;</strong> to ensure you receive future competitive updates.
                                         </p>
                                     </div>
                                 </div>

@@ -88,21 +88,29 @@ export default function RadialOrbitalTimeline({
 
     // Version 4: Ref-Based Animation Loop (Smooth + Interactive)
     const angleRef = useRef(0);
+    const targetAngleRef = useRef<number | null>(null);
     const animationFrameRef = useRef<number | null>(null);
 
     useEffect(() => {
         const animate = () => {
-            if (autoRotate && viewMode === "orbital") {
-                // Increment Angle
-                angleRef.current = (angleRef.current + 0.05) % 360; // Smooth Slow Speed
+            if (viewMode === "orbital") {
+                if (autoRotate) {
+                    // Increment Angle
+                    angleRef.current = (angleRef.current + 0.05) % 360;
+                    targetAngleRef.current = null; // Clear target when back to auto
+                } else if (targetAngleRef.current !== null) {
+                    // Smooth Transition to Target Angle
+                    const diff = targetAngleRef.current - angleRef.current;
+                    if (Math.abs(diff) > 0.1) {
+                        angleRef.current += diff * 0.1; // Smooth LERP (10% per frame)
+                    } else {
+                        angleRef.current = targetAngleRef.current;
+                    }
+                }
 
-                // Apply to Orbit Container via CSS Variable on PARENT
-                // We utilize containerRef to store the variable so React's re-render of orbitRef's style prop doesn't wipe it.
                 if (containerRef.current) {
                     containerRef.current.style.setProperty('--rotation', `${angleRef.current}deg`);
                 }
-                // We still need to trigger the browser to repaint the orbitRef transform which uses the var
-                // It happens automatically with CSS vars.
             }
             animationFrameRef.current = requestAnimationFrame(animate);
         };
@@ -125,20 +133,10 @@ export default function RadialOrbitalTimeline({
         const nodeAngle = (nodeIndex / totalNodes) * 360;
         let targetAngle = 270 - nodeAngle;
 
-        // Update Ref & CSS Variable
-        angleRef.current = targetAngle;
-        if (containerRef.current) {
-            containerRef.current.style.setProperty('--rotation', `${targetAngle}deg`);
-            // To animate the variable, we can transition it on the container, but it's not a visual property there.
-            // Instead, we just set it. 
-            // To smooth it, we might want to manually interpolate or use CSS transition on the elements using it.
-            // orbitRef has transition: --rotation... defined in style? No.
-            // We'll rely on the CSS transition defined on the Child Elements if possible.
-            // But CSS vars don't animate by default unless registered.
-            // Fallback: We can't easily smooth-transition the variable change without registered custom properties.
-            // However, for "Click to Center", jumping is acceptable or we can implement a lerp loop.
-            // Given the user wants "Straight", correctness is priority over transition smoothness here.
-        }
+        // Update Target Angle Ref
+        targetAngleRef.current = targetAngle;
+
+        // The animation loop will now lerp to this targetAngle
 
         // Ref loop loop removed
         /*
@@ -193,7 +191,7 @@ export default function RadialOrbitalTimeline({
         >
             <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.05)_0%,transparent_70%)]" />
 
-            <div className="relative w-full max-w-5xl h-[600px] flex items-center justify-center perspective-1000">
+            <div className="relative w-full max-w-5xl h-[600px] flex items-center justify-center perspective-1000 scale-[0.6] sm:scale-[0.8] md:scale-100 origin-center transition-transform duration-500">
                 <div
                     className="absolute w-full h-full flex items-center justify-center transition-all duration-1000"
                     style={{
@@ -325,7 +323,7 @@ export default function RadialOrbitalTimeline({
                             >
                                 <div className="pointer-events-auto">
                                     <Card
-                                        className="w-[300px] md:w-[320px] rounded-none border border-white/10 bg-zeniac-charcoal/80 backdrop-blur-md shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in duration-300 relative overflow-hidden"
+                                        className="w-[280px] sm:w-[320px] rounded-none border border-white/10 bg-zeniac-charcoal/80 backdrop-blur-md shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in duration-300 relative overflow-hidden"
                                         onClick={(e) => e.stopPropagation()}
                                     >
                                         {/* Texture from BentoGrid */}
