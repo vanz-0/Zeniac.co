@@ -68,8 +68,8 @@ const getEmailHTML = (name: string, email: string, website: string, analysis: an
           </tr>
           <tr>
             <td style="padding: 30px 30px 40px; text-align: center;">
-              <a href="mailto:merchzenith@gmail.com?subject=Audit Consultation Request&body=Hi, I'd like to discuss my audit results. (Website: ${website})" style="display: inline-block; background-color: #D4AF37; color: #000000; text-decoration: none; padding: 16px 40px; border-radius: 4px; font-weight: 700; font-size: 16px; letter-spacing: 0.5px; text-transform: uppercase;">
-                Book Strategy Call
+              <a href="mailto:merchzenith@gmail.com?subject=Strategy Session Request | ${encodeURIComponent(name)} | Zeniac&body=Hi Zeniac Team,%0A%0AI would like to discuss my audit results for ${encodeURIComponent(website)} and explore the next steps for digital dominance.%0D%0A%0D%0AMy Details:%0D%0AName: ${encodeURIComponent(name)}%0D%0AEmail: ${encodeURIComponent(email)}%0D%0AWebsite: ${encodeURIComponent(website)}%0D%0A%0D%0APlease suggest a time for a Google Meet or WhatsApp call." style="display: inline-block; background-color: #D4AF37; color: #000000; text-decoration: none; padding: 16px 40px; border-radius: 4px; font-weight: 700; font-size: 16px; letter-spacing: 0.5px; text-transform: uppercase;">
+                Claim My Strategy Session
               </a>
             </td>
           </tr>

@@ -109,7 +109,7 @@ export default function Home() {
         </div>
 
         <Portfolio />
-        <Pricing />
+        <Pricing onOpenBooking={() => openBooking()} />
 
         <Reviews />
 

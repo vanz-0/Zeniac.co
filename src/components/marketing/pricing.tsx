@@ -89,7 +89,7 @@ const addons = [
     "QR Code Generation"
 ];
 
-export function Pricing() {
+export function Pricing({ onOpenBooking }: { onOpenBooking?: (data?: any) => void }) {
     const [currency, setCurrency] = useState<"KES" | "USD">("KES");
 
     return (
@@ -172,11 +172,9 @@ export function Pricing() {
                                     "w-full font-mono font-bold border-zeniac-gold text-zeniac-gold hover:bg-zeniac-gold hover:text-zeniac-black",
                                     tier.popular && "bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90"
                                 )}
-                                asChild
+                                onClick={() => onOpenBooking?.({ project: tier.name })}
                             >
-                                <a href={tier.href}>
-                                    {tier.cta} <ArrowRight className="w-4 h-4 ml-2" />
-                                </a>
+                                {tier.cta} <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
 
                             {/* Background gradient for glow */}

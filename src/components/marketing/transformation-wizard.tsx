@@ -470,7 +470,17 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                         title="Report Preview"
                                     />
                                 ) : (
-                                    <p className="text-red-400">Preview Failed to Load</p>
+                                    <div className="flex flex-col items-center gap-4 text-center p-4">
+                                        <p className="text-red-400">Preview Failed to Load</p>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => window.open(previewUrl || '', '_blank')}
+                                            disabled={!previewUrl}
+                                            className="text-white border-white/20"
+                                        >
+                                            View Full Report <ArrowRight className="ml-2 w-4 h-4" />
+                                        </Button>
+                                    </div>
                                 )}
                             </div>
 
@@ -602,7 +612,7 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                         }}
                                         className="bg-zeniac-gold text-black hover:bg-zeniac-gold/90 font-bold h-12"
                                     >
-                                        BOOK DISCOVERY CALL <ArrowRight className="ml-2 w-4 h-4" />
+                                        BOOK STRATEGY CALL <ArrowRight className="ml-2 w-4 h-4" />
                                     </Button>
 
                                     {/* Debug Info Section */}

@@ -9,7 +9,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTr
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { BookingModal } from "@/components/marketing/booking-modal";
 
 const navigationItems = [
     { title: "SOLUTIONS", href: "#solutions" },
@@ -18,8 +17,7 @@ const navigationItems = [
     { title: "CONTACT", href: "#contact" },
 ];
 
-export function Navbar({ onOpenWizard }: { onOpenWizard?: () => void }) {
-    const [isBookingOpen, setIsBookingOpen] = React.useState(false);
+export function Navbar({ onOpenWizard, onOpenBooking }: { onOpenWizard?: () => void; onOpenBooking?: () => void }) {
     const { theme } = useTheme();
     const [mounted, setMounted] = React.useState(false);
 
@@ -55,7 +53,7 @@ export function Navbar({ onOpenWizard }: { onOpenWizard?: () => void }) {
                     <ThemeToggle />
                     <Button
                         variant="outline"
-                        onClick={() => setIsBookingOpen(true)}
+                        onClick={onOpenBooking}
                         className="rounded-none hidden md:inline-flex border-zeniac-gold text-zeniac-gold hover:bg-zeniac-gold hover:text-zeniac-black font-mono font-bold"
                     >
                         BOOK A CALL
@@ -92,7 +90,7 @@ export function Navbar({ onOpenWizard }: { onOpenWizard?: () => void }) {
                                     </a>
                                 ))}
                                 <Button
-                                    onClick={() => setIsBookingOpen(true)}
+                                    onClick={onOpenBooking}
                                     className="cursor-pointer rounded-none border-zeniac-gold text-zeniac-gold hover:bg-zeniac-gold hover:text-zeniac-black font-mono w-full"
                                     variant="outline"
                                 >
@@ -109,11 +107,6 @@ export function Navbar({ onOpenWizard }: { onOpenWizard?: () => void }) {
                     </Sheet>
                 </div>
             </div>
-            {/* Booking Modal */}
-            <BookingModal
-                isOpen={isBookingOpen}
-                onClose={() => setIsBookingOpen(false)}
-            />
         </header>
     );
 }
