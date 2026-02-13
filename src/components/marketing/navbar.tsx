@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTr
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { BookingModal } from "@/components/marketing/booking-modal";
 
 const navigationItems = [
     { title: "SOLUTIONS", href: "#solutions" },
@@ -18,6 +19,7 @@ const navigationItems = [
 ];
 
 export function Navbar({ onOpenWizard }: { onOpenWizard?: () => void }) {
+    const [isBookingOpen, setIsBookingOpen] = React.useState(false);
     const { theme } = useTheme();
     const [mounted, setMounted] = React.useState(false);
 
@@ -53,12 +55,10 @@ export function Navbar({ onOpenWizard }: { onOpenWizard?: () => void }) {
                     <ThemeToggle />
                     <Button
                         variant="outline"
-                        asChild
+                        onClick={() => setIsBookingOpen(true)}
                         className="rounded-none hidden md:inline-flex border-zeniac-gold text-zeniac-gold hover:bg-zeniac-gold hover:text-zeniac-black font-mono font-bold"
                     >
-                        <a href="mailto:merchzenith@gmail.com?subject=Discovery Call" target="_blank" rel="noopener noreferrer">
-                            BOOK A CALL
-                        </a>
+                        BOOK A CALL
                     </Button>
                     <Button
                         variant="default"
@@ -92,13 +92,11 @@ export function Navbar({ onOpenWizard }: { onOpenWizard?: () => void }) {
                                     </a>
                                 ))}
                                 <Button
-                                    asChild
+                                    onClick={() => setIsBookingOpen(true)}
                                     className="cursor-pointer rounded-none border-zeniac-gold text-zeniac-gold hover:bg-zeniac-gold hover:text-zeniac-black font-mono w-full"
                                     variant="outline"
                                 >
-                                    <a href="mailto:hello@zeniac.co?subject=Discovery Call" target="_blank" rel="noopener noreferrer">
-                                        BOOK A CALL
-                                    </a>
+                                    BOOK A CALL
                                 </Button>
                                 <Button
                                     onClick={onOpenWizard}
@@ -111,6 +109,11 @@ export function Navbar({ onOpenWizard }: { onOpenWizard?: () => void }) {
                     </Sheet>
                 </div>
             </div>
+            {/* Booking Modal */}
+            <BookingModal
+                isOpen={isBookingOpen}
+                onClose={() => setIsBookingOpen(false)}
+            />
         </header>
     );
 }

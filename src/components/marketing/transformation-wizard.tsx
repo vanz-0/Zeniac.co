@@ -14,11 +14,12 @@ import { AuditPDF } from '@/components/reports/AuditPDF';
 interface WizardProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onOpenBooking?: (data: any) => void;
 }
 
 type Step = "intro" | "details" | "pain" | "processing" | "results" | "preview" | "email" | "success";
 
-export function TransformationWizard({ open, onOpenChange }: WizardProps) {
+export function TransformationWizard({ open, onOpenChange, onOpenBooking }: WizardProps) {
     const [step, setStep] = React.useState<Step>("intro");
     const [formData, setFormData] = React.useState({
         name: "",
@@ -591,16 +592,17 @@ export function TransformationWizard({ open, onOpenChange }: WizardProps) {
                                 </div>
                                 <div className="flex flex-col gap-3 w-full mt-6">
                                     <Button
-                                        asChild
+                                        onClick={() => {
+                                            onOpenChange(false);
+                                            onOpenBooking?.({
+                                                name: formData.name,
+                                                email: formData.email,
+                                                website: formData.website
+                                            });
+                                        }}
                                         className="bg-zeniac-gold text-black hover:bg-zeniac-gold/90 font-bold h-12"
                                     >
-                                        <a
-                                            href={`mailto:merchzenith@gmail.com?subject=Discovery Meeting Request: ${encodeURIComponent(formData.name)}&body=Hi Zeniac Team,%0D%0A%0D%0AI would like to request a discovery call to discuss my audit results.%0D%0A%0D%0APlease schedule via:%0D%0A[ ] Google Meet%0D%0A[ ] WhatsApp Call%0D%0A[ ] Phone Call (Kenya Only)%0D%0A%0D%0AMy Details:%0D%0AName: ${encodeURIComponent(formData.name)}%0D%0AEmail: ${encodeURIComponent(formData.email)}%0D%0AWebsite: ${encodeURIComponent(formData.website)}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            BOOK DISCOVERY CALL <ArrowRight className="ml-2 w-4 h-4" />
-                                        </a>
+                                        BOOK DISCOVERY CALL <ArrowRight className="ml-2 w-4 h-4" />
                                     </Button>
 
                                     {/* Debug Info Section */}

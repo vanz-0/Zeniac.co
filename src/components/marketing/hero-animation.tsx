@@ -37,7 +37,7 @@ const features = [
     },
 ];
 
-export function HeroAnimation({ onOpenWizard }: { onOpenWizard?: () => void }) {
+export function HeroAnimation({ onOpenWizard, onOpenBooking }: { onOpenWizard?: () => void, onOpenBooking?: () => void }) {
     const controls = useAnimation();
     const ref = React.useRef(null);
     const isInView = useInView(ref, { once: true, amount: 0.1 });
@@ -164,12 +164,10 @@ export function HeroAnimation({ onOpenWizard }: { onOpenWizard?: () => void }) {
                             <Button
                                 size="lg"
                                 variant="outline"
-                                asChild
+                                onClick={onOpenBooking}
                                 className="cursor-pointer rounded-none border-zeniac-gold text-zeniac-gold hover:bg-zeniac-gold hover:text-zeniac-black font-mono text-lg px-8 py-6"
                             >
-                                <a href="mailto:merchzenith@gmail.com?subject=Discovery Call" target="_blank" rel="noopener noreferrer">
-                                    BOOK DISCOVERY CALL <ArrowRight className="ml-2 w-5 h-5" />
-                                </a>
+                                BOOK DISCOVERY CALL <ArrowRight className="ml-2 w-5 h-5" />
                             </Button>
                         </motion.div>
                     </div>

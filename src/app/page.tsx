@@ -14,6 +14,7 @@ import { PreFooterCTA } from "@/components/marketing/pre-footer-cta";
 import { Brain, Lightbulb, PenTool, Rocket, Search, Settings } from "lucide-react";
 import { TransformationWizard } from "@/components/marketing/transformation-wizard";
 import { Navbar } from "@/components/marketing/navbar";
+import { BookingModal } from "@/components/marketing/booking-modal";
 
 const processData = [
   {
@@ -86,13 +87,20 @@ const processData = [
 
 export default function Home() {
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [bookingData, setBookingData] = useState<any>(null);
+
+  const openBooking = (data?: any) => {
+    if (data) setBookingData(data);
+    setBookingOpen(true);
+  };
 
   return (
     <div className="relative bg-zeniac-black min-h-screen text-foreground selection:bg-zeniac-gold/30">
-      <Navbar onOpenWizard={() => setWizardOpen(true)} />
+      <Navbar onOpenWizard={() => setWizardOpen(true)} onOpenBooking={() => openBooking()} />
 
       <div className="relative z-10">
-        <HeroAnimation onOpenWizard={() => setWizardOpen(true)} />
+        <HeroAnimation onOpenWizard={() => setWizardOpen(true)} onOpenBooking={() => openBooking()} />
 
         <SocialProof />
 
@@ -123,7 +131,17 @@ export default function Home() {
         <MinimalFooter />
       </div>
 
-      <TransformationWizard open={wizardOpen} onOpenChange={setWizardOpen} />
+      <TransformationWizard
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        onOpenBooking={(data) => openBooking(data)}
+      />
+
+      <BookingModal
+        isOpen={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        userData={bookingData}
+      />
     </div>
   );
 }
