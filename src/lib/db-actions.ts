@@ -22,10 +22,14 @@ export async function getRecentAnalysis(domain: string) {
         .single();
 
     if (error) {
-        if (error.code !== 'PGRST116') { // PGRST116 is "JSON object requested, multiple (or no) results returned" - usually "no results" with .single()
-            console.warn('Error fetching recent analysis:', error);
+        if (error.code !== 'PGRST116') {
+            console.error('❌ Supabase Cache Error:', error.message, error.code);
         }
         return null;
+    }
+
+    if (data) {
+        console.log(`✅ Cache hit found in DB for: ${normalizedDomain}`);
     }
 
     return data;
