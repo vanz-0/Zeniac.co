@@ -123,9 +123,9 @@ function calculateRevenueImpact(
 
 export async function POST(req: NextRequest) {
     try {
-        const { url, userId } = await req.json();
+        const { url, userId, name } = await req.json();
 
-        // 0. Check for recent analysis (Caching Layer)
+        // 0. Check for recent analysis (Caching Layer - 10 Days)
         // ---------------------------------------------------------
         const cachedAnalysis = await getRecentAnalysis(url);
         if (cachedAnalysis) {
@@ -426,7 +426,7 @@ export async function POST(req: NextRequest) {
 
         // 6. Save to Supabase (Persistence Layer)
         // ---------------------------------------------------------
-        await saveAnalysisResult(userId, url, analysisData.score, analysisData as any);
+        await saveAnalysisResult(userId, url, analysisData.score, analysisData as any, name);
         console.log(`💾 Analysis saved to Supabase for: ${url}`);
 
         return NextResponse.json({ success: true, data: analysisData });

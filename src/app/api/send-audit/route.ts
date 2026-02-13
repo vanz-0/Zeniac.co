@@ -122,6 +122,24 @@ export async function POST(req: NextRequest) {
     console.log(`📧 Sending Brevo email to ${email} (from: ${SENDER_EMAIL})...`);
     console.log(`📎 Attaching PDF: Zeniac_Intelligence_Report.pdf`);
 
+    // 3. Update Supabase record with email
+    console.log(`💾 Updating Supabase record for ${website} with email ${email}...`);
+    const { supabaseAdmin } = await import('@/lib/supabase');
+    if (supabaseAdmin) {
+      const { error: updateError } = await supabaseAdmin
+        .from('analyses')
+        .update({ user_email: email })
+        .eq('domain', website)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (updateError) {
+        console.warn('⚠️ Failed to update email in Supabase:', updateError);
+      } else {
+        console.log('✅ Supabase record updated with email.');
+      }
+    }
+
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {

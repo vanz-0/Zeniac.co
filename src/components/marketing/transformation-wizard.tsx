@@ -50,7 +50,10 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
             const response = await fetch('/api/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: formData.website || "zeniac.co" }),
+                body: JSON.stringify({
+                    url: formData.website || "zeniac.co",
+                    name: formData.name
+                }),
             });
             const data = await response.json();
             if (data.success) {

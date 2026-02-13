@@ -7,6 +7,8 @@ create table analyses (
   score integer not null,
   report_data jsonb not null,
   user_id uuid references auth.users,
+  user_name text,
+  user_email text,
   meta_hash text
 );
 

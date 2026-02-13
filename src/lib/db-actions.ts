@@ -16,7 +16,7 @@ export async function getRecentAnalysis(domain: string, days = 30) {
         .from('analyses')
         .select('*')
         .ilike('domain', `%${normalizedDomain}%`)
-        .gt('created_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
+        .gt('created_at', new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString())
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
@@ -60,26 +60,47 @@ export async function saveAnalysisResult(
     userId: string | null, // Nullable for anonymous/public scans if we allow them
     domain: string,
     score: number,
-    reportData: AnalysisData
+    reportData: AnalysisData,
+    userName?: string,
+    userEmail?: string
 ) {
     const client = supabaseAdmin || supabase;
 
     // 1. Insert Analysis
-    const { data: analysis, error: insertError } = await client
+    let { data: analysis, error: insertError } = await client
         .from('analyses')
         .insert({
             user_id: userId,
             domain,
             score,
-            report_data: reportData, // Ensure this matches jsonb structure
-            meta_hash: `${domain}-${Date.now()}` // Simple hash for now
+            report_data: reportData,
+            user_name: userName,
+            user_email: userEmail,
+            meta_hash: `${domain}-${Date.now()}`
         })
         .select()
         .single();
 
     if (insertError) {
-        console.error('Failed to save analysis:', insertError);
-        return null;
+        console.warn('⚠️ Standard insert failed, attempting fallback (Metadata columns may be missing):', insertError.message);
+        // Fallback: Insert without the new user_name and user_email columns
+        const { data: fallbackAnalysis, error: fallbackError } = await client
+            .from('analyses')
+            .insert({
+                user_id: userId,
+                domain,
+                score,
+                report_data: reportData,
+                meta_hash: `${domain}-${Date.now()}`
+            })
+            .select()
+            .single();
+
+        if (fallbackError) {
+            console.error('❌ Failed to save analysis (Fallback also failed):', fallbackError);
+            return null;
+        }
+        analysis = fallbackAnalysis;
     }
 
     // 2. Decrement Credits (if user exists)
