@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PageSpeedMetrics, AnalysisData } from '@/types/analysis';
 import { getRecentAnalysis, saveAnalysisResult } from '@/lib/db-actions';
 
+export const maxDuration = 60; // 60 seconds (requires Vercel Pro, but safe to include)
+export const dynamic = 'force-dynamic';
+
 // Constants for analysis
 const CONVERSION_RATES: Record<string, number> = {
     "default": 0.02,
