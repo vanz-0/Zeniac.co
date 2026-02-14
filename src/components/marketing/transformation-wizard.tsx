@@ -345,6 +345,9 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                     <h3 className="text-xl sm:text-2xl font-mono font-bold text-white">
                                         Analyzing <span className="text-zeniac-gold">{formData.website || "System"}</span>...
                                     </h3>
+                                    <p className="text-xs text-zeniac-gray font-mono mb-2 uppercase tracking-widest animate-pulse">
+                                        Deep Scan in Progress - Estimated time: 60s
+                                    </p>
                                     <ProcessingSteps />
                                 </div>
                             </div>
