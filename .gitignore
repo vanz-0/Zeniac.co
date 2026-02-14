@@ -56,3 +56,4 @@ Case_Study_Template.json
 # python execution artifacts
 __pycache__/
 *.pyc
+__pycache__/

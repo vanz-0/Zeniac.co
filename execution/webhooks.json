@@ -3,7 +3,24 @@
     "create-proposal": {
       "directive": "create_proposal_webhook",
       "description": "Generate PandaDoc proposal and send follow-up email",
-      "tools": ["create_proposal", "send_email", "web_fetch"]
+      "tools": [
+        "create_proposal",
+        "send_email",
+        "web_fetch"
+      ]
+    },
+    "deep-analysis": {
+      "directive": "comprehensive_web_audit",
+      "description": "Exhaustive business intelligence analysis from web, social, and competition",
+      "tools": [
+        "firecrawl_scrape",
+        "pagespeed_analyze",
+        "analyze_social_presence",
+        "scrape_competitors",
+        "web_search",
+        "web_fetch",
+        "send_email"
+      ]
     }
   }
 }

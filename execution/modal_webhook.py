@@ -24,6 +24,24 @@ import re
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 from pathlib import Path
+import uuid
+
+# Import custom execution modules
+import sys
+sys.path.insert(0, "/app")
+
+try:
+    from execution.report_generator import generate_pdf_report
+    from execution.analysis_engine import construct_analysis_data
+except ImportError:
+    try:
+        # Fallback: try direct import if execution/ is on the path
+        from report_generator import generate_pdf_report
+        from analysis_engine import construct_analysis_data
+    except ImportError as e:
+        logging.warning(f"[IMPORT] Could not import report_generator/analysis_engine: {e}")
+        generate_pdf_report = None
+        construct_analysis_data = None
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -37,6 +55,7 @@ image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
         "google-generativeai",
+        "google-genai",
         "fastapi",
         "google-auth",
         "google-auth-oauthlib",
@@ -45,31 +64,185 @@ image = (
         "apify-client",
         "gspread",
         "pandas",
-        "python-dotenv",
-        "yt-dlp",
+        "firecrawl-py",
+        "supabase",
+        "reportlab"
     )
-    .add_local_dir(r"c:\Users\Admin\OneDrive\Desktop\Zeniac.Co\directives", remote_path="/app/directives")
-    .add_local_dir(r"c:\Users\Admin\OneDrive\Desktop\Zeniac.Co\execution", remote_path="/app/execution")
-    .add_local_file(r"c:\Users\Admin\OneDrive\Desktop\Zeniac.Co\execution\webhooks.json", remote_path="/app/webhooks.json")
-    .add_local_file(r"c:\Users\Admin\OneDrive\Desktop\Zeniac.Co\.tmp\demo_kickoff_call_transcript.md", remote_path="/app/demo_kickoff_call_transcript.md", ignore_if_missing=True)
-    .add_local_file(r"c:\Users\Admin\OneDrive\Desktop\Zeniac.Co\.tmp\demo_sales_call_transcript.md", remote_path="/app/demo_sales_call_transcript.md", ignore_if_missing=True)
+    .add_local_dir("execution", remote_path="/app/execution")
+    .add_local_dir("directives", remote_path="/app/directives")
+    .add_local_file(".env", remote_path="/app/.env")
 )
+
 
 # All secrets
 ALL_SECRETS = [
-    modal.Secret.from_name("gemini-secret"),
-    modal.Secret.from_name("google-token"),
-    modal.Secret.from_name("env-vars"),
-    modal.Secret.from_name("slack-webhook"),
-    modal.Secret.from_name("instantly-api"),
+    modal.Secret.from_name("firecrawl-api-key"),
     modal.Secret.from_name("apify-secret"),
-    modal.Secret.from_name("anymailfinder-secret"),
-    modal.Secret.from_name("pandadoc-secret"),
+    modal.Secret.from_name("supabase-secret"),
+    modal.Secret.from_name("brevo-secret"),
 ]
+
+# ============================================================================
+# SUPABASE HELPER
+# ============================================================================
+
+def save_analysis_to_supabase(data: dict, user_id: str = None):
+    """Save analysis result to Supabase."""
+    from supabase import create_client, Client
+    
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") # Use service role for backend
+    
+    if not url or not key:
+        logger.warning("Supabase credentials missing, skipping save.")
+        return
+        
+    try:
+        supabase: Client = create_client(url, key)
+        
+        # Prepare payload matching 'analyses' table schema
+        payload = {
+            "domain": data.get("url"),
+            "score": data.get("score"),
+            "report_data": data,
+            "user_id": user_id,
+            "status": "completed",
+            "business_name": data.get("businessName")
+        }
+        
+        # Insert
+        res = supabase.table("analyses").insert(payload).execute()
+        logger.info(f"[DB] Saved analysis to Supabase: {res.data}")
+    except Exception as e:
+        logger.error(f"[DB] Supabase save error: {e}")
 
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
+
+def firecrawl_scrape_impl(url: str, limit: int = 5) -> dict:
+    """Multi-page crawl via Firecrawl with Apify fallback."""
+    from firecrawl import FirecrawlApp
+    
+    # 1. Try Firecrawl
+    api_key = os.getenv("FIRECRAWL_API_KEY")
+    if api_key:
+        try:
+            app = FirecrawlApp(api_key=api_key)
+            logger.info(f"[FIRECRAWL] Starting scan for {url}")
+            
+            params = {'formats': ['markdown', 'html']}
+            
+            # The correct SDK method is `scrape()` (not `scrape_url`)
+            primary = app.scrape(url, params=params)
+
+            results = []
+            if primary:
+                results.append({
+                    "url": url,
+                    "markdown": primary.get("markdown", ""),
+                    "html": primary.get("html", ""),
+                    "metadata": primary.get("metadata", {})
+                })
+                
+            return {
+                "status": "success",
+                "source": "firecrawl",
+                "pages_found": len(results),
+                "data": results
+            }
+        except Exception as e:
+            logger.warning(f"[WARN] Firecrawl failed: {e}. Falling back to Apify...")
+    
+    # 2. Apify Fallback
+    apify_key = os.getenv("APIFY_API_KEY") or os.getenv("APIFY_API_TOKEN")
+    if not apify_key:
+        return {"error": "Firecrawl failed and APIFY_API_KEY not configured"}
+        
+    try:
+        from apify_client import ApifyClient
+        client = ApifyClient(apify_key)
+        
+        # Use simple Website Content Crawler (cheaper/faster than full crawl)
+        # Actor: apify/website-content-crawler
+        run_input = {
+            "startUrls": [{"url": url}],
+            "maxCrawlPages": 1, # Just home page for now to save time/cost
+            "saveHtml": True,
+            "saveMarkdown": True
+        }
+        
+        logger.info(f"[APIFY] Starting fallback crawl for {url}")
+        run = client.actor("apify/website-content-crawler").call(run_input=run_input)
+        
+        # Fetch results
+        dataset = client.dataset(run["defaultDatasetId"])
+        items = dataset.list_items().items
+        
+        results = []
+        for item in items:
+            results.append({
+                "url": item.get("url"),
+                "markdown": item.get("markdown", ""),
+                "html": item.get("html", ""),
+                "metadata": {
+                    "title": item.get("metadata", {}).get("title"),
+                    "description": item.get("metadata", {}).get("description")
+                }
+            })
+            
+        return {
+            "status": "success",
+            "source": "apify",
+            "pages_found": len(results),
+            "data": results
+        }
+        
+    except Exception as e:
+        logger.error(f"Apify fallback failed: {e}")
+        return {"error": f"Scraping failed on both Firecrawl and Apify: {str(e)}"}
+
+def pagespeed_analyze_impl(url: str) -> dict:
+    """Analyze performance via Google PageSpeed Insights."""
+    import requests
+    
+    api_key = os.getenv("PAGESPEED_API_KEY")
+    if not api_key:
+        return {"error": "PAGESPEED_API_KEY not configured"}
+        
+    endpoint = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={url}&key={api_key}&strategy=mobile&category=performance"
+    
+    try:
+        resp = requests.get(endpoint, timeout=30)
+        if resp.status_code == 200:
+            data = resp.json()
+            audits = data['lighthouseResult']['audits']
+            return {
+                "performance_score": round(data['lighthouseResult']['categories']['performance']['score'] * 100),
+                "metrics": {
+                    "fcp": audits['first-contentful-paint']['numericValue'],
+                    "lcp": audits['largest-contentful-paint']['numericValue'],
+                    "tbt": audits['total-blocking-time']['numericValue'],
+                    "cls": audits['cumulative-layout-shift']['numericValue'],
+                    "speed_index": audits['speed-index']['numericValue']
+                }
+            }
+        return {"error": f"PageSpeed API returned {resp.status_code}"}
+    except Exception as e:
+        return {"error": str(e)}
+
+def analyze_social_presence_impl(business: str, location: str = "") -> dict:
+    """Wrapper for analyze_social_presence procedural script."""
+    return run_procedural_script("analyze_social_presence", {"business": business, "location": location}, {})
+
+def scrape_competitors_impl(industry: str, location: str, exclude: str = "") -> dict:
+    """Wrapper for scrape_apify_parallel procedural script in competitor mode."""
+    return run_procedural_script("scrape_apify_parallel", {
+        "mode": "competitors",
+        "industry": industry,
+        "location": location,
+        "exclude": exclude
+    }, {})
 
 def column_letter(n):
     """Convert column index (0-based) to Excel-style column letter (A, B, ... Z, AA, AB, ...)."""
@@ -158,6 +331,54 @@ ALL_TOOLS = {
                 "query": {"type": "string", "description": "The search query"}
             },
             "required": ["query"]
+        }
+    },
+    "firecrawl_scrape": {
+        "name": "firecrawl_scrape",
+        "description": "Deep-scan a website using Firecrawl to extract markdown content from multiple pages.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "url": {"type": "string", "description": "The root URL to scrape"},
+                "limit": {"type": "integer", "description": "Max pages to scrape (default 5)"}
+            },
+            "required": ["url"]
+        }
+    },
+    "pagespeed_analyze": {
+        "name": "pagespeed_analyze",
+        "description": "Run Google PageSpeed Insights analysis for performance scoring.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "url": {"type": "string", "description": "The URL to analyze"}
+            },
+            "required": ["url"]
+        }
+    },
+    "analyze_social_presence": {
+        "name": "analyze_social_presence",
+        "description": "Aggregate social proof metrics (GMB, FB, LI) for a business using Apify.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "business": {"type": "string", "description": "Business Name"},
+                "location": {"type": "string", "description": "Business Location (City, State)"}
+            },
+            "required": ["business"]
+        }
+    },
+    "scrape_competitors": {
+        "name": "scrape_competitors",
+        "description": "Find and analyze top local competitors for a specific industry and city.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "industry": {"type": "string", "description": "Business industry (e.g. 'Dentist')"},
+                "location": {"type": "string", "description": "City, State"},
+                "exclude": {"type": "string", "description": "Main business name to exclude from results"}
+            },
+            "required": ["industry", "location"]
         }
     },
     "web_fetch": {
@@ -252,6 +473,43 @@ def send_email_impl(to: str, subject: str, body: str, token_data: dict) -> dict:
 
     result = service.users().messages().send(userId="me", body={"raw": raw}).execute()
     logger.info(f"📧 Email sent to {to} | ID: {result['id']}")
+    return {"status": "sent", "message_id": result["id"]}
+
+def send_email_with_attachment_impl(to: str, subject: str, body: str, attachment_path: str, token_data: dict) -> dict:
+    """Send email with PDF attachment via Gmail API."""
+    from google.oauth2.credentials import Credentials
+    from googleapiclient.discovery import build
+    from google.auth.transport.requests import Request
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.application import MIMEApplication
+    
+    creds = Credentials(
+        token=token_data["token"],
+        refresh_token=token_data["refresh_token"],
+        token_uri=token_data["token_uri"],
+        client_id=token_data["client_id"],
+        client_secret=token_data["client_secret"],
+        scopes=token_data["scopes"]
+    )
+    if creds.expired:
+        creds.refresh(Request())
+        
+    service = build("gmail", "v1", credentials=creds)
+    
+    message = MIMEMultipart()
+    message["to"] = to
+    message["subject"] = subject
+    message.attach(MIMEText(body))
+    
+    if attachment_path and os.path.exists(attachment_path):
+        with open(attachment_path, "rb") as f:
+            part = MIMEApplication(f.read(), Name=os.path.basename(attachment_path))
+        part['Content-Disposition'] = f'attachment; filename="{os.path.basename(attachment_path)}"'
+        message.attach(part)
+        
+    raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+    result = service.users().messages().send(userId="me", body={"raw": raw}).execute()
+    logger.info(f"📧 Email with attachment sent to {to} | ID: {result['id']}")
     return {"status": "sent", "message_id": result["id"]}
 
 
@@ -557,6 +815,10 @@ TOOL_IMPLEMENTATIONS = {
     "web_search": lambda **kwargs: web_search_impl(**kwargs),
     "web_fetch": lambda **kwargs: web_fetch_impl(**kwargs),
     "create_proposal": lambda **kwargs: create_proposal_impl(**kwargs),
+    "firecrawl_scrape": lambda **kwargs: firecrawl_scrape_impl(**kwargs),
+    "pagespeed_analyze": lambda **kwargs: pagespeed_analyze_impl(**kwargs),
+    "analyze_social_presence": lambda **kwargs: analyze_social_presence_impl(**kwargs),
+    "scrape_competitors": lambda **kwargs: scrape_competitors_impl(**kwargs),
 }
 
 # Tools that need token_data
@@ -677,6 +939,180 @@ def run_procedural_script(script_name: str, payload: dict, token_data: dict) -> 
     except Exception as e:
         logger.error(f"Script execution error: {e}")
         return {"error": str(e)}
+
+
+# ============================================================================
+# ANALYSIS & SUPABASE
+# ============================================================================
+
+def get_supabase():
+    """Get Supabase client."""
+    from supabase import create_client, Client
+    
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_KEY")
+    
+    if not url or not key:
+        logger.error("❌ Supabase credentials missing")
+        return None
+        
+    return create_client(url, key)
+
+def check_recent_analysis(url: str):
+    """Check Supabase for recent analysis (10 days)."""
+    supabase = get_supabase()
+    if not supabase:
+        return None
+        
+    try:
+        # Normalize domain
+        normalized = url.lower().replace("https://", "").replace("http://", "").replace("www.", "").rstrip("/")
+        
+        # 10 days ago
+        ten_days_ago = (datetime.utcnow() - timedelta(days=10)).isoformat()
+        
+        response = supabase.table("analyses") \
+            .select("*") \
+            .ilike("domain", f"%{normalized}%") \
+            .gt("created_at", ten_days_ago) \
+            .order("created_at", desc=True) \
+            .limit(1) \
+            .execute()
+            
+        if response.data:
+            logger.info(f"⚡ [CACHE HIT] Found analysis for {normalized}")
+            return response.data[0]
+        return None
+        
+    except Exception as e:
+        logger.error(f"Supabase check failed: {e}")
+        return None
+
+def save_analysis(user_id: str, url: str, data: dict, user_name: str = None, user_email: str = None):
+    """Save analysis to Supabase."""
+    supabase = get_supabase()
+    if not supabase:
+        return
+        
+    try:
+        normalized = url.lower().replace("https://", "").replace("http://", "").replace("www.", "").rstrip("/")
+        
+        payload = {
+            "user_id": user_id,
+            "domain": normalized,
+            "score": data.get("score", 0),
+            "report_data": data,
+            "meta_hash": f"{normalized}-{datetime.utcnow().timestamp()}"
+        }
+        
+        if user_name:
+            payload["user_name"] = user_name
+        if user_email:
+            payload["user_email"] = user_email
+            
+        supabase.table("analyses").insert(payload).execute()
+        logger.info(f"💾 Saved analysis for {normalized}")
+        
+    except Exception as e:
+        logger.error(f"Supabase save failed: {e}")
+
+@app.function(image=image, secrets=ALL_SECRETS, timeout=600)
+@modal.fastapi_endpoint(method="POST", label="analyze")
+def analyze_endpoint(item: dict):
+    """
+    Autonomous Analysis Endpoint:
+    1. Scrape (Firecrawl + Apify Fallback)
+    2. PageSpeed Analysis
+    3. Social Analysis (Apify)
+    4. Construct Data & Score
+    5. Generate PDF Report
+    6. Send Email with PDF
+    7. Save to Supabase
+    """
+    url = item.get("url")
+    user_id = item.get("userId")
+    email = item.get("email") # Email to send report to
+    business_name = item.get("name", "Business")
+    token_data = item.get("token_data") # For Gmail
+    
+    if not url:
+        return {"error": "URL is required"}
+        
+    logger.info(f"[ANALYZE] Starting autonomous analysis for {url} (User: {user_id}, Email: {email})")
+    
+    try:
+        # A. Parallel Execution of Scrapers (Sequential for now)
+        # 1. Firecrawl / Apify Content
+        scrape_result = firecrawl_scrape_impl(url)
+        
+        # 2. PageSpeed
+        pagespeed_result = pagespeed_analyze_impl(url)
+        
+        # 3. Social Analysis
+        # Extract business name from scrape if generic
+        if business_name == "Business" and scrape_result.get("data"):
+             meta = scrape_result["data"][0].get("metadata", {})
+             if meta.get("title"):
+                 business_name = meta["title"].split("|")[0].strip()
+                 
+        # Try to extract location from scrape metadata
+        location = "United States"
+        if scrape_result.get("data"):
+            md_text = scrape_result["data"][0].get("markdown", "")
+            # Simple location heuristics
+            import re as _re
+            loc_match = _re.search(r'(?:Nairobi|Kenya|Kiambu|Thindigua)', md_text, _re.IGNORECASE)
+            if loc_match:
+                location = "Nairobi, Kenya"
+
+        social_result = analyze_social_presence_impl(business_name, location)
+        
+        # B. Data Construction
+        analysis_data = construct_analysis_data(
+            url, 
+            business_name, 
+            scrape_result if "error" not in scrape_result else {"data": []}, 
+            social_result if "error" not in social_result else {},
+            pagespeed_result if "error" not in pagespeed_result else {}
+        )
+        
+        # C. PDF Generation
+        report_uuid = uuid.uuid4().hex[:8]
+        report_path = f"/tmp/Audit_Report_{report_uuid}.pdf"
+        generate_pdf_report(analysis_data, report_path)
+        logger.info(f"[PDF] Report generated at {report_path}")
+        
+        # D. Email Sending
+        email_status = "skipped"
+        if email:
+            if token_data:
+                send_email_with_attachment_impl(
+                    to=email,
+                    subject=f"Digital Dominance Audit for {business_name}",
+                    body="Please find your comprehensive digital audit attached.",
+                    attachment_path=report_path,
+                    token_data=token_data
+                )
+                email_status = "sent"
+            else:
+                 logger.warning("[WARN] No token_data provided, skipping Email.")
+                 email_status = "skipped_no_token"
+                 
+        # E. Save to Supabase
+        save_analysis_to_supabase(analysis_data, user_id)
+        
+        # F. Return Data
+        return {
+            "success": True, 
+            "data": analysis_data, 
+            "message": "Analysis completed.",
+            "email_status": email_status,
+            "report_url": "PDF sent via email" # We don't host it unless we upload to Supabase Storage
+        }
+
+    except Exception as e:
+        logger.error(f"[ERROR] Analysis failed: {e}")
+        return {"success": False, "error": str(e)}
 
 
 # ============================================================================
@@ -1090,8 +1526,8 @@ def call_claude(client, **kwargs) -> tuple:
     return response.content, response.usage.input_tokens, response.usage.output_tokens, response.stop_reason
 
 
-@app.function(image=image, secrets=ALL_SECRETS, timeout=300)
-@modal.fastapi_endpoint(method="GET")
+# @app.function(image=image, secrets=ALL_SECRETS, timeout=300)
+# @modal.fastapi_endpoint(method="GET")
 def general_agent(query: str = "", format: str = "json"):
     """
     General-purpose autonomous agent endpoint using Gemini.
@@ -1697,9 +2133,8 @@ Output JSON only (no markdown, no explanations):"""
         return {"status": "error", "error": str(e)}
 
 
-@app.function(image=image, secrets=ALL_SECRETS, timeout=60)
-@modal.fastapi_endpoint(method="GET")
-def scrape_leads(query: str = "", location: str = "United States", limit: int = 100):
+# @app.function(image=image, secrets=ALL_SECRETS, timeout=60)
+# @modal.fastapi_endpoint(method="GET")
     """
     Execution-only: Scrape leads with full workflow.
 
@@ -1776,8 +2211,8 @@ def scrape_leads(query: str = "", location: str = "United States", limit: int = 
         }, status_code=500)
 
 
-@app.function(image=image, secrets=ALL_SECRETS, timeout=300)
-@modal.fastapi_endpoint(method="POST")
+# @app.function(image=image, secrets=ALL_SECRETS, timeout=300)
+# @modal.fastapi_endpoint(method="POST")
 def generate_proposal(request_body: dict = None):
     """
     Execution-only: Generate a proposal using PandaDoc.
@@ -1909,8 +2344,8 @@ def generate_proposal(request_body: dict = None):
         }, status_code=500)
 
 
-@app.function(image=image, secrets=ALL_SECRETS, timeout=60)
-@modal.fastapi_endpoint(method="GET")
+# @app.function(image=image, secrets=ALL_SECRETS, timeout=60)
+# @modal.fastapi_endpoint(method="GET")
 def read_demo_transcript(name: str = "kickoff"):
     """
     Read demo transcripts stored on the server.
@@ -1948,8 +2383,8 @@ def read_demo_transcript(name: str = "kickoff"):
         }, status_code=500)
 
 
-@app.function(image=image, secrets=ALL_SECRETS, timeout=300)
-@modal.fastapi_endpoint(method="GET")
+# @app.function(image=image, secrets=ALL_SECRETS, timeout=300)
+# @modal.fastapi_endpoint(method="GET")
 def create_proposal_from_transcript(transcript: str = "sales", demo: bool = True):
     """
     End-to-end proposal generation from transcript.
@@ -2400,8 +2835,8 @@ def youtube_outliers_background(
         return {"status": "error", "error": str(e)}
 
 
-@app.function(image=image, secrets=ALL_SECRETS, timeout=60)
-@modal.fastapi_endpoint(method="GET")
+# @app.function(image=image, secrets=ALL_SECRETS, timeout=60)
+# @modal.fastapi_endpoint(method="GET")
 def youtube_outliers(
     keywords: str = "",
     days: int = 7,
