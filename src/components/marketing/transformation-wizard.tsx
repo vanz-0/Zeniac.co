@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; // Assuming standard shadcn Input
 import { Label } from "@/components/ui/label";
-import { Activity, ArrowRight, Check, ChevronRight, Loader2, Search, Trophy, Zap } from "lucide-react";
+import { Activity, ArrowRight, Check, ChevronRight, FileText, Loader2, Search, Trophy, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { pdf } from '@react-pdf/renderer';
 import { AuditPDF } from '@/components/reports/AuditPDF';
@@ -217,16 +217,20 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                 </DialogDescription>
                 <div className="absolute top-0 left-0 w-full h-1 bg-white/5">
                     <motion.div
-                        className="h-full bg-zeniac-gold"
+                        className="h-full bg-zeniac-gold shadow-[0_0_10px_rgba(212,175,55,0.5)]"
                         initial={{ width: "0%" }}
                         animate={{
-                            width: step === "intro" ? "10%" :
-                                step === "details" ? "30%" :
-                                    step === "processing" ? "50%" :
-                                        step === "results" ? "75%" :
-                                            step === "preview" ? "85%" : "100%"
+                            width: analysisData ? "100%" :
+                                step === "intro" ? "5%" :
+                                    step === "details" ? "15%" :
+                                        step === "processing" ? "90%" :
+                                            step === "results" ? "95%" :
+                                                step === "preview" ? "98%" : "100%"
                         }}
-                        transition={{ duration: 0.5 }}
+                        transition={{
+                            duration: analysisData ? 1 : (step === "processing" ? 90 : 0.8),
+                            ease: analysisData ? "easeOut" : (step === "processing" ? "linear" : "easeOut")
+                        }}
                     />
                 </div>
 
@@ -322,8 +326,11 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                             fill="transparent"
                                             strokeDasharray="351.86"
                                             initial={{ strokeDashoffset: 351.86 }}
-                                            animate={{ strokeDashoffset: 100 }}
-                                            transition={{ duration: 3, ease: "easeInOut" }}
+                                            animate={{ strokeDashoffset: analysisData ? 0 : 35 }}
+                                            transition={{
+                                                duration: analysisData ? 1.5 : 90,
+                                                ease: analysisData ? "easeOut" : "linear"
+                                            }}
                                         />
                                     </svg>
 
@@ -476,19 +483,35 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                             className="hidden md:block w-full h-full rounded bg-white"
                                             title="Report Preview"
                                         />
-                                        <div className="md:hidden flex flex-col items-center justify-center h-full gap-4 p-6 text-center">
-                                            <div className="w-16 h-16 rounded-full bg-zeniac-gold/10 flex items-center justify-center mb-2">
-                                                <Trophy className="w-8 h-8 text-zeniac-gold" />
+                                        {/* Mobile: Better alternative than just a button */}
+                                        <div className="md:hidden flex flex-col items-center justify-center h-full gap-6 p-8 text-center bg-gradient-to-b from-black/60 to-black/90">
+                                            <div className="relative">
+                                                <div className="w-24 h-24 rounded-full bg-zeniac-gold/10 flex items-center justify-center border border-zeniac-gold/20">
+                                                    <FileText className="w-12 h-12 text-zeniac-gold animate-bounce" />
+                                                </div>
+                                                <div className="absolute -top-2 -right-2 bg-zeniac-gold text-black text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg">
+                                                    READY
+                                                </div>
                                             </div>
-                                            <p className="text-gray-300 font-medium">Your Report is Ready!</p>
-                                            <p className="text-xs text-gray-500">PDF previews are often blocked on mobile browsers.</p>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => window.open(previewUrl, '_blank')}
-                                                className="border-zeniac-gold/30 text-zeniac-gold"
-                                            >
-                                                OPEN REPORT PREVIEW
-                                            </Button>
+
+                                            <div className="space-y-2">
+                                                <h4 className="text-xl font-mono font-bold text-white uppercase tracking-tight">Intelligence Report</h4>
+                                                <p className="text-sm text-zeniac-gray font-mono">18-Page Comprehensive Analysis Generated</p>
+                                            </div>
+
+                                            <div className="w-full h-px bg-gradient-to-r from-transparent via-zeniac-gold/30 to-transparent" />
+
+                                            <div className="space-y-4 w-full">
+                                                <Button
+                                                    onClick={() => window.open(previewUrl, '_blank')}
+                                                    className="w-full bg-zeniac-gold text-black hover:bg-white transition-all duration-300 font-mono font-bold py-6 text-lg shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+                                                >
+                                                    TAP TO VIEW REPORT
+                                                </Button>
+                                                <p className="text-[10px] text-zeniac-gray/60 font-mono uppercase tracking-[0.2em]">
+                                                    Optimized for full-screen viewing
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (
@@ -745,21 +768,33 @@ function ProcessingSteps() {
     React.useEffect(() => {
         setMounted(true);
         const steps = [
-            "Scanning Tech Stack...",
-            "Evaluating SEO Signals...",
-            "Computing Brand Authority...",
-            "Comparing against 3 Local Competitors...",
-            "Quantifying Revenue Leak...",
-            "Finalizing Report..."
+            { text: "Initializing Scan...", time: 3000 },
+            { text: "Scraping Website Architecture...", time: 12000 },
+            { text: "Extracting Tech Stack Signal...", time: 8000 },
+            { text: "Evaluating SEO Hierarchy...", time: 10000 },
+            { text: "Analyzing Competitor Authority...", time: 15000 },
+            { text: "Quantifying Revenue Leakage...", time: 10000 },
+            { text: "Generating Performance Gauge...", time: 7000 },
+            { text: "Finalizing Intelligence Report...", time: 0 }
         ];
-        let i = 0;
-        const interval = setInterval(() => {
-            if (i < steps.length) {
-                setStatus(steps[i]);
-                i++;
+
+        let currentStep = 0;
+        let timeout: NodeJS.Timeout;
+
+        const nextStep = () => {
+            if (currentStep < steps.length - 1) {
+                setStatus(steps[currentStep].text);
+                timeout = setTimeout(() => {
+                    currentStep++;
+                    nextStep();
+                }, steps[currentStep].time);
+            } else {
+                setStatus(steps[currentStep].text);
             }
-        }, 600);
-        return () => clearInterval(interval);
+        };
+
+        nextStep();
+        return () => clearTimeout(timeout);
     }, []);
 
     if (!mounted) {
