@@ -48,7 +48,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("gemini-orchestrator")
 
 # Define the Modal app
-app = modal.App("gemini-orchestrator")
+app = modal.App("zeniac-backend")
 
 # Create image with required packages and local files
 image = (

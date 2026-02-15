@@ -135,6 +135,17 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
         setMounted(true);
     }, []);
 
+    // Timeout warning for long analysis
+    React.useEffect(() => {
+        let timeout: NodeJS.Timeout;
+        if (step === "processing" && !analysisData) {
+            timeout = setTimeout(() => {
+                setQueueStatus("Analysis taking longer than usual... Finalizing deep scan.");
+            }, 45000); // 45s warning
+        }
+        return () => clearTimeout(timeout);
+    }, [step, analysisData]);
+
     // Generate PDF Preview when entering "preview" step
     React.useEffect(() => {
         const generatePreview = async () => {
@@ -516,9 +527,12 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                             />
                             <div className="mt-4 border border-white/10 rounded-lg p-1 bg-white/5 h-[300px] md:h-[450px] overflow-hidden relative group flex items-center justify-center">
                                 {generatingPdf ? (
-                                    <div className="flex flex-col items-center text-gray-400 animate-pulse">
-                                        <Loader2 className="w-8 h-8 animate-spin mb-2 text-zeniac-gold" />
-                                        <p>Generating PDF Report...</p>
+                                    <div className="flex flex-col items-center justify-center h-full text-zeniac-gold animate-pulse gap-6">
+                                        <Loader2 className="w-16 h-16 animate-spin" />
+                                        <div className="text-center space-y-2">
+                                            <div className="text-xl font-mono uppercase tracking-widest font-bold">Generating Report</div>
+                                            <p className="text-sm text-gray-400">Compiling 18-page strategic analysis...</p>
+                                        </div>
                                     </div>
                                 ) : previewUrl ? (
                                     <div className="w-full h-full relative">
