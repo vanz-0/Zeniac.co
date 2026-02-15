@@ -63,6 +63,16 @@ export async function POST(req: Request) {
             throw new Error(error.message || 'Brevo API Error');
         }
 
+        // Create/update user profile for onboarding
+        try {
+            const { ensureUserProfile, addToBrevoList } = await import('@/lib/onboarding');
+            await ensureUserProfile(email, name, 'footer');
+            await addToBrevoList(email, name, 'footer');
+            console.log(`🆕 [ONBOARDING] Profile ensured + Brevo synced for footer lead: ${email}`);
+        } catch (onboardErr: any) {
+            console.warn('⚠️ [ONBOARDING] Non-fatal error:', onboardErr.message);
+        }
+
         return NextResponse.json({ success: true, message: 'Freebie sent successfully' });
 
     } catch (error) {

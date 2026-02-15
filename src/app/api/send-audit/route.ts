@@ -179,6 +179,17 @@ export async function POST(req: NextRequest) {
     }
 
     console.log('✅ Brevo Success. Message ID:', result.messageId);
+
+    // 4. Create/update user profile for onboarding
+    try {
+      const { ensureUserProfile, addToBrevoList } = await import('@/lib/onboarding');
+      await ensureUserProfile(email, name, 'wizard');
+      await addToBrevoList(email, name, 'wizard');
+      console.log(`🆕 [ONBOARDING] Profile ensured + Brevo synced for: ${email}`);
+    } catch (onboardErr: any) {
+      console.warn('⚠️ [ONBOARDING] Non-fatal onboarding error:', onboardErr.message);
+    }
+
     return NextResponse.json({
       success: true,
       id: result.messageId,
