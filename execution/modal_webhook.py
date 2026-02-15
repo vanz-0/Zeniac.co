@@ -91,28 +91,34 @@ def save_analysis_to_supabase(data: dict, user_id: str = None):
     from supabase import create_client, Client
     
     url = os.getenv("SUPABASE_URL")
-    key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") # Use service role for backend
+    key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY") # Try service role, fallback to anon/service key
     
     if not url or not key:
-        logger.warning("Supabase credentials missing, skipping save.")
+        logger.warning(f"Supabase credentials missing (URL: {bool(url)}, KEY: {bool(key)}), skipping save.")
         return
         
     try:
         supabase: Client = create_client(url, key)
         
-        # Prepare payload matching 'analyses' table schema
+        # Prepare payload matching actual 'analyses' table schema
+        # Columns: id (uuid), created_at (timestamptz), domain (text), score (int4), report_data (jsonb), user_id (uuid)
+        domain_normalized = (data.get("url") or "").lower().replace("https://", "").replace("http://", "").replace("www.", "").rstrip("/")
+        
         payload = {
-            "domain": data.get("url"),
+            "domain": domain_normalized,
             "score": data.get("score"),
             "report_data": data,
-            "user_id": user_id,
-            "status": "completed",
-            "business_name": data.get("businessName")
         }
+        
+        # Only include user_id if it looks like a valid UUID
+        if user_id and len(str(user_id)) > 10:
+            payload["user_id"] = user_id
+        
+        logger.info(f"[DB] Inserting to Supabase: domain={domain_normalized}, score={data.get('score')}")
         
         # Insert
         res = supabase.table("analyses").insert(payload).execute()
-        logger.info(f"[DB] Saved analysis to Supabase: {res.data}")
+        logger.info(f"[DB] Saved analysis to Supabase successfully: {len(res.data) if res.data else 0} rows")
     except Exception as e:
         logger.error(f"[DB] Supabase save error: {e}")
 
@@ -133,8 +139,8 @@ def firecrawl_scrape_impl(url: str, limit: int = 5) -> dict:
             
             params = {'formats': ['markdown', 'html']}
             
-            # The correct SDK method is `scrape()` (not `scrape_url`)
-            primary = app.scrape(url, params=params)
+            # Use scrape_url which supports params in this version
+            primary = app.scrape_url(url, params=params)
 
             results = []
             if primary:
@@ -1034,11 +1040,19 @@ async def analyze_endpoint(item: dict):
     email = item.get("email") # Email to send report to
     business_name = item.get("name", "Business")
     token_data = item.get("token_data") # For Gmail
+    force = item.get("force", False)
     
     if not url:
         return {"error": "URL is required"}
+
+    # Normalize URL scheme
+    if not url.startswith("http"):
+        url = "https://" + url
         
-    logger.info(f"[ANALYZE] Starting autonomous analysis for {url} (User: {user_id}, Email: {email})")
+    logger.info(f"[ANALYZE] Starting autonomous analysis for {url} (User: {user_id}, Email: {email}, Force: {force})")
+    
+    # Cache checking is handled by the Next.js layer (route.ts) via getRecentAnalysis.
+    # Modal always performs a fresh analysis when called.
     
     # 0. Create async helpers
     import asyncio

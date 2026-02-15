@@ -20,7 +20,7 @@ const navigationItems = [
 
 export function Navbar({ onOpenWizard, onOpenBooking }: { onOpenWizard?: () => void; onOpenBooking?: () => void }) {
     const { theme } = useTheme();
-    const { isMinimized, step, restoreWizard } = useWizard();
+    const { isMinimized, step, restoreWizard, progress } = useWizard();
     const [mounted, setMounted] = React.useState(false);
 
     React.useEffect(() => {
@@ -59,10 +59,30 @@ export function Navbar({ onOpenWizard, onOpenBooking }: { onOpenWizard?: () => v
                         <Button
                             variant="outline"
                             onClick={restoreWizard}
-                            className="hidden md:inline-flex border-zeniac-gold/50 bg-zeniac-gold/10 text-zeniac-gold animate-pulse mr-2"
+                            className="hidden md:inline-flex border-zeniac-gold/50 bg-zeniac-gold/10 text-zeniac-gold mr-2 items-center gap-2"
                         >
-                            <span className="w-2 h-2 bg-zeniac-gold rounded-full mr-2 animate-ping" />
-                            SCANNING...
+                            <div className="relative w-5 h-5 flex items-center justify-center">
+                                <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                                    <path
+                                        className="text-zeniac-gold/20"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                    />
+                                    <path
+                                        className="text-zeniac-gold transition-all duration-500 ease-in-out"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                        strokeDasharray={`${progress}, 100`}
+                                    />
+                                </svg>
+                            </div>
+                            <span className="font-mono text-xs">
+                                {progress}%
+                            </span>
                         </Button>
                     )}
 

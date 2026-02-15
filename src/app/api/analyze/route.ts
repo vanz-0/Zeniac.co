@@ -26,8 +26,8 @@ const PAIN_POINTS_RULES = [
 
 export async function POST(req: NextRequest) {
     try {
-        const { url, userId, name, email } = await req.json(); // Added email
-        console.log(`🔍 Received analysis request for: ${url} (User: ${name || 'Guest'})`);
+        const { url, userId, name, email, force } = await req.json(); // Added force
+        console.log(`🔍 Received analysis request for: ${url} (User: ${name || 'Guest'}, Force: ${force})`);
 
         // 0. Check System Load (Queue / Lock)
         const { allowed, waitTime } = await checkSystemLoad();
@@ -42,28 +42,29 @@ export async function POST(req: NextRequest) {
         }
 
         // 0.5. Check for recent analysis locally (Caching Layer - 10 Days)
-        const cachedAnalysis = await getRecentAnalysis(url);
-        if (cachedAnalysis) {
-            console.log(`⚡ [CACHE HIT] Serving existing analysis for: ${url}`);
-            return NextResponse.json({
-                success: true,
-                data: cachedAnalysis.report_data,
-                _meta: { source: 'cache', timestamp: cachedAnalysis.created_at }
-            });
+        // Skip if force is true
+        if (!force) {
+            const cachedAnalysis = await getRecentAnalysis(url);
+            if (cachedAnalysis) {
+                console.log(`⚡ [CACHE HIT] Serving existing analysis for: ${url}`);
+                return NextResponse.json({
+                    success: true,
+                    data: cachedAnalysis.report_data,
+                    _meta: { source: 'cache', timestamp: cachedAnalysis.created_at }
+                });
+            }
         }
-        console.log(`🆕 [CACHE MISS] Starting fresh scan via Modal for: ${url}`);
+
+        console.log(`🆕 [${force ? 'FORCE' : 'CACHE MISS'}] Starting fresh scan via Modal for: ${url}`);
 
         // 1. Call Modal Endpoint (Autonomous)
+        // Use the new endpoint from previous redeployment if it was zeniac-backend
         const MODAL_ENDPOINT = "https://merchzenith--analyze.modal.run";
-
-        // Pass token_data if available (not accessible here on server unless passed from client)
-        // For now, we assume client might pass it, or we rely on Modal to handle email without it (if implemented)
-        // or we skip component-level email logic here.
 
         const modalResponse = await fetch(MODAL_ENDPOINT, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url, userId, name, email })
+            body: JSON.stringify({ url, userId, name, email, force })
         });
 
         if (!modalResponse.ok) {
@@ -92,7 +93,23 @@ export async function POST(req: NextRequest) {
         if (analysisData.hasSocialProof === undefined) analysisData.hasSocialProof = md.toLowerCase().includes("review") || (analysisData.socialPresenceAnalysis?.aggregate?.total_reviews || 0) > 0;
         if (analysisData.hasClearCTA === undefined) analysisData.hasClearCTA = /(book|start|contact)/i.test(md);
 
-        // 3. Return (Modal already saved to Supabase)
+        // 3. Save to Supabase (safety net — Modal also saves, but this ensures data persists)
+        try {
+            await saveAnalysisResult(
+                userId || null,
+                url,
+                analysisData.score || 0,
+                analysisData,
+                name,
+                email
+            );
+            console.log(`💾 [SUPABASE] Analysis saved for: ${url}`);
+        } catch (dbError: any) {
+            console.warn(`⚠️ [SUPABASE] Save failed (non-fatal): ${dbError.message}`);
+            // Don't fail the request — data was already returned from Modal
+        }
+
+        // 4. Return data to frontend
         return NextResponse.json({ success: true, data: analysisData });
 
     } catch (error: any) {

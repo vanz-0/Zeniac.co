@@ -40,14 +40,16 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
     const [sendError, setSendError] = React.useState<string | null>(null);
     const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
     const [generatingPdf, setGeneratingPdf] = React.useState(false);
+    const [isForceRefreshing, setIsForceRefreshing] = React.useState(false);
 
     const [queueStatus, setQueueStatus] = React.useState<string | null>(null);
 
     // We no longer reset on close inside useEffect because the Context handles it (or doesn't, if minimized)
 
-    const performAnalysis = async (retryCount = 0) => {
+    const performAnalysis = async (retryCount = 0, force = false) => {
         try {
             if (queueStatus) setQueueStatus("Retrying connection...");
+            if (force) setIsForceRefreshing(true);
 
             const response = await fetch('/api/analyze', {
                 method: 'POST',
@@ -55,7 +57,8 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                 body: JSON.stringify({
                     url: formData.website || "zeniac.co",
                     name: formData.name,
-                    email: formData.email
+                    email: formData.email,
+                    force: force
                 }),
             });
 
@@ -76,35 +79,37 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                 throw new Error(data.error || "Analysis failed");
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Analysis failed:", error);
-            // ... fallback data ...
+            setQueueStatus(error.message || "Analysis failed");
+            // Fallback data but keep the error visible
             setAnalysisData({
                 score: 42,
-                techStack: "Undetected (API Error)",
+                techStack: "Undetected",
                 competitorGap: "High",
                 hasSocialProof: false,
                 hasClearCTA: false,
                 businessType: "Unknown",
                 services: [],
-                inferredPainPoints: ["Analysis API unreachable", "Check console for details"],
+                inferredPainPoints: ["Analysis encountered an error", error.message || "Unknown Error"],
                 location: "Unknown",
-                debug: null
-            });
+                debug: { error: error.message }
+            } as any);
         } finally {
-            // Only move to results if we actually got data or failed permanently (not queued)
-            // But here we rely on state updates. 
-            // If we are queued, we returned early, so this finally block WONT run for 429 return.
-            // Wait, performAnalysis is async, so `return` exits the function execution instance.
-            // Correct.
+            setIsForceRefreshing(false);
         }
+        // Only move to results if we actually got data or failed permanently (not queued)
+        // But here we rely on state updates. 
+        // If we are queued, we returned early, so this finally block WONT run for 429 return.
+        // Wait, performAnalysis is async, so `return` exits the function execution instance.
+        // Correct.
+    }
 
-        // Move to results only if analysisData is set (checked via effect or here)
-        // Actually, the original code setStep("results") in finally block.
-        // We should change that to only setStep if we are NOT queued.
-    };
-
+    // Move to results only if analysisData is set (checked via effect or here)
+    // Actually, the original code setStep("results") in finally block.
+    // We should change that to only setStep if we are NOT queued.
     // Effect to move to results when analysisData is Ready
+
     React.useEffect(() => {
         if (analysisData && step === "processing") {
             // giving a small delay for animation to finish if needed, or just go
@@ -426,10 +431,22 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
 
                     {step === "results" && (
                         <StepContainer key="results">
-                            <WizardHeader
-                                title="Intelligence Report"
-                                subtitle="Analysis complete. Critical gaps detected."
-                            />
+                            <div className="flex justify-between items-center w-full">
+                                <WizardHeader
+                                    title="Intelligence Report"
+                                    subtitle="Analysis complete. Critical gaps detected."
+                                />
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => performAnalysis(0, true)}
+                                    disabled={isForceRefreshing}
+                                    className="text-zeniac-gold hover:bg-zeniac-gold/10 gap-2"
+                                >
+                                    {isForceRefreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                                    FORCE RE-SCAN
+                                </Button>
+                            </div>
                             <div className="grid md:grid-cols-2 gap-6 mt-8">
                                 <div className="bg-white/5 border border-white/10 rounded-xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden">
                                     <div className="absolute top-0 right-0 p-2 opacity-50">
@@ -787,62 +804,73 @@ function WizardHeader({ title, subtitle }: { title: string, subtitle: string }) 
     );
 }
 
-
 function ProcessingSteps() {
     const [status, setStatus] = React.useState("Initializing Scan...");
     const [mounted, setMounted] = React.useState(false);
 
-    // Use Context progress later if desired, for now keep local simulation synced with "time"
-    // Ideally we push this "status" to context so it persists on minimize
+    const { setProgress, resetWizard } = useWizard();
 
     React.useEffect(() => {
         setMounted(true);
         const steps = [
-            { text: "Initializing Scan...", time: 3000 },
-            { text: "Scraping Website Architecture...", time: 12000 },
-            { text: "Extracting Tech Stack Signal...", time: 8000 },
-            { text: "Evaluating SEO Hierarchy...", time: 10000 },
-            { text: "Analyzing Competitor Authority...", time: 15000 },
-            { text: "Quantifying Revenue Leakage...", time: 10000 },
-            { text: "Generating Performance Gauge...", time: 7000 },
-            { text: "Finalizing Intelligence Report...", time: 0 }
+            { text: "Initializing Scan...", time: 3000, prog: 5 },
+            { text: "Scraping Website Architecture...", time: 12000, prog: 20 },
+            { text: "Extracting Tech Stack Signal...", time: 8000, prog: 35 },
+            { text: "Evaluating SEO Hierarchy...", time: 10000, prog: 50 },
+            { text: "Analyzing Competitor Authority...", time: 15000, prog: 70 },
+            { text: "Quantifying Revenue Leakage...", time: 10000, prog: 85 },
+            { text: "Generating Performance Gauge...", time: 7000, prog: 95 },
+            { text: "Finalizing Intelligence Report...", time: 0, prog: 100 }
         ];
 
         let currentStep = 0;
         let timeout: NodeJS.Timeout;
 
         const nextStep = () => {
-            if (currentStep < steps.length - 1) {
-                setStatus(steps[currentStep].text);
-                timeout = setTimeout(() => {
-                    currentStep++;
-                    nextStep();
-                }, steps[currentStep].time);
-            } else {
-                setStatus(steps[currentStep].text);
+            if (currentStep < steps.length) {
+                const s = steps[currentStep];
+                setStatus(s.text);
+                setProgress(s.prog);
+                if (s.time > 0 && currentStep < steps.length - 1) {
+                    timeout = setTimeout(() => {
+                        currentStep++;
+                        nextStep();
+                    }, s.time);
+                }
             }
         };
 
         nextStep();
         return () => clearTimeout(timeout);
-    }, []);
+    }, [setProgress]);
 
     if (!mounted) return null;
 
     return (
-        <div className="w-full max-w-xs mx-auto mt-4">
-            <div className="flex items-center gap-2 justify-center mb-2">
-                <Loader2 className="w-3 h-3 animate-spin text-zeniac-gold" />
-                <span className="text-xs text-gray-500 font-mono">{status}</span>
+        <div className="w-full max-w-xs mx-auto mt-4 space-y-4">
+            <div className="flex flex-col items-center gap-2 justify-center">
+                <div className="flex items-center gap-2">
+                    <Loader2 className="w-3 h-3 animate-spin text-zeniac-gold" />
+                    <span className="text-xs text-gray-500 font-mono">{status}</span>
+                </div>
+                <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                    <motion.div
+                        className="h-full bg-zeniac-gold"
+                        initial={{ width: "0%" }}
+                        animate={{ width: "100%" }}
+                        transition={{ duration: 70, ease: "linear" }}
+                    />
+                </div>
             </div>
-            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                <motion.div
-                    className="h-full bg-zeniac-gold"
-                    initial={{ width: "0%" }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: 65, ease: "linear" }}
-                />
-            </div>
+
+            <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => resetWizard()}
+                className="text-[10px] text-gray-400 hover:text-white uppercase tracking-widest border border-white/5"
+            >
+                Cancel & Restart Scan
+            </Button>
         </div>
     );
 }
