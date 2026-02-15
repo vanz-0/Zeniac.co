@@ -21,6 +21,14 @@
         "web_fetch",
         "send_email"
       ]
+    },
+    "generate-toolkit": {
+      "directive": "generate_toolkit_webhook",
+      "description": "Generate personalized industry toolkit strategy doc",
+      "tools": [
+        "generate_toolkit",
+        "send_email"
+      ]
     }
   }
 }

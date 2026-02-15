@@ -16,6 +16,7 @@ import { TransformationWizard } from "@/components/marketing/transformation-wiza
 import { useWizard } from "@/context/wizard-context";
 import { Navbar } from "@/components/marketing/navbar";
 import { BookingModal } from "@/components/marketing/booking-modal";
+import { DominanceVault, VaultPopup } from "@/components/marketing/dominance-vault";
 
 const processData = [
   {
@@ -112,6 +113,8 @@ export default function Home() {
         <Portfolio />
         <Pricing onOpenBooking={() => openBooking()} />
 
+        <DominanceVault />
+
         <Reviews />
 
         <section id="process" className="relative py-24 min-h-screen flex flex-col items-center justify-center">
@@ -135,6 +138,8 @@ export default function Home() {
       <TransformationWizard
         onOpenBooking={(data) => openBooking(data)}
       />
+
+      <VaultPopup />
 
       <BookingModal
         isOpen={bookingOpen}
