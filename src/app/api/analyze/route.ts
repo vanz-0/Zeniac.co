@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PageSpeedMetrics, AnalysisData } from '@/types/analysis';
 import { getRecentAnalysis, saveAnalysisResult } from '@/lib/db-actions';
+import { checkSystemLoad } from '@/lib/scan-lock';
 
 export const maxDuration = 60; // 60 seconds (requires Vercel Pro, but safe to include)
 export const dynamic = 'force-dynamic';
@@ -28,7 +29,19 @@ export async function POST(req: NextRequest) {
         const { url, userId, name, email } = await req.json(); // Added email
         console.log(`🔍 Received analysis request for: ${url} (User: ${name || 'Guest'})`);
 
-        // 0. Check for recent analysis locally (Caching Layer - 10 Days)
+        // 0. Check System Load (Queue / Lock)
+        const { allowed, waitTime } = await checkSystemLoad();
+        if (!allowed) {
+            console.warn(`⏳ [QUEUE] System busy. Rejecting request for: ${url}`);
+            return NextResponse.json({
+                success: false,
+                error: "System is processing another scan. Please wait a moment.", // User friendly
+                queue: true,
+                retryAfter: waitTime
+            }, { status: 429 });
+        }
+
+        // 0.5. Check for recent analysis locally (Caching Layer - 10 Days)
         const cachedAnalysis = await getRecentAnalysis(url);
         if (cachedAnalysis) {
             console.log(`⚡ [CACHE HIT] Serving existing analysis for: ${url}`);

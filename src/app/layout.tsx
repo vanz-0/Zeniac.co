@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { WizardProvider } from "@/context/wizard-context";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -30,7 +31,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <WizardProvider>
+            {children}
+          </WizardProvider>
         </ThemeProvider>
       </body>
     </html>

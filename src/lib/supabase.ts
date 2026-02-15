@@ -15,5 +15,5 @@ export const supabase = createClient(supabaseUrl || 'https://placeholder.supabas
 // Admin client for secure server-side operations (bypasses RLS)
 // Only use this in API routes or Server Actions, never on the client
 export const supabaseAdmin = serviceRoleKey
-    ? createClient(supabaseUrl, serviceRoleKey)
+    ? createClient(supabaseUrl!, serviceRoleKey)
     : null;

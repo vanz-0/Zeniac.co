@@ -4,65 +4,81 @@ import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"; // Assuming standard shadcn Input
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Activity, ArrowRight, Check, ChevronRight, FileText, Loader2, Search, Trophy, Zap } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Activity, ArrowRight, Check, ChevronRight, FileText, Loader2, Search, Trophy, Zap, Minimize2 } from "lucide-react";
 import { pdf } from '@react-pdf/renderer';
 import { AuditPDF } from '@/components/reports/AuditPDF';
+import { useWizard } from "@/context/wizard-context";
+import { CountingNumber } from "../ui/counting-number"; // Relative import to avoid alias issues
 
 interface WizardProps {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    onOpenBooking?: (data: any) => void;
+    // open prop is now controlled by context, but we keep the interface for compatibility if needed, 
+    // though ideally we remove props and use context entirely. 
+    // For specific triggers like "onOpenBooking", we can keep them or move to context/global event.
+    // We'll keep props for "external" actions like checking booking.
+    // We'll keep props for "external" actions like checking booking.
+    onOpenBooking?: (data: { name: string; email: string; website: string }) => void;
 }
 
-type Step = "intro" | "details" | "pain" | "processing" | "results" | "preview" | "email" | "success";
+export function TransformationWizard({ onOpenBooking }: WizardProps) {
+    const {
+        isOpen,
+        openWizard, // Not used here directly but avail
+        closeWizard,
+        minimizeWizard,
+        step,
+        setStep,
+        formData,
+        setFormData,
+        analysisData,
+        setAnalysisData,
+        isMinimized
+    } = useWizard();
 
-export function TransformationWizard({ open, onOpenChange, onOpenBooking }: WizardProps) {
-    const [step, setStep] = React.useState<Step>("intro");
-    const [formData, setFormData] = React.useState({
-        name: "",
-        website: "",
-        painPoints: [] as string[],
-        email: "",
-    });
     const [isSending, setIsSending] = React.useState(false);
     const [sendError, setSendError] = React.useState<string | null>(null);
-
-    // Reset when closed
-    React.useEffect(() => {
-        if (!open) {
-            setTimeout(() => {
-                setStep("intro");
-                setFormData({ name: "", website: "", painPoints: [], email: "" });
-                setPreviewUrl(null);
-            }, 300);
-        }
-    }, [open]);
-
-    const [analysisData, setAnalysisData] = React.useState<any>(null);
     const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
     const [generatingPdf, setGeneratingPdf] = React.useState(false);
 
-    const performAnalysis = async () => {
+    const [queueStatus, setQueueStatus] = React.useState<string | null>(null);
+
+    // We no longer reset on close inside useEffect because the Context handles it (or doesn't, if minimized)
+
+    const performAnalysis = async (retryCount = 0) => {
         try {
+            if (queueStatus) setQueueStatus("Retrying connection...");
+
             const response = await fetch('/api/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     url: formData.website || "zeniac.co",
-                    name: formData.name
+                    name: formData.name,
+                    email: formData.email
                 }),
             });
+
             const data = await response.json();
+
+            if (response.status === 429 && retryCount < 5) {
+                const waitTime = data.retryAfter || 5;
+                setQueueStatus(`System busy. Queued for ${waitTime}s...`);
+                setTimeout(() => performAnalysis(retryCount + 1), waitTime * 1000);
+                return;
+            }
+
             if (data.success) {
                 setAnalysisData(data.data);
+                setQueueStatus(null);
+            } else {
+                // If error but not 429, throw to catch block
+                throw new Error(data.error || "Analysis failed");
             }
+
         } catch (error) {
             console.error("Analysis failed:", error);
-            // Fallback for demo if API fails, but log it
-            // TODO: Remove this fallback once API signals are verified
+            // ... fallback data ...
             setAnalysisData({
                 score: 42,
                 techStack: "Undetected (API Error)",
@@ -73,18 +89,46 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                 services: [],
                 inferredPainPoints: ["Analysis API unreachable", "Check console for details"],
                 location: "Unknown",
-                debug: null // Fallback
+                debug: null
             });
         } finally {
-            setStep("results");
+            // Only move to results if we actually got data or failed permanently (not queued)
+            // But here we rely on state updates. 
+            // If we are queued, we returned early, so this finally block WONT run for 429 return.
+            // Wait, performAnalysis is async, so `return` exits the function execution instance.
+            // Correct.
         }
+
+        // Move to results only if analysisData is set (checked via effect or here)
+        // Actually, the original code setStep("results") in finally block.
+        // We should change that to only setStep if we are NOT queued.
     };
 
+    // Effect to move to results when analysisData is Ready
     React.useEffect(() => {
-        if (step === "processing") {
-            performAnalysis();
+        if (analysisData && step === "processing") {
+            // giving a small delay for animation to finish if needed, or just go
+            setStep("results");
+        }
+    }, [analysisData, step, setStep]);
+
+    // Trigger analysis when entering processing step
+    // We use a ref to prevent double-firing if strict mode is on or re-renders happen
+    const analysisTriggered = React.useRef(false);
+
+    // Reset analysis trigger when restarting wizard
+    React.useEffect(() => {
+        if (step === "intro") {
+            analysisTriggered.current = false;
         }
     }, [step]);
+
+    React.useEffect(() => {
+        if (step === "processing" && !analysisData && !analysisTriggered.current) {
+            analysisTriggered.current = true;
+            performAnalysis();
+        }
+    }, [step, analysisData]);
 
     const [mounted, setMounted] = React.useState(false);
     React.useEffect(() => {
@@ -94,10 +138,9 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
     // Generate PDF Preview when entering "preview" step
     React.useEffect(() => {
         const generatePreview = async () => {
-            if (step === "preview" && analysisData && mounted) {
+            if (step === "preview" && analysisData && mounted && !previewUrl) {
                 setGeneratingPdf(true);
                 try {
-                    console.log("Starting PDF generation for preview...");
                     const blob = await pdf(
                         <AuditPDF
                             analysis={analysisData}
@@ -107,12 +150,10 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                             reportDate={new Date().toLocaleDateString()}
                         />
                     ).toBlob();
-                    console.log("PDF generated successfully as Blob. Size:", blob.size);
                     const url = URL.createObjectURL(blob);
                     setPreviewUrl(url);
-                    console.log("Preview URL set successfully.");
                 } catch (e) {
-                    console.error("PDF Generation failed at component level:", e);
+                    console.error("PDF Generation failed:", e);
                 } finally {
                     setGeneratingPdf(false);
                 }
@@ -120,22 +161,17 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
         };
 
         generatePreview();
-    }, [step, analysisData, mounted]);
+    }, [step, analysisData, mounted, previewUrl]);
 
-    // ENTER KEY HANDLER - Navigate through wizard
+    // ENTER KEY HANDLER
     React.useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
-            if (e.key === 'Enter' && open) {
-                // Check if we are in a textarea (we want newlines there)
+            if (e.key === 'Enter' && isOpen) {
                 if (document.activeElement?.tagName === 'TEXTAREA') return;
-
                 e.preventDefault();
-                // Blur active input to ensure state is committed (especially for some browsers)
                 if (document.activeElement instanceof HTMLElement) {
                     document.activeElement.blur();
                 }
-
-                // Use a slightly longer delay to ensure React state updates from blur if necessary
                 setTimeout(() => {
                     handleNext();
                 }, 100);
@@ -144,31 +180,28 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
 
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [open, step, formData]);
+    }, [isOpen, step, formData]);
 
 
     const handleNext = async () => {
         if (step === "intro") setStep("details");
-        // Skip "pain" step, go straight to processing which triggers the useEffect scan
         else if (step === "details") {
             setStep("processing");
         }
         else if (step === "results") {
-            setStep("preview"); // Move to Preview instead of Email
+            setStep("preview");
         }
         else if (step === "preview") {
             setStep("email");
         }
         else if (step === "email") {
-            // STRICT VALIDATION - Prevent Enter key bypass
             if (!formData.email.includes("@") || !formData.email.includes(".")) {
-                setSendError("Please enter a valid email address (e.g. name@company.com)");
+                setSendError("Please enter a valid email address");
                 return;
             }
 
             setIsSending(true);
             setSendError(null);
-            // Submit to Backend
             try {
                 const response = await fetch('/api/send-audit', {
                     method: 'POST',
@@ -186,10 +219,8 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                         throw new Error(errorMessage);
                     }
                 } else {
-                    // Not JSON - likely a 500 or 404 HTML page from Next.js
                     if (!response.ok) {
-                        console.error("Non-JSON error response:", await response.text());
-                        throw new Error(`Server Error (${response.status}): The email service is temporarily unavailable.`);
+                        throw new Error(`Server Error (${response.status})`);
                     }
                 }
 
@@ -202,19 +233,36 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
             }
         }
         else if (step === "success") {
-            onOpenChange(false);
+            closeWizard();
         }
     };
 
-    // Remove togglePainPoint function as it's no longer needed
+    const handleOpenChange = (open: boolean) => {
+        if (!open) {
+            // If scanning, minimize instead of close
+            if (step === "processing") {
+                minimizeWizard();
+            } else {
+                closeWizard();
+            }
+        } else {
+            // Opening is handled by context usually, but if dialog triggers it:
+            // openWizard(); // This creates a loop if not careful with Dialog's onOpenChange
+            // Dialog `onOpenChange` is usually called when clicking outside or ESC.
+            // If `open` is false (closing), we logic above.
+            // If `open` is true, we are already open.
+        }
+    };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-[700px] w-full sm:w-[95vw] h-full sm:h-auto sm:max-h-[95vh] bg-zeniac-black border-none sm:border-white/10 text-white backdrop-blur-xl p-0 overflow-hidden flex flex-col">
                 <DialogTitle className="sr-only">Zeniac Transformation Wizard</DialogTitle>
                 <DialogDescription className="sr-only">
-                    Interactive questionnaire to analyze your digital presence and generate a strategic roadmap.
+                    Interactive questionnaire to analyze your digital presence.
                 </DialogDescription>
+
+                {/* Progress Bar */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-white/5">
                     <motion.div
                         className="h-full bg-zeniac-gold shadow-[0_0_10px_rgba(212,175,55,0.5)]"
@@ -233,6 +281,17 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                         }}
                     />
                 </div>
+
+                {/* Minimize Button (Top Right, explicit) */}
+                {step === "processing" && (
+                    <button
+                        onClick={() => minimizeWizard()}
+                        className="absolute top-4 right-4 z-50 p-2 text-white/50 hover:text-white bg-black/20 hover:bg-black/40 rounded-full transition-colors"
+                        title="Minimize Scan"
+                    >
+                        <Minimize2 className="w-4 h-4" />
+                    </button>
+                )}
 
                 <AnimatePresence mode="wait">
                     {step === "intro" && (
@@ -299,12 +358,8 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                     {step === "processing" && (
                         <StepContainer key="processing">
                             <div className="flex flex-col items-center justify-center min-h-[300px] text-center space-y-2 py-2 px-4 overflow-visible">
-                                {/* Gauge Container - Increased size for 'safe zone' to prevent clipping */}
                                 <div className="relative w-48 h-48 flex items-center justify-center shrink-0">
-                                    {/* Glow effect */}
                                     <div className="absolute inset-0 bg-zeniac-gold/20 blur-xl rounded-full" />
-
-                                    {/* SVG Gauge - responsive sizing with explicit viewBox to prevent clipping */}
                                     <svg
                                         viewBox="0 0 128 128"
                                         className="w-32 h-32 sm:w-40 sm:h-40 transform -rotate-90 relative z-10 overflow-visible"
@@ -333,8 +388,6 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                             }}
                                         />
                                     </svg>
-
-                                    {/* Score Display - Centered overlay */}
                                     <div className="absolute inset-0 flex items-center justify-center flex-col z-20">
                                         <motion.span
                                             className="text-3xl sm:text-4xl font-bold font-mono text-white"
@@ -346,15 +399,14 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                         <span className="text-xs text-gray-400 mt-1">OPTIMIZED</span>
                                     </div>
                                 </div>
-
-                                {/* Status Text */}
                                 <div className="space-y-3 max-w-md">
                                     <h3 className="text-xl sm:text-2xl font-mono font-bold text-white">
                                         Analyzing <span className="text-zeniac-gold">{formData.website || "System"}</span>...
                                     </h3>
-                                    <p className="text-xs text-zeniac-gray font-mono mb-2 uppercase tracking-widest animate-pulse">
-                                        Deep Scan in Progress - Estimated time: 60s
+                                    <p className={`text-xs font-mono mb-2 uppercase tracking-widest ${queueStatus ? 'text-amber-400 animate-pulse' : 'text-zeniac-gray animate-pulse'}`}>
+                                        {queueStatus || "Deep Scan in Progress - Estimated time: 60s"}
                                     </p>
+                                    <p className="text-[10px] text-gray-500">You can minimize this window. Scan will continue.</p>
                                     <ProcessingSteps />
                                 </div>
                             </div>
@@ -367,9 +419,7 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                 title="Intelligence Report"
                                 subtitle="Analysis complete. Critical gaps detected."
                             />
-
                             <div className="grid md:grid-cols-2 gap-6 mt-8">
-                                {/* Score Card */}
                                 <div className="bg-white/5 border border-white/10 rounded-xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden">
                                     <div className="absolute top-0 right-0 p-2 opacity-50">
                                         <Activity className="w-4 h-4 text-zeniac-gold" />
@@ -380,8 +430,6 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                         Tech Stack: {analysisData?.techStack || "Unknown"}
                                     </div>
                                 </div>
-
-                                {/* Competitor Card */}
                                 <div className="bg-white/5 border border-white/10 rounded-xl p-6 relative overflow-hidden">
                                     <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Competitor Landscape</h4>
                                     <div className="space-y-3">
@@ -409,8 +457,6 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                     </p>
                                 </div>
                             </div>
-
-                            {/* Business Details Extracted */}
                             <div className="bg-white/5 border border-white/10 rounded-lg p-4 mt-6">
                                 <h5 className="text-white font-bold text-sm mb-2">Identify Business Profile</h5>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -428,7 +474,6 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                     </div>
                                 </div>
                             </div>
-
                             <div className="bg-zeniac-gold/5 border border-zeniac-gold/10 rounded-lg p-4 mt-6">
                                 <h5 className="text-zeniac-gold font-bold text-sm mb-2 flex items-center">
                                     <Search className="w-4 h-4 mr-2" /> Auto-Detected Friction Points
@@ -445,11 +490,10 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                     )}
                                 </ul>
                             </div>
-
                             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-8">
                                 <Button
                                     variant="outline"
-                                    onClick={() => onOpenChange(false)}
+                                    onClick={() => closeWizard()}
                                     className="flex-1 border-white/10 hover:bg-white/5 text-gray-400 order-2 sm:order-1"
                                 >
                                     Close
@@ -483,7 +527,6 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                             className="hidden md:block w-full h-full rounded bg-white"
                                             title="Report Preview"
                                         />
-                                        {/* Mobile: Better alternative than just a button */}
                                         <div className="md:hidden flex flex-col items-center justify-center h-full gap-6 p-8 text-center bg-gradient-to-b from-black/60 to-black/90">
                                             <div className="relative">
                                                 <div className="w-24 h-24 rounded-full bg-zeniac-gold/10 flex items-center justify-center border border-zeniac-gold/20">
@@ -493,14 +536,11 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                                     READY
                                                 </div>
                                             </div>
-
                                             <div className="space-y-2">
                                                 <h4 className="text-xl font-mono font-bold text-white uppercase tracking-tight">Intelligence Report</h4>
                                                 <p className="text-sm text-zeniac-gray font-mono">18-Page Comprehensive Analysis Generated</p>
                                             </div>
-
                                             <div className="w-full h-px bg-gradient-to-r from-transparent via-zeniac-gold/30 to-transparent" />
-
                                             <div className="space-y-4 w-full">
                                                 <Button
                                                     onClick={() => window.open(previewUrl, '_blank')}
@@ -528,7 +568,6 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                     </div>
                                 )}
                             </div>
-
                             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-8">
                                 <Button
                                     variant="outline"
@@ -569,7 +608,6 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                 title="Secure Transmission"
                                 subtitle="Where should we send your strategic roadmap?"
                             />
-
                             <div className="space-y-6 mt-8 max-w-md mx-auto w-full">
                                 <div className="space-y-2">
                                     <Label>Email Address</Label>
@@ -648,7 +686,7 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                 <div className="flex flex-col gap-3 w-full mt-6">
                                     <Button
                                         onClick={() => {
-                                            onOpenChange(false);
+                                            closeWizard();
                                             onOpenBooking?.({
                                                 name: formData.name,
                                                 email: formData.email,
@@ -661,7 +699,7 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                     </Button>
 
                                     {/* Debug Info Section */}
-                                    {analysisData.debug && (
+                                    {analysisData?.debug && (
                                         <div className="mt-8 border-t border-white/10 pt-6 text-left w-full">
                                             <details className="group">
                                                 <summary className="cursor-pointer text-xs text-zeniac-gray hover:text-white flex items-center gap-2">
@@ -690,34 +728,12 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                                                             )}
                                                         </div>
                                                     </div>
-
-                                                    <div className="border-t border-white/10 pt-4">
-                                                        <h4 className="text-zeniac-gold mb-1">Competitor Research Script</h4>
-                                                        <div className="grid grid-cols-[100px_1fr] gap-2">
-                                                            <span className="text-gray-500">Status:</span>
-                                                            <span className={analysisData.debug.competitor.status === 'success' ? 'text-green-400' : 'text-red-400'}>
-                                                                {analysisData.debug.competitor.status}
-                                                            </span>
-                                                            {analysisData.debug.competitor.error && (
-                                                                <>
-                                                                    <span className="text-gray-500">Error:</span>
-                                                                    <span className="text-red-300">{analysisData.debug.competitor.error}</span>
-                                                                </>
-                                                            )}
-                                                            {analysisData.debug.competitor.stderr && (
-                                                                <>
-                                                                    <span className="text-gray-500">Stderr:</span>
-                                                                    <pre className="text-orange-300 whitespace-pre-wrap">{analysisData.debug.competitor.stderr}</pre>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    </div>
                                                 </div>
                                             </details>
                                         </div>
                                     )}
                                     <Button
-                                        onClick={() => onOpenChange(false)}
+                                        onClick={() => closeWizard()}
                                         variant="ghost"
                                         className="text-gray-400 hover:text-white"
                                     >
@@ -727,14 +743,11 @@ export function TransformationWizard({ open, onOpenChange, onOpenBooking }: Wiza
                             </div>
                         </StepContainer>
                     )}
-
                 </AnimatePresence>
             </DialogContent>
         </Dialog>
     );
 }
-
-// Subcomponents
 
 function StepContainer({ children }: { children: React.ReactNode }) {
     return (
@@ -764,6 +777,9 @@ function WizardHeader({ title, subtitle }: { title: string, subtitle: string }) 
 function ProcessingSteps() {
     const [status, setStatus] = React.useState("Initializing Scan...");
     const [mounted, setMounted] = React.useState(false);
+
+    // Use Context progress later if desired, for now keep local simulation synced with "time"
+    // Ideally we push this "status" to context so it persists on minimize
 
     React.useEffect(() => {
         setMounted(true);
@@ -797,40 +813,22 @@ function ProcessingSteps() {
         return () => clearTimeout(timeout);
     }, []);
 
-    if (!mounted) {
-        return <p className="font-mono text-zeniac-gold/80 text-sm">{`> Initializing Scan...`}</p>;
-    }
+    if (!mounted) return null;
 
     return (
-        <p className={cn(
-            "font-mono text-zeniac-gold/80 text-sm",
-            mounted && "animate-pulse"
-        )}>
-            {`> ${status}`}
-        </p>
+        <div className="w-full max-w-xs mx-auto mt-4">
+            <div className="flex items-center gap-2 justify-center mb-2">
+                <Loader2 className="w-3 h-3 animate-spin text-zeniac-gold" />
+                <span className="text-xs text-gray-500 font-mono">{status}</span>
+            </div>
+            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                <motion.div
+                    className="h-full bg-zeniac-gold"
+                    initial={{ width: "0%" }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 65, ease: "linear" }}
+                />
+            </div>
+        </div>
     );
 }
-
-function CountingNumber({ value }: { value: number }) {
-    const [count, setCount] = React.useState(0);
-
-    React.useEffect(() => {
-        const duration = 2000;
-        const steps = 60;
-        const stepTime = duration / steps;
-        let current = 0;
-        const timer = setInterval(() => {
-            current += value / steps;
-            if (current >= value) {
-                setCount(value);
-                clearInterval(timer);
-            } else {
-                setCount(Math.floor(current));
-            }
-        }, stepTime);
-        return () => clearInterval(timer);
-    }, [value]);
-
-    return <>{count}</>;
-}
-

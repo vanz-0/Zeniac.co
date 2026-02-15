@@ -65,6 +65,14 @@ export interface PageSpeedResponse {
     };
 }
 
+export interface SocialPlatformMetrics {
+    followers?: number;
+    reviewsCount?: number;
+    rating?: number;
+    posts?: number;
+    [key: string]: any; // Allow other properties
+}
+
 export interface AnalysisData {
     // Overall
     score: number;
@@ -145,14 +153,14 @@ export interface AnalysisData {
         location?: string;
         analyzed_at?: string;
         platforms?: {
-            google_business?: any;
-            facebook?: any;
-            linkedin?: any;
+            google_business?: SocialPlatformMetrics;
+            facebook?: SocialPlatformMetrics;
+            linkedin?: SocialPlatformMetrics;
         };
         // Legacy fields for backward compatibility
-        google_my_business?: any;
-        facebook?: any;
-        linkedin?: any;
+        google_my_business?: SocialPlatformMetrics;
+        facebook?: SocialPlatformMetrics;
+        linkedin?: SocialPlatformMetrics;
         ai_analysis?: {
             strategic_brief?: string;
         };
@@ -180,6 +188,9 @@ export interface AnalysisData {
 
     // Metadata
     metadata?: AnalysisMetadata;
+
+    // Debug Info
+    debug?: any;
 }
 
 export interface EmailPayload {

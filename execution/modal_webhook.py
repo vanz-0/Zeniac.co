@@ -1018,7 +1018,7 @@ def save_analysis(user_id: str, url: str, data: dict, user_name: str = None, use
 
 @app.function(image=image, secrets=ALL_SECRETS, timeout=600)
 @modal.fastapi_endpoint(method="POST", label="analyze")
-def analyze_endpoint(item: dict):
+async def analyze_endpoint(item: dict):
     """
     Autonomous Analysis Endpoint:
     1. Scrape (Firecrawl + Apify Fallback)
@@ -1040,32 +1040,68 @@ def analyze_endpoint(item: dict):
         
     logger.info(f"[ANALYZE] Starting autonomous analysis for {url} (User: {user_id}, Email: {email})")
     
+    # 0. Create async helpers
+    import asyncio
+    
+    async def get_scrape(): return firecrawl_scrape_impl(url)
+    async def get_pagespeed(): return pagespeed_analyze_impl(url)
+    async def get_social(name, loc): return analyze_social_presence_impl(name, loc)
+    
     try:
-        # A. Parallel Execution of Scrapers (Sequential for now)
-        # 1. Firecrawl / Apify Content
-        scrape_result = firecrawl_scrape_impl(url)
+        # A. Parallel Execution of Scrapers
+        logger.info(f"[ANALYZE] Triggering parallel scans for {url}...")
         
-        # 2. PageSpeed
-        pagespeed_result = pagespeed_analyze_impl(url)
+        # Initial business name & location
+        initial_name = business_name
+        location = "United States" # Default
         
-        # 3. Social Analysis
-        # Extract business name from scrape if generic
-        if business_name == "Business" and scrape_result.get("data"):
+        # 1. Start Scrape and PageSpeed immediately
+        scrape_task = asyncio.create_task(get_scrape())
+        pagespeed_task = asyncio.create_task(get_pagespeed())
+        
+        social_result = None
+        
+        # 2. If we HAVE a business name, start Social immediately too!
+        if initial_name and initial_name != "Business":
+            logger.info(f"[ANALYZE] Starting Social analysis in parallel for '{initial_name}'")
+            social_task = asyncio.create_task(get_social(initial_name, location))
+        else:
+            social_task = None
+
+        # 3. Wait for Scrape (needed for tech stack, md, and name extraction if needed)
+        scrape_result = await scrape_task
+        
+        # Extract name if generic
+        if initial_name == "Business" and scrape_result.get("data"):
              meta = scrape_result["data"][0].get("metadata", {})
              if meta.get("title"):
-                 business_name = meta["title"].split("|")[0].strip()
-                 
-        # Try to extract location from scrape metadata
-        location = "United States"
+                 initial_name = meta["title"].split("|")[0].strip()
+        
+        # Extract location if Nairobi/Kenya keywords found
         if scrape_result.get("data"):
             md_text = scrape_result["data"][0].get("markdown", "")
-            # Simple location heuristics
             import re as _re
             loc_match = _re.search(r'(?:Nairobi|Kenya|Kiambu|Thindigua)', md_text, _re.IGNORECASE)
             if loc_match:
                 location = "Nairobi, Kenya"
 
-        social_result = analyze_social_presence_impl(business_name, location)
+        # 4. If Social wasn't started, start it now
+        if not social_task:
+            logger.info(f"[ANALYZE] Starting Social analysis now for '{initial_name}'")
+            social_result = await get_social(initial_name, location)
+        else:
+            # Otherwise just wait for it and pagespeed
+            social_result, pagespeed_result = await asyncio.gather(
+                social_task,
+                pagespeed_task
+            )
+        
+        business_name = initial_name
+        # Note: we need pagespeed_result if it wasn't awaited yet
+        if 'pagespeed_result' not in locals():
+            pagespeed_result = await pagespeed_task
+
+
         
         # B. Data Construction
         analysis_data = construct_analysis_data(

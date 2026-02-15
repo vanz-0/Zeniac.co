@@ -147,7 +147,7 @@ export default function RadialOrbitalTimeline({
     const calculateNodePosition = (index: number, total: number) => {
         // Static Angle for Initial Placement
         const angle = (index / total) * 360;
-        const radius = 240;
+        const radius = 280; // Increased radius
         const radian = (angle * Math.PI) / 180;
 
         const x = radius * Math.cos(radian) + centerOffset.x;
@@ -274,7 +274,7 @@ export default function RadialOrbitalTimeline({
                                         {/* Node Icon */}
                                         <div
                                             className={`
-                  w-12 h-12 rounded-full flex items-center justify-center
+                  w-16 h-16 rounded-full flex items-center justify-center
                   ${isExpanded
                                                     ? "bg-zeniac-gold text-zeniac-black"
                                                     : isRelated
@@ -292,13 +292,13 @@ export default function RadialOrbitalTimeline({
                   ${isExpanded ? "scale-125" : "hover:scale-110 hover:border-zeniac-gold/50"}
                 `}
                                         >
-                                            <Icon size={20} />
+                                            <Icon size={24} />
                                         </div>
 
                                         {/* Label */}
                                         <div
                                             className={`
-                  absolute top-14 left-1/2 -translate-x-1/2 whitespace-nowrap
+                  absolute top-20 left-1/2 -translate-x-1/2 whitespace-nowrap
                   text-xs font-mono font-bold tracking-wider
                   transition-all duration-300 bg-black/50 px-2 py-1 rounded
                   ${isExpanded ? "text-zeniac-gold scale-110" : "text-white/60"}

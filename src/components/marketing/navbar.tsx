@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTr
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useWizard } from "@/context/wizard-context";
 
 const navigationItems = [
     { title: "SOLUTIONS", href: "#solutions" },
@@ -19,6 +20,7 @@ const navigationItems = [
 
 export function Navbar({ onOpenWizard, onOpenBooking }: { onOpenWizard?: () => void; onOpenBooking?: () => void }) {
     const { theme } = useTheme();
+    const { isMinimized, step, restoreWizard } = useWizard();
     const [mounted, setMounted] = React.useState(false);
 
     React.useEffect(() => {
@@ -51,6 +53,19 @@ export function Navbar({ onOpenWizard, onOpenBooking }: { onOpenWizard?: () => v
 
                 <div className="flex items-center space-x-4">
                     <ThemeToggle />
+
+                    {/* Minimized Scan Indicator */}
+                    {isMinimized && step === 'processing' && (
+                        <Button
+                            variant="outline"
+                            onClick={restoreWizard}
+                            className="hidden md:inline-flex border-zeniac-gold/50 bg-zeniac-gold/10 text-zeniac-gold animate-pulse mr-2"
+                        >
+                            <span className="w-2 h-2 bg-zeniac-gold rounded-full mr-2 animate-ping" />
+                            SCANNING...
+                        </Button>
+                    )}
+
                     <Button
                         variant="outline"
                         onClick={onOpenBooking}
