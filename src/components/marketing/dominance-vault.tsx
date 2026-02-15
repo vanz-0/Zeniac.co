@@ -31,6 +31,15 @@ import {
 } from "lucide-react";
 import { ToolkitSurvey, SurveyData } from "./toolkit-survey";
 
+// Category-to-gradient map: Gold / Purple / Black palette
+const categoryGradients: Record<string, string> = {
+    Content: "from-zeniac-gold/20 to-yellow-600/10",
+    Analytics: "from-purple-500/20 to-indigo-600/10",
+    Growth: "from-zeniac-gold/15 to-purple-500/15",
+    Branding: "from-purple-900/30 to-zeniac-gold/10",
+    Automation: "from-indigo-500/20 to-purple-900/20",
+};
+
 const vaultTools = [
     { name: "Content Calendar", icon: Calendar, category: "Content", personalized: true },
     { name: "Reel Scripts (10)", icon: Video, category: "Content", personalized: true },
@@ -58,7 +67,6 @@ const categories = ["All", "Content", "Analytics", "Growth", "Branding", "Automa
 
 export function DominanceVault() {
     const [activeCategory, setActiveCategory] = useState("All");
-    const [hoveredTool, setHoveredTool] = useState<number | null>(null);
     const [currency, setCurrency] = useState<"KES" | "USD">("KES");
     const [showSurvey, setShowSurvey] = useState(false);
     const [showAllTools, setShowAllTools] = useState(false);
@@ -153,13 +161,7 @@ export function DominanceVault() {
                 </div>
 
                 {/* Category Filter */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.3 }}
-                    className="flex flex-wrap justify-center gap-2 mb-10"
-                >
+                <div className="flex flex-wrap justify-center gap-2 mb-10">
                     {categories.map((cat) => (
                         <button
                             key={cat}
@@ -174,7 +176,7 @@ export function DominanceVault() {
                             {cat}
                         </button>
                     ))}
-                </motion.div>
+                </div>
 
                 {/* Tool Grid */}
                 <div className={cn(
@@ -183,101 +185,55 @@ export function DominanceVault() {
                         ? "sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
                         : "sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4"
                 )}>
-                    <AnimatePresence mode="popLayout">
-                        {displayedTools.map((tool, i) => {
-                            const Icon = tool.icon;
-                            const isHovered = hoveredTool === i;
-                            return (
-                                <motion.div
-                                    key={tool.name}
-                                    layout
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.9 }}
-                                    transition={{ duration: 0.2, delay: i * 0.02 }}
-                                    onMouseEnter={() => setHoveredTool(i)}
-                                    onMouseLeave={() => setHoveredTool(null)}
-                                    className={cn(
-                                        "group relative flex flex-col items-center justify-center p-5 border transition-all duration-300 cursor-default aspect-square",
-                                        "bg-zeniac-charcoal/30 backdrop-blur-sm",
-                                        isHovered
-                                            ? "border-zeniac-gold/50 shadow-[0_0_30px_rgba(255,215,0,0.08)] -translate-y-1"
-                                            : "border-white/10 hover:border-white/20"
-                                    )}
-                                >
-                                    {/* Lock/unlock icon overlay */}
-                                    <div className="absolute top-2 right-2">
-                                        {isHovered ? (
-                                            <Unlock className="w-3 h-3 text-zeniac-gold/60" />
-                                        ) : (
-                                            <Lock className="w-3 h-3 text-white/20" />
-                                        )}
+                    {displayedTools.map((tool, i) => {
+                        const Icon = tool.icon;
+                        const gradient = categoryGradients[tool.category] || "from-white/5 to-white/5";
+                        return (
+                            <div
+                                key={tool.name}
+                                className={cn(
+                                    "group relative flex flex-col items-center justify-center p-5 border transition-all duration-300 cursor-default aspect-square",
+                                    "bg-zeniac-charcoal/30",
+                                    "border-white/10 hover:border-zeniac-gold/50 hover:shadow-[0_0_30px_rgba(255,215,0,0.08)] hover:-translate-y-1"
+                                )}
+                            >
+                                {/* Lock/unlock icon overlay */}
+                                <div className="absolute top-2 right-2">
+                                    <Lock className="w-3 h-3 text-white/20 group-hover:hidden" />
+                                    <Unlock className="w-3 h-3 text-zeniac-gold/60 hidden group-hover:block" />
+                                </div>
+
+                                {/* Personalized badge */}
+                                {tool.personalized && (
+                                    <div className="absolute top-2 left-2">
+                                        <Sparkles className="w-3 h-3 text-zeniac-gold/40" />
                                     </div>
+                                )}
 
-                                    {/* Personalized badge */}
-                                    {tool.personalized && (
-                                        <div className="absolute top-2 left-2">
-                                            <Sparkles className="w-3 h-3 text-zeniac-gold/40" />
-                                        </div>
-                                    )}
-
-                                    {/* Tool Visual */}
+                                {/* Tool Visual — category-colored gradient */}
+                                <div className="mb-3 transition-transform duration-300 group-hover:scale-110">
                                     <div className={cn(
-                                        "mb-3 transition-all duration-300",
-                                        isHovered ? "scale-110" : "scale-100"
+                                        "w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br border border-white/10 transition-colors duration-300 group-hover:border-zeniac-gold/50",
+                                        gradient
                                     )}>
-                                        {i === 0 ? ( // Content Calendar
-                                            <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-zeniac-gold/20 to-yellow-600/20 border border-white/10", isHovered ? "border-zeniac-gold/50" : "")}>
-                                                <Calendar className={cn("w-5 h-5", isHovered ? "text-zeniac-gold" : "text-white/40")} />
-                                            </div>
-                                        ) : i === 1 ? ( // Reel Scripts
-                                            <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-indigo-600/20 border border-white/10", isHovered ? "border-zeniac-gold/50" : "")}>
-                                                <Video className={cn("w-5 h-5", isHovered ? "text-zeniac-gold" : "text-white/40")} />
-                                            </div>
-                                        ) : i === 2 ? ( // Viral Hooks
-                                            <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-zeniac-gold/10 to-purple-500/10 border border-white/10", isHovered ? "border-zeniac-gold/50" : "")}>
-                                                <Zap className={cn("w-5 h-5", isHovered ? "text-zeniac-gold" : "text-white/40")} />
-                                            </div>
-                                        ) : i === 3 ? ( // Revenue Calc
-                                            <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-purple-900/40 to-black/60 border border-white/10", isHovered ? "border-zeniac-gold/50" : "")}>
-                                                <Calculator className={cn("w-5 h-5", isHovered ? "text-zeniac-gold" : "text-white/40")} />
-                                            </div>
-                                        ) : (
-                                            <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 group-hover:bg-white/10 transition-colors", isHovered ? "border-zeniac-gold/30" : "")}>
-                                                <Icon className={cn(
-                                                    "w-5 h-5 transition-colors duration-300",
-                                                    isHovered ? "text-zeniac-gold" : "text-white/30"
-                                                )} />
-                                            </div>
-                                        )}
+                                        <Icon className="w-5 h-5 text-white/40 transition-colors duration-300 group-hover:text-zeniac-gold" />
                                     </div>
+                                </div>
 
-                                    <span className={cn(
-                                        "text-[10px] font-mono text-center uppercase tracking-wide leading-tight transition-colors duration-300",
-                                        isHovered ? "text-zeniac-white" : "text-white/40"
-                                    )}>
-                                        {tool.name}
-                                    </span>
+                                <span className="text-[10px] font-mono text-center uppercase tracking-wide leading-tight transition-colors duration-300 text-white/40 group-hover:text-zeniac-white">
+                                    {tool.name}
+                                </span>
 
-                                    {/* Category tag */}
-                                    <span className={cn(
-                                        "mt-2 text-[8px] font-mono uppercase px-2 py-0.5 border transition-all duration-300",
-                                        isHovered
-                                            ? "border-zeniac-gold/30 text-zeniac-gold/60"
-                                            : "border-white/5 text-white/20"
-                                    )}>
-                                        {tool.category}
-                                    </span>
+                                {/* Category tag */}
+                                <span className="mt-2 text-[8px] font-mono uppercase px-2 py-0.5 border transition-all duration-300 border-white/5 text-white/20 group-hover:border-zeniac-gold/30 group-hover:text-zeniac-gold/60">
+                                    {tool.category}
+                                </span>
 
-                                    {/* Hover glow */}
-                                    <div className={cn(
-                                        "absolute inset-0 bg-gradient-to-b from-zeniac-gold/5 to-transparent opacity-0 transition-opacity duration-300 pointer-events-none",
-                                        isHovered && "opacity-100"
-                                    )} />
-                                </motion.div>
-                            );
-                        })}
-                    </AnimatePresence>
+                                {/* Hover glow */}
+                                <div className="absolute inset-0 bg-gradient-to-b from-zeniac-gold/5 to-transparent opacity-0 transition-opacity duration-300 pointer-events-none group-hover:opacity-100" />
+                            </div>
+                        );
+                    })}
                 </div>
 
                 {/* Toggle Button */}
