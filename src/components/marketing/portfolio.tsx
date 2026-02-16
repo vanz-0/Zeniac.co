@@ -360,31 +360,37 @@ export function Portfolio() {
                     </a>
                 </div>
 
-                {/* 2. Unified Grid: 1 col (mobile) -> Interchanging [2,1]/[1,2] (desktop) */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Item 1: Search Dominance (2 cols) */}
-                    <div className="md:col-span-2 bg-zinc-900/30 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm min-h-[400px]">
+                {/* 2. Mobile: horizontal carousel. Desktop: asymmetric grid */}
+                <div className="mobile-carousel md:grid-cols-3 gap-6">
+                    {/* Item 1: Search Dominance (2 cols on desktop) */}
+                    <div className="w-[85vw] md:w-auto md:col-span-2 bg-zinc-900/30 border border-white/5 rounded-2xl overflow-hidden min-h-[400px]">
                         <SearchDominance />
                     </div>
 
-                    {/* Item 2: Deliverables (1 col) */}
-                    <ProjectCard project={portfolioData[0] as PortfolioItem} index={1} />
+                    {/* Item 2: Deliverables */}
+                    <div className="w-[85vw] md:w-auto">
+                        <ProjectCard project={portfolioData[0] as PortfolioItem} index={1} />
+                    </div>
 
-                    {/* Item 3: Templates (1 col) */}
-                    <ProjectCard project={portfolioData[1] as PortfolioItem} index={2} />
+                    {/* Item 3: Templates */}
+                    <div className="w-[85vw] md:w-auto">
+                        <ProjectCard project={portfolioData[1] as PortfolioItem} index={2} />
+                    </div>
 
-                    {/* Item 4: Ads & Promotions (2 cols) */}
-                    <div className="md:col-span-2">
+                    {/* Item 4: Ads & Promotions (2 cols on desktop) */}
+                    <div className="w-[85vw] md:w-auto md:col-span-2">
                         <ProjectCard project={portfolioData[2] as PortfolioItem} index={3} />
                     </div>
 
-                    {/* Item 5: Evidence of Impact (2 cols) */}
-                    <div className="md:col-span-2">
+                    {/* Item 5: Evidence of Impact (2 cols on desktop) */}
+                    <div className="w-[85vw] md:w-auto md:col-span-2">
                         <ProjectCard project={portfolioData[3] as PortfolioItem} index={4} />
                     </div>
 
-                    {/* Item 6: Brand Transformation (1 col) */}
-                    <ProjectCard project={portfolioData[4] as PortfolioItem} index={5} />
+                    {/* Item 6: Brand Transformation */}
+                    <div className="w-[85vw] md:w-auto">
+                        <ProjectCard project={portfolioData[4] as PortfolioItem} index={5} />
+                    </div>
                 </div>
             </div>
         </section>

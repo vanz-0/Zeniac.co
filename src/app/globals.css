@@ -174,3 +174,37 @@
     opacity: 0.5;
   }
 }
+
+/* ── Mobile Typography Scaling ── */
+@media (max-width: 640px) {
+  h1 { font-size: clamp(1.75rem, 6vw, 2.5rem) !important; }
+  h2 { font-size: clamp(1.5rem, 5vw, 2rem) !important; }
+  h3 { font-size: clamp(1.15rem, 4vw, 1.5rem) !important; }
+}
+
+/* ── Mobile Carousel Utilities ── */
+.mobile-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  gap: 1rem;
+  padding-bottom: 1rem;
+}
+.mobile-carousel::-webkit-scrollbar { display: none; }
+.mobile-carousel > * {
+  scroll-snap-align: center;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .mobile-carousel {
+    display: grid;
+    overflow-x: visible;
+    scroll-snap-type: none;
+  }
+  .mobile-carousel > * {
+    flex-shrink: 1;
+  }
+}

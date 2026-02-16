@@ -122,16 +122,16 @@ export function BentoGrid({ items = itemsSample }: BentoGridProps) {
             </div>
 
             <Dialog onOpenChange={(open) => !open && setSelectedService(null)}>
-                <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="container mx-auto px-4 mobile-carousel md:grid-cols-3">
                     {items.map((item, index) => (
                         <div
                             key={index}
                             className={cn(
                                 "group relative p-8 rounded-none overflow-hidden transition-all duration-500",
-                                "border border-white/10 bg-zeniac-charcoal/50 backdrop-blur-sm",
+                                "border border-white/10 bg-zeniac-charcoal/50",
                                 "hover:border-zeniac-gold/50 hover:shadow-[0_0_50px_rgba(255,215,0,0.1)]",
                                 "hover:-translate-y-2 will-change-transform",
-                                item.colSpan || "col-span-1",
+                                "w-[85vw] md:w-auto",
                                 item.colSpan === 2 ? "md:col-span-2" : item.colSpan === 3 ? "md:col-span-3" : "",
                                 {
                                     "border-zeniac-gold/30 shadow-[0_0_30px_rgba(255,215,0,0.05)]":

@@ -189,7 +189,7 @@ export function HeroAnimation({ onOpenWizard, onOpenBooking }: { onOpenWizard?: 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.4, duration: 0.6 }}
-                        className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto"
+                        className="mobile-carousel md:grid-cols-3 max-w-7xl mx-auto"
                     >
                         {features.map((feature, index) => (
                             <motion.div
@@ -203,7 +203,7 @@ export function HeroAnimation({ onOpenWizard, onOpenBooking }: { onOpenWizard?: 
                                     stiffness: 100,
                                     damping: 10
                                 }}
-                                className="flex flex-col items-center text-center p-8 bg-zeniac-charcoal/50 border border-white/5 hover:border-zeniac-gold/50 transition-colors duration-300"
+                                className="flex flex-col items-center text-center p-8 bg-zeniac-charcoal/50 border border-white/5 hover:border-zeniac-gold/50 transition-colors duration-300 w-[80vw] md:w-auto"
                             >
                                 <div className="mb-6 rounded-full bg-zeniac-gold/10 p-4">
                                     <feature.icon className="h-8 w-8 text-zeniac-gold" />

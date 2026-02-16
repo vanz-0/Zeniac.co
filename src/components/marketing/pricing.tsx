@@ -4,6 +4,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import { LeadForm } from "@/components/marketing/lead-form";
 
 const tiers = [
     {
@@ -18,7 +20,8 @@ const tiers = [
             "Google Maps Optimization (Fix/Claim pin)",
             "1 Strategy Call (30-min)"
         ],
-        cta: "Start Free Trial",
+        cta: "Get Free Access",
+        isFree: true,
         popular: false,
         color: "bg-zeniac-white/5",
         border: "border-white/10"
@@ -91,6 +94,7 @@ const addons = [
 
 export function Pricing({ onOpenBooking }: { onOpenBooking?: (data?: any) => void }) {
     const [currency, setCurrency] = useState<"KES" | "USD">("KES");
+    const [freeDialogOpen, setFreeDialogOpen] = useState(false);
 
     return (
         <section className="py-24 relative overflow-hidden" id="pricing">
@@ -119,7 +123,7 @@ export function Pricing({ onOpenBooking }: { onOpenBooking?: (data?: any) => voi
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-7xl mx-auto mb-16">
+                <div className="mobile-carousel md:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto mb-16">
                     {tiers.map((tier) => (
                         <motion.div
                             key={tier.id}
@@ -128,7 +132,7 @@ export function Pricing({ onOpenBooking }: { onOpenBooking?: (data?: any) => voi
                             viewport={{ once: true }}
                             transition={{ duration: 0.5 }}
                             className={cn(
-                                "relative flex flex-col p-6 rounded-xl border backdrop-blur-sm transition-all duration-300",
+                                "relative flex flex-col p-6 rounded-xl border transition-all duration-300 w-[80vw] md:w-auto",
                                 tier.border,
                                 tier.color,
                                 tier.popular ? "shadow-[0_0_30px_rgba(255,215,0,0.1)] scale-105 z-10" : "hover:border-zeniac-gold/30"
@@ -166,16 +170,42 @@ export function Pricing({ onOpenBooking }: { onOpenBooking?: (data?: any) => voi
                                 ))}
                             </ul>
 
-                            <Button
-                                variant={tier.popular ? "default" : "outline"}
-                                className={cn(
-                                    "w-full font-mono font-bold border-zeniac-gold text-zeniac-gold hover:bg-zeniac-gold hover:text-zeniac-black",
-                                    tier.popular && "bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90"
-                                )}
-                                onClick={() => onOpenBooking?.({ project: tier.name })}
-                            >
-                                {tier.cta} <ArrowRight className="w-4 h-4 ml-2" />
-                            </Button>
+                            {(tier as any).isFree ? (
+                                <Dialog open={freeDialogOpen} onOpenChange={setFreeDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full font-mono font-bold border-zeniac-gold text-zeniac-gold hover:bg-zeniac-gold hover:text-zeniac-black"
+                                        >
+                                            {tier.cta} <ArrowRight className="w-4 h-4 ml-2" />
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="bg-zeniac-charcoal border-white/10 text-white rounded-none sm:max-w-[450px]">
+                                        <DialogHeader>
+                                            <DialogTitle className="font-typewriter text-2xl font-black uppercase text-zeniac-gold">
+                                                Claim Your Free Audit
+                                            </DialogTitle>
+                                            <DialogDescription className="font-mono text-muted-foreground">
+                                                Enter your email to receive your free Digital Dominance Audit and strategy call.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="py-4">
+                                            <LeadForm serviceId="free-audit" resourceName="Digital Dominance Audit" />
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                            ) : (
+                                <Button
+                                    variant={tier.popular ? "default" : "outline"}
+                                    className={cn(
+                                        "w-full font-mono font-bold border-zeniac-gold text-zeniac-gold hover:bg-zeniac-gold hover:text-zeniac-black",
+                                        tier.popular && "bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90"
+                                    )}
+                                    onClick={() => onOpenBooking?.({ project: tier.name })}
+                                >
+                                    {tier.cta} <ArrowRight className="w-4 h-4 ml-2" />
+                                </Button>
+                            )}
 
                             {/* Background gradient for glow */}
                             <div className="absolute inset-0 bg-gradient-to-br from-zeniac-gold/5 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity pointer-events-none rounded-xl" />

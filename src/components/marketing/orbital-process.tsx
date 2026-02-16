@@ -191,7 +191,7 @@ export default function RadialOrbitalTimeline({
         >
             <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.05)_0%,transparent_70%)]" />
 
-            <div className="relative w-full max-w-5xl h-[600px] flex items-center justify-center perspective-1000 scale-[0.6] sm:scale-[0.8] md:scale-100 origin-center transition-transform duration-500">
+            <div className="relative w-full max-w-5xl h-[600px] flex items-center justify-center perspective-1000 scale-[0.45] sm:scale-[0.7] md:scale-100 origin-center transition-transform duration-500">
                 <div
                     className="absolute w-full h-full flex items-center justify-center transition-all duration-1000"
                     style={{

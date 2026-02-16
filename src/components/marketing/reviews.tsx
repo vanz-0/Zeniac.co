@@ -26,7 +26,7 @@ export function Reviews() {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-7xl mx-auto">
+                <div className="mobile-carousel md:grid-cols-2 max-w-7xl mx-auto">
                     {reviews.map((review, index) => (
                         <motion.div
                             key={index}
@@ -35,8 +35,9 @@ export function Reviews() {
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.1 }}
                             className={cn(
-                                "group p-8 border border-white/10 bg-zeniac-charcoal/30 backdrop-blur-sm relative",
-                                "hover:border-zeniac-gold/50 transition-all duration-300"
+                                "group p-8 border border-white/10 bg-zeniac-charcoal/30 relative",
+                                "hover:border-zeniac-gold/50 transition-all duration-300",
+                                "w-[85vw] md:w-auto"
                             )}
                         >
                             <div className="absolute top-6 right-8 text-white/5 group-hover:text-zeniac-gold/10 transition-colors">
