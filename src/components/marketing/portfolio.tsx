@@ -66,9 +66,16 @@ function CarouselItem({ item, isActive }: { item: CarouselItemType, isActive: bo
             )}
             {/* Attribution for Deliverables/Templates if folder is present */}
             {item.folder && (
-                <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10">
-                    <span className="text-xs font-mono text-zeniac-gold tracking-wider uppercase">
+                <div 
+                    className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 z-30 cursor-pointer hover:bg-zeniac-gold hover:text-black transition-colors"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (item.url) window.open(item.url, '_blank');
+                    }}
+                >
+                    <span className="text-xs font-mono tracking-wider uppercase flex items-center gap-1.5">
                         {item.folder}
+                        <ExternalLink className="w-3 h-3" />
                     </span>
                 </div>
             )}
@@ -117,8 +124,8 @@ function ProjectCard({ project, index }: { project: PortfolioItem, index: number
 
                 {/* Before/After Logic - Split Thumbnail View */}
                 {project.before_after && project.before_after.length >= 2 ? (
-                    <div className="relative w-full h-full flex flex-row group/ba select-none">
-                        <div className="relative w-1/2 h-full border-r border-white/10 overflow-hidden">
+                    <div className="relative w-full h-full flex flex-col group/ba select-none">
+                        <div className="relative w-full h-1/2 border-b border-white/10 overflow-hidden">
                             <img
                                 src={project.before_after[0]}
                                 alt="Before"
@@ -130,7 +137,7 @@ function ProjectCard({ project, index }: { project: PortfolioItem, index: number
                                 </span>
                             </div>
                         </div>
-                        <div className="relative w-1/2 h-full overflow-hidden">
+                        <div className="relative w-full h-1/2 overflow-hidden">
                             <img
                                 src={project.before_after[1]}
                                 alt="After"
@@ -143,13 +150,16 @@ function ProjectCard({ project, index }: { project: PortfolioItem, index: number
                             </div>
                         </div>
 
-                        {/* Overlay Toggle Indicator (legacy click still works for modal) */}
+                        {/* Overlay Toggle Indicator */}
                         <div className="absolute bottom-2 right-2 z-20 bg-black/40 backdrop-blur border border-white/10 rounded-full p-1.5 text-white/70 opacity-0 group-hover/ba:opacity-100 transition-opacity">
-                            <Play className="w-3 h-3 rotate-90" />
+                            <ArrowRightLeft className="w-3 h-3 rotate-90" />
                         </div>
                     </div>
                 ) : project.carousel ? (
-                    <div className="w-full h-full relative group/carousel">
+                    <div 
+                        className="w-full h-full relative group/carousel cursor-pointer"
+                        onClick={nextSlide}
+                    >
                         <div className="w-full h-full relative">
                             {project.carousel.map((item, idx) => (
                                 <CarouselItem key={idx} item={item} isActive={idx === currentSlide} />

@@ -1,36 +1,45 @@
-import os
-import json
 from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-# Standard Scopes for Drive and Sheets
+import json
+import os
+
+# Scopes needed for the application
 SCOPES = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
+    'https://www.googleapis.com/auth/gmail.send',
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/documents',
+    'https://www.googleapis.com/auth/drive'
 ]
 
-def authenticate():
-    creds = None
-    if os.path.exists('token.json'):
-        with open('token.json', 'r') as token:
-            creds = Credentials.from_authorized_user_info(json.load(token), SCOPES)
-            
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
+def main():
+    print("🔐 Starting Google OAuth Setup...")
     
-    return creds
+    if not os.path.exists('credentials.json'):
+        print("❌ Error: credentials.json not found in current directory!")
+        print("   Please download it from Google Cloud Console (OAuth 2.0 Client IDs)")
+        return
 
-if __name__ == "__main__":
-    print("Initiating Google Authentication...")
-    try:
-        creds = authenticate()
-        print("Authentication Successful! token.json has been created.")
-    except Exception as e:
-        print(f"Error during authentication: {e}")
+    flow = InstalledAppFlow.from_client_secrets_file(
+        'credentials.json', SCOPES)
+    
+    print("\n🌐 Opening browser for authentication...")
+    creds = flow.run_local_server(port=0)
+
+    # Save the full token data as JSON
+    token_data = {
+        "token": creds.token,
+        "refresh_token": creds.refresh_token,
+        "token_uri": creds.token_uri,
+        "client_id": creds.client_id,
+        "client_secret": creds.client_secret,
+        "scopes": creds.scopes
+    }
+
+    with open('token.json', 'w') as token_file:
+        json.dump(token_data, token_file)
+
+    print("\n✅ Success! token.json generated.")
+    print("👉 Now upload this to Modal as secret 'google-oauth-token'")
+    print(f"   Contents sample: {json.dumps(token_data)[:50]}...")
+
+if __name__ == '__main__':
+    main()

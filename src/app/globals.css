@@ -113,8 +113,8 @@
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-geist-mono), ui-monospace, monospace !important;
+    @apply bg-background text-foreground text-center;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   h1,

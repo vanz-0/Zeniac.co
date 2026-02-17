@@ -123,7 +123,7 @@ export function Pricing({ onOpenBooking }: { onOpenBooking?: (data?: any) => voi
                     </div>
                 </div>
 
-                <div className="mobile-carousel md:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto mb-16">
+                <div className="mobile-carousel md:flex md:flex-wrap md:justify-center gap-6 max-w-7xl mx-auto mb-16">
                     {tiers.map((tier) => (
                         <motion.div
                             key={tier.id}

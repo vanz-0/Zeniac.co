@@ -80,8 +80,8 @@ export function DominanceVault() {
         const modalUrl = process.env.NEXT_PUBLIC_MODAL_URL;
         if (modalUrl) {
             try {
-                // Call generate-toolkit webhook
-                await fetch(`${modalUrl}/directive?slug=generate-toolkit`, {
+                // Call generate-toolkit webhook on Modal
+                await fetch(`${modalUrl}?slug=generate-toolkit`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ data })

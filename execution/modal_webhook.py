@@ -25,6 +25,7 @@ from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 from pathlib import Path
 import uuid
+import google.generativeai as genai
 
 # Import custom execution modules
 import sys
@@ -71,6 +72,7 @@ image = (
     .add_local_dir("execution", remote_path="/app/execution")
     .add_local_dir("directives", remote_path="/app/directives")
     .add_local_file(".env", remote_path="/app/.env")
+    .add_local_file("execution/webhooks.json", remote_path="/app/webhooks.json")
 )
 
 
@@ -80,7 +82,9 @@ ALL_SECRETS = [
     modal.Secret.from_name("apify-secret"),
     modal.Secret.from_name("supabase-secret"),
     modal.Secret.from_name("brevo-secret"),
-    modal.Secret.from_name("google-service-account"),
+    modal.Secret.from_name("google-oauth-token"),
+    modal.Secret.from_name("custom-secret"),
+    modal.Secret.from_name("custom-secret-2"),
 ]
 
 # ============================================================================
@@ -269,11 +273,11 @@ ALL_TOOLS = {
         "name": "send_email",
         "description": "Send an email via Gmail.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "to": {"type": "string", "description": "Recipient email address"},
-                "subject": {"type": "string", "description": "Email subject line"},
-                "body": {"type": "string", "description": "Email body content"}
+                "to": {"type": "STRING", "description": "Recipient email address"},
+                "subject": {"type": "STRING", "description": "Email subject line"},
+                "body": {"type": "STRING", "description": "Email body content"}
             },
             "required": ["to", "subject", "body"]
         }
@@ -282,10 +286,10 @@ ALL_TOOLS = {
         "name": "read_sheet",
         "description": "Read data from a Google Sheet. Returns all rows as a 2D array.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "spreadsheet_id": {"type": "string", "description": "The Google Sheet ID"},
-                "range": {"type": "string", "description": "A1 notation range (e.g., 'Sheet1!A1:D10' or 'Sheet1!A:Z' for all)"}
+                "spreadsheet_id": {"type": "STRING", "description": "The Google Sheet ID"},
+                "range": {"type": "STRING", "description": "A1 notation range (e.g., 'Sheet1!A1:D10' or 'Sheet1!A:Z' for all)"}
             },
             "required": ["spreadsheet_id", "range"]
         }
@@ -294,11 +298,11 @@ ALL_TOOLS = {
         "name": "update_sheet",
         "description": "Update cells in a Google Sheet.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "spreadsheet_id": {"type": "string", "description": "The Google Sheet ID"},
-                "range": {"type": "string", "description": "A1 notation range"},
-                "values": {"type": "array", "description": "2D array of values to write"}
+                "spreadsheet_id": {"type": "STRING", "description": "The Google Sheet ID"},
+                "range": {"type": "STRING", "description": "A1 notation range"},
+                "values": {"type": "ARRAY", "description": "2D array of values to write"}
             },
             "required": ["spreadsheet_id", "range", "values"]
         }
@@ -307,10 +311,10 @@ ALL_TOOLS = {
         "name": "instantly_get_emails",
         "description": "Get email conversation history from Instantly for a specific lead email address.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "lead_email": {"type": "string", "description": "The lead's email address to search for"},
-                "limit": {"type": "integer", "description": "Max emails to return (default 10)"}
+                "lead_email": {"type": "STRING", "description": "The lead's email address to search for"},
+                "limit": {"type": "INTEGER", "description": "Max emails to return (default 10)"}
             },
             "required": ["lead_email"]
         }
@@ -319,12 +323,12 @@ ALL_TOOLS = {
         "name": "instantly_send_reply",
         "description": "Send a reply to an email thread in Instantly.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "eaccount": {"type": "string", "description": "The email account to send from"},
-                "reply_to_uuid": {"type": "string", "description": "The UUID of the email to reply to"},
-                "subject": {"type": "string", "description": "Email subject line"},
-                "html_body": {"type": "string", "description": "HTML body of the reply"}
+                "eaccount": {"type": "STRING", "description": "The email account to send from"},
+                "reply_to_uuid": {"type": "STRING", "description": "The UUID of the email to reply to"},
+                "subject": {"type": "STRING", "description": "Email subject line"},
+                "html_body": {"type": "STRING", "description": "HTML body of the reply"}
             },
             "required": ["eaccount", "reply_to_uuid", "subject", "html_body"]
         }
@@ -333,9 +337,9 @@ ALL_TOOLS = {
         "name": "web_search",
         "description": "Search the web for information. Use this to research people, companies, products, or any unfamiliar terms.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "query": {"type": "string", "description": "The search query"}
+                "query": {"type": "STRING", "description": "The search query"}
             },
             "required": ["query"]
         }
@@ -344,10 +348,10 @@ ALL_TOOLS = {
         "name": "firecrawl_scrape",
         "description": "Deep-scan a website using Firecrawl to extract markdown content from multiple pages.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "url": {"type": "string", "description": "The root URL to scrape"},
-                "limit": {"type": "integer", "description": "Max pages to scrape (default 5)"}
+                "url": {"type": "STRING", "description": "The root URL to scrape"},
+                "limit": {"type": "INTEGER", "description": "Max pages to scrape (default 5)"}
             },
             "required": ["url"]
         }
@@ -356,9 +360,9 @@ ALL_TOOLS = {
         "name": "pagespeed_analyze",
         "description": "Run Google PageSpeed Insights analysis for performance scoring.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "url": {"type": "string", "description": "The URL to analyze"}
+                "url": {"type": "STRING", "description": "The URL to analyze"}
             },
             "required": ["url"]
         }
@@ -367,10 +371,10 @@ ALL_TOOLS = {
         "name": "analyze_social_presence",
         "description": "Aggregate social proof metrics (GMB, FB, LI) for a business using Apify.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "business": {"type": "string", "description": "Business Name"},
-                "location": {"type": "string", "description": "Business Location (City, State)"}
+                "business": {"type": "STRING", "description": "Business Name"},
+                "location": {"type": "STRING", "description": "Business Location (City, State)"}
             },
             "required": ["business"]
         }
@@ -379,11 +383,11 @@ ALL_TOOLS = {
         "name": "scrape_competitors",
         "description": "Find and analyze top local competitors for a specific industry and city.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "industry": {"type": "string", "description": "Business industry (e.g. 'Dentist')"},
-                "location": {"type": "string", "description": "City, State"},
-                "exclude": {"type": "string", "description": "Main business name to exclude from results"}
+                "industry": {"type": "STRING", "description": "Business industry (e.g. 'Dentist')"},
+                "location": {"type": "STRING", "description": "City, State"},
+                "exclude": {"type": "STRING", "description": "Main business name to exclude from results"}
             },
             "required": ["industry", "location"]
         }
@@ -392,9 +396,9 @@ ALL_TOOLS = {
         "name": "web_fetch",
         "description": "Fetch and read content from a specific URL. Returns the text content of the page.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "url": {"type": "string", "description": "The URL to fetch"}
+                "url": {"type": "STRING", "description": "The URL to fetch"}
             },
             "required": ["url"]
         }
@@ -403,43 +407,43 @@ ALL_TOOLS = {
         "name": "create_proposal",
         "description": "Create a PandaDoc proposal document from structured client and project data. Returns document ID and URL.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
                 "client": {
-                    "type": "object",
+                    "type": "OBJECT",
                     "description": "Client information",
                     "properties": {
-                        "first_name": {"type": "string"},
-                        "last_name": {"type": "string"},
-                        "email": {"type": "string"},
-                        "company": {"type": "string"}
+                        "first_name": {"type": "STRING"},
+                        "last_name": {"type": "STRING"},
+                        "email": {"type": "STRING"},
+                        "company": {"type": "STRING"}
                     },
                     "required": ["email", "company"]
                 },
                 "project": {
-                    "type": "object",
+                    "type": "OBJECT",
                     "description": "Project details",
                     "properties": {
-                        "title": {"type": "string"},
-                        "monthOneInvestment": {"type": "string"},
-                        "monthTwoInvestment": {"type": "string"},
-                        "monthThreeInvestment": {"type": "string"},
+                        "title": {"type": "STRING"},
+                        "monthOneInvestment": {"type": "STRING"},
+                        "monthTwoInvestment": {"type": "STRING"},
+                        "monthThreeInvestment": {"type": "STRING"},
                         "problems": {
-                            "type": "object",
+                            "type": "OBJECT",
                             "properties": {
-                                "problem01": {"type": "string"},
-                                "problem02": {"type": "string"},
-                                "problem03": {"type": "string"},
-                                "problem04": {"type": "string"}
+                                "problem01": {"type": "STRING"},
+                                "problem02": {"type": "STRING"},
+                                "problem03": {"type": "STRING"},
+                                "problem04": {"type": "STRING"}
                             }
                         },
                         "benefits": {
-                            "type": "object",
+                            "type": "OBJECT",
                             "properties": {
-                                "benefit01": {"type": "string"},
-                                "benefit02": {"type": "string"},
-                                "benefit03": {"type": "string"},
-                                "benefit04": {"type": "string"}
+                                "benefit01": {"type": "STRING"},
+                                "benefit02": {"type": "STRING"},
+                                "benefit03": {"type": "STRING"},
+                                "benefit04": {"type": "STRING"}
                             }
                         }
                     },
@@ -453,12 +457,12 @@ ALL_TOOLS = {
         "name": "generate_toolkit",
         "description": "Generate a personalized Google Doc toolkit based on user survey data.",
         "parameters": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "industry": {"type": "string"},
-                "struggle": {"type": "string"},
-                "revenueRange": {"type": "string"},
-                "email": {"type": "string"}
+                "industry": {"type": "STRING"},
+                "struggle": {"type": "STRING"},
+                "revenueRange": {"type": "STRING"},
+                "email": {"type": "STRING"}
             },
             "required": ["industry", "struggle", "revenueRange", "email"]
         }
@@ -825,28 +829,95 @@ def generate_toolkit_impl(industry: str, struggle: str, revenueRange: str, email
     from googleapiclient.discovery import build
     import json
 
-    # 1. Load Service Account
-    creds_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
-    if not creds_json:
-        return {"error": "GOOGLE_SERVICE_ACCOUNT_JSON secret not found"}
+    # 1. Load OAuth Token (User Credentials)
+    token_json = os.getenv("GOOGLE_TOKEN_JSON")
+    if not token_json:
+        return {"error": "GOOGLE_TOKEN_JSON secret not found"}
     
     try:
-        creds_dict = json.loads(creds_json)
-        creds = service_account.Credentials.from_service_account_info(
-            creds_dict,
-            scopes=['https://www.googleapis.com/auth/documents', 'https://www.googleapis.com/auth/drive']
+        from google.oauth2.credentials import Credentials
+        from google.auth.transport.requests import Request
+        
+        token_data = json.loads(token_json)
+        creds = Credentials(
+            token=token_data["token"],
+            refresh_token=token_data["refresh_token"],
+            token_uri=token_data["token_uri"],
+            client_id=token_data["client_id"],
+            client_secret=token_data["client_secret"],
+            scopes=token_data["scopes"]
         )
+        
+        # Refresh if expired
+        if creds.expired:
+            creds.refresh(Request())
         
         # 2. Initialize Docs/Drive API
         docs_service = build('docs', 'v1', credentials=creds)
         drive_service = build('drive', 'v3', credentials=creds)
+
+        # 2.5 Ensure _ZeniacVault folder exists
+        folder_name = "_ZeniacVault"
+        query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
+        results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+        folders = results.get('files', [])
+        
+        if not folders:
+            folder_metadata = {
+                'name': folder_name,
+                'mimeType': 'application/vnd.google-apps.folder'
+            }
+            folder = drive_service.files().create(body=folder_metadata, fields='id').execute()
+            folder_id = folder.get('id')
+            print(f"📂 Created folder: {folder_name} ({folder_id})")
+        else:
+            folder_id = folders[0].get('id')
+            print(f"📂 Found folder: {folder_name} ({folder_id})")
         
         # 3. Create Doc
         title = f"Dominance Toolkit: {industry} Strategy ({email})"
         doc = docs_service.documents().create(body={'title': title}).execute()
         doc_id = doc['documentId']
         
-        # 4. Content Content
+        # Move to _ZeniacVault
+        # Retrieve the existing parents to remove
+        file = drive_service.files().get(fileId=doc_id, fields='parents').execute()
+        previous_parents = ",".join(file.get('parents'))
+        # Move the file to the new folder
+        drive_service.files().update(fileId=doc_id, addParents=folder_id, removeParents=previous_parents, fields='id, parents').execute()
+        print(f"✅ Moved doc to {folder_name}")
+        
+        # 4. Content Content - AI Generated
+        prompt = f"""
+        Generate a 'Dominance Toolkit' for a business in the {industry} industry.
+        They are currently struggling with: {struggle}.
+        Their revenue range is: {revenueRange}.
+        
+        Provide a structured strategy in 3 modules:
+        1. Brand Strategy & Positioning (Specific to their industry and struggle)
+        2. 30-Day Growth Roadmap (Weekly milestones)
+        3. Recommended Dominance Tools (Specific to their needs)
+        
+        Keep it professional, high-impact, and concise. Use a 'Zeniac' brand tone (premium, authoritative, operational).
+        Format purely as plain text for a Google Doc.
+        """
+        
+        ai_content = "Dominance Toolkit Strategy - Loading..."
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content(prompt)
+            ai_content = response.text
+        except Exception as ai_err:
+            print(f"⚠️ AI Content Generation failed: {ai_err}")
+            ai_content = (
+                f"MODULE 1: STRATEGY\n"
+                f"Your primary struggle is {struggle}. Here is your 30-day action plan:\n"
+                f"- Week 1: Audit & Foundation\n"
+                f"- Week 2: Content Batching\n"
+                f"- Week 3: Distribution & Ads\n"
+                f"- Week 4: Review & Scale\n"
+            )
+
         requests = [
             {
                 'insertText': {
@@ -856,17 +927,8 @@ def generate_toolkit_impl(industry: str, struggle: str, revenueRange: str, email
                             f"Focus Area: {struggle.replace('_', ' ').title()}\n"
                             f"Revenue Calibration: {revenueRange}\n\n"
                             f"--------------------------------------------------\n\n"
-                            f"MODULE 1: STRATEGY\n"
-                            f"Your primary struggle is {struggle}. Here is your 30-day action plan:\n"
-                            f"- Week 1: Audit & Foundation\n"
-                            f"- Week 2: Content Batching (See Content Calendar below)\n"
-                            f"- Week 3: Distribution & Ads\n"
-                            f"- Week 4: Review & Scale\n\n"
-                            f"MODULE 2: TOOLS (Links)\n"
-                            f"1. Revenue Calculator: [LINK]\n"
-                            f"2. Content Calendar ({industry}): [LINK]\n"
-                            f"3. 200 Viral Hooks: [LINK]\n\n"
-                            f"--------------------------------------------------\n"
+                            f"{ai_content}\n"
+                            f"\n--------------------------------------------------\n"
                             f"Generated by Zeniac OS\n"
                 }
             },
@@ -882,24 +944,6 @@ def generate_toolkit_impl(industry: str, struggle: str, revenueRange: str, email
                         'weightedFontFamily': {'fontFamily': 'Roboto Mono'} 
                     },
                     'fields': 'bold,fontSize,foregroundColor,weightedFontFamily'
-                }
-            }, {
-                'insertText': {
-                    'index': len(f"DOMINANCE TOOLKIT: {industry.upper()} EDITION") + 2,
-                    'text': f"\nPREPARED FOR: {email}\nREVENUE TARGET: {revenueRange}\nSTRUGGLE: {struggle}\n\n"
-                }
-            }, {
-                'updateTextStyle': {
-                    'range': {
-                         'startIndex': len(f"DOMINANCE TOOLKIT: {industry.upper()} EDITION") + 2, 
-                         'endIndex': len(f"DOMINANCE TOOLKIT: {industry.upper()} EDITION") + 2 + len(f"\nPREPARED FOR: {email}\nREVENUE TARGET: {revenueRange}\nSTRUGGLE: {struggle}\n\n")
-                    },
-                    'textStyle': {
-                        'fontSize': {'magnitude': 10, 'unit': 'PT'},
-                        'weightedFontFamily': {'fontFamily': 'Roboto Mono'},
-                        'foregroundColor': {'color': {'rgbColor': {'red': 0.5, 'green': 0.5, 'blue': 0.5}}} # Grey
-                    },
-                    'fields': 'fontSize,weightedFontFamily,foregroundColor'
                 }
             }
         ]
@@ -1285,13 +1329,19 @@ async def analyze_endpoint(item: dict):
 # CORE ENGINE
 # ============================================================================
 
-def load_webhook_config():
-    """Load webhook configuration."""
-    config_path = Path("/app/webhooks.json")
-    if not config_path.exists():
-        return {"webhooks": {}}
-    return json.loads(config_path.read_text())
-
+def load_webhook_config() -> dict:
+    """Load webhook configuration from webhooks.json."""
+    paths = ["/app/webhooks.json", "/app/execution/webhooks.json", "webhooks.json", "execution/webhooks.json"]
+    
+    for p in paths:
+        try:
+            config_path = Path(p)
+            if config_path.exists():
+                return json.loads(config_path.read_text())
+        except Exception as e:
+            logger.error(f"Error loading {p}: {e}")
+            
+    return {"webhooks": {}}
 
 def load_directive(directive_name: str) -> str:
     """Load a directive file. Returns content or raises error."""
@@ -1310,10 +1360,6 @@ def run_directive(
     max_turns: int = 15
 ) -> dict:
     """Execute a directive with scoped tools using Gemini."""
-    import google.generativeai as genai
-
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
     # Build prompt with directive + input
     prompt = f"""You are executing a specific directive. Follow it precisely.
 
@@ -1333,7 +1379,20 @@ Execute the directive now."""
     # Filter tools to only allowed ones and format for Gemini
     tools = [ALL_TOOLS[t] for t in allowed_tools if t in ALL_TOOLS]
 
-    model = genai.GenerativeModel('gemini-1.5-pro', tools=tools)
+    # Ensure API Key is configured
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        logger.error("❌ GEMINI_API_KEY not found in environment!")
+        return {
+            "response": "Error: GEMINI_API_KEY not configured", 
+            "thinking": ["API Key Missing"],
+            "conversation": [], 
+            "usage": {"turns": 0}
+        }
+    
+    os.environ["GOOGLE_API_KEY"] = api_key # Gemini SDK often expects this
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-flash-latest', tools=tools)
     chat = model.start_chat()
 
     conversation_log = []
@@ -1433,15 +1492,22 @@ def directive(slug: str, payload: dict = None):
     max_turns = payload.get("max_turns", 15)
 
     # Load config
-    config = load_webhook_config()
-    webhooks = config.get("webhooks", {})
+    webhooks_data = load_webhook_config()
+    webhooks = webhooks_data.get("webhooks", {})
 
     # Validate slug exists
     if slug not in webhooks:
-        return {"status": "error", "error": f"Unknown webhook slug: {slug}", "available": list(webhooks.keys())}
+        return {
+            "status": "error", 
+            "error": f"Unknown webhook slug: {slug}", 
+            "available": list(webhooks.keys())
+        }
 
     webhook_config = webhooks[slug]
-    token_data = json.loads(os.getenv("GOOGLE_TOKEN_JSON"))
+    # GOOGLE_TOKEN_JSON is only needed for tools that use OAuth (send_email, read_sheet, etc.)
+    # generate_toolkit uses service account instead, so token_data can be None
+    token_json = os.getenv("GOOGLE_TOKEN_JSON")
+    token_data = json.loads(token_json) if token_json else None
 
     # Check execution mode: procedural (script) vs agentic (directive)
     script_name = webhook_config.get("script")
@@ -1513,23 +1579,27 @@ def directive(slug: str, payload: dict = None):
     return {"status": "error", "error": "Webhook config must have either 'script' or 'directive'"}
 
 
-@app.function(image=image, secrets=ALL_SECRETS, timeout=30)
+@app.function(image=image, secrets=ALL_SECRETS)
 @modal.fastapi_endpoint(method="GET")
 def list_webhooks():
-    """List available webhook slugs and their descriptions."""
+    """List available webhooks and available Gemini models."""
+    import google.generativeai as genai
     config = load_webhook_config()
-    webhooks = config.get("webhooks", {})
-
+    
+    models = []
+    try:
+        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        if api_key:
+            genai.configure(api_key=api_key)
+            for m in genai.list_models():
+                if 'generateContent' in m.supported_generation_methods:
+                    models.append(m.name)
+    except Exception as e:
+        models.append(f"Error listing models: {str(e)}")
+        
     return {
-        "webhooks": {
-            slug: {
-                "directive": cfg.get("directive"),
-                "script": cfg.get("script"),
-                "description": cfg.get("description", ""),
-                "tools": cfg.get("tools", [])
-            }
-            for slug, cfg in webhooks.items()
-        }
+        "webhooks": config.get("webhooks", {}),
+        "available_models": models
     }
 
 
@@ -1596,7 +1666,7 @@ AGENT_TOOLS = {
         "name": "list_directives",
         "description": "List all available directives (SOPs) in the system.",
         "input_schema": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {},
             "required": []
         }
@@ -1605,9 +1675,9 @@ AGENT_TOOLS = {
         "name": "read_directive",
         "description": "Read the full content of a specific directive.",
         "input_schema": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "name": {"type": "string", "description": "Name of the directive (without .md extension)"}
+                "name": {"type": "STRING", "description": "Name of the directive (without .md extension)"}
             },
             "required": ["name"]
         }
@@ -1616,7 +1686,7 @@ AGENT_TOOLS = {
         "name": "list_scripts",
         "description": "List all available execution scripts.",
         "input_schema": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {},
             "required": []
         }
@@ -1625,10 +1695,10 @@ AGENT_TOOLS = {
         "name": "run_script",
         "description": "Execute a Python script from the execution folder. Returns the script output.",
         "input_schema": {
-            "type": "object",
+            "type": "OBJECT",
             "properties": {
-                "name": {"type": "string", "description": "Script name (without .py extension)"},
-                "args": {"type": "array", "items": {"type": "string"}, "description": "Command-line arguments"}
+                "name": {"type": "STRING", "description": "Script name (without .py extension)"},
+                "args": {"type": "ARRAY", "items": {"type": "STRING"}, "description": "Command-line arguments"}
             },
             "required": ["name"]
         }
@@ -1740,7 +1810,7 @@ Be concise. Complete tasks fully."""
             "parameters": t_cfg.get("parameters", t_cfg.get("input_schema", {}))
         })
 
-    model = genai.GenerativeModel('gemini-1.5-pro', 
+    model = genai.GenerativeModel('gemini-flash-latest', 
                                  system_instruction=system_instruction,
                                  tools=tools)
     
@@ -2188,7 +2258,7 @@ def scrape_leads_background(query: str, location: str, limit: int, sheet_id: str
             slack_notify("⚠️ GEMINI_API_KEY not configured, skipping casualization")
         else:
             genai.configure(api_key=gemini_key)
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-flash-latest')
 
             # Re-fetch data
             all_data = worksheet.get_all_values()
@@ -2597,7 +2667,7 @@ def create_proposal_from_transcript(transcript: str = "sales", demo: bool = True
             raise ValueError("GEMINI_API_KEY not configured")
 
         genai.configure(api_key=gemini_key)
-        model = genai.GenerativeModel('gemini-1.5-pro')
+        model = genai.GenerativeModel('gemini-flash-latest')
 
         extraction_prompt = f"""Analyze this sales call transcript and extract the following information. Return ONLY valid JSON.
 

@@ -56,8 +56,6 @@ def main():
 
         if result.returncode == 0:
             print("[SUCCESS] Backend Deployed!")
-            # print("Output:") <--- avoiding print of full output which may contain emojis
-            # print(stdout)    <--- avoiding print of full output which may contain emojis
             # Try to find URL in output
             import re
             url_match = re.search(r'https://[a-zA-Z0-9-]+\.modal\.run', stdout)
@@ -67,7 +65,9 @@ def main():
                 print("[WARNING] Could not find URL in output. Check logs manually if needed.")
         else:
             print(f"[ERROR] Deployment failed with return code {result.returncode}")
-            print(f"Stderr: {stderr}")
+            # Safely print stderr by ignoring non-encodable characters for the current terminal
+            safe_stderr = stderr.encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding)
+            print(f"Stderr: {safe_stderr}")
             sys.exit(1)
 
     except Exception as e:
