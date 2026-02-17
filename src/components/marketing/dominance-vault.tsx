@@ -41,35 +41,38 @@ const categoryGradients: Record<string, string> = {
 };
 
 const vaultTools = [
-    { name: "Content Calendar", icon: Calendar, category: "Content", personalized: true },
-    { name: "Reel Scripts (10)", icon: Video, category: "Content", personalized: true },
-    { name: "200 Viral Hooks", icon: MessageSquare, category: "Content", personalized: false },
-    { name: "Revenue Calculator", icon: Calculator, category: "Analytics", personalized: true },
-    { name: "Competitor Tracker", icon: Target, category: "Analytics", personalized: true },
-    { name: "GBP Checklist", icon: Map, category: "Growth", personalized: false },
-    { name: "WhatsApp Templates", icon: MessageSquare, category: "Automation", personalized: false },
-    { name: "Email Templates (5)", icon: Mail, category: "Automation", personalized: false },
-    { name: "Testimonial Scripts", icon: Star, category: "Growth", personalized: false },
-    { name: "Brand Voice Guide", icon: Palette, category: "Branding", personalized: false },
-    { name: "Hashtag Vault (500)", icon: Hash, category: "Content", personalized: true },
-    { name: "CRM Tracker", icon: Users, category: "Automation", personalized: false },
-    { name: "Website Copy", icon: FileText, category: "Branding", personalized: true },
-    { name: "Bio Optimizer", icon: AtSign, category: "Content", personalized: false },
-    { name: "Pricing Calculator", icon: DollarSign, category: "Analytics", personalized: false },
-    { name: "Analytics Dashboard", icon: BarChart3, category: "Analytics", personalized: false },
-    { name: "Slides Brand Kit", icon: Sparkles, category: "Branding", personalized: false },
-    { name: "SEO Keyword Pack", icon: Search, category: "Growth", personalized: true },
-    { name: "Journey Map", icon: Map, category: "Growth", personalized: false },
-    { name: "Apps Script Automations", icon: Zap, category: "Automation", personalized: false },
+    { name: "Content Calendar", icon: Calendar, category: "Content", personalized: true, popularity: 98, addedDate: "2026-02-01", description: "30-day posting plan with industry hooks & hashtags" },
+    { name: "Reel Scripts (10)", icon: Video, category: "Content", personalized: true, popularity: 95, addedDate: "2026-02-01", description: "Ready-to-shoot scripts with viral hooks" },
+    { name: "200 Viral Hooks", icon: MessageSquare, category: "Content", personalized: false, popularity: 92, addedDate: "2026-02-02", description: "Scroll-stopping openers for any platform" },
+    { name: "Revenue Calculator", icon: Calculator, category: "Analytics", personalized: true, popularity: 88, addedDate: "2026-02-03", description: "See exactly how much revenue you're leaking" },
+    { name: "Competitor Tracker", icon: Target, category: "Analytics", personalized: true, popularity: 90, addedDate: "2026-02-03", description: "Monitor competitor moves & gaps" },
+    { name: "GBP Checklist", icon: Map, category: "Growth", personalized: false, popularity: 72, addedDate: "2026-02-04", description: "Optimize your Google Business Profile" },
+    { name: "WhatsApp Templates", icon: MessageSquare, category: "Automation", personalized: false, popularity: 85, addedDate: "2026-02-05", description: "Auto-reply & broadcast message templates" },
+    { name: "Email Templates (5)", icon: Mail, category: "Automation", personalized: false, popularity: 80, addedDate: "2026-02-05", description: "Newsletter & drip sequence templates" },
+    { name: "Testimonial Scripts", icon: Star, category: "Growth", personalized: false, popularity: 68, addedDate: "2026-02-06", description: "Get 5-star reviews on autopilot" },
+    { name: "Brand Voice Guide", icon: Palette, category: "Branding", personalized: false, popularity: 75, addedDate: "2026-02-07", description: "Define your tone, vocabulary & personality" },
+    { name: "Hashtag Vault (500)", icon: Hash, category: "Content", personalized: true, popularity: 86, addedDate: "2026-02-08", description: "Industry-specific hashtag strategy" },
+    { name: "CRM Tracker", icon: Users, category: "Automation", personalized: false, popularity: 70, addedDate: "2026-02-09", description: "Track leads from first touch to close" },
+    { name: "Website Copy", icon: FileText, category: "Branding", personalized: true, popularity: 82, addedDate: "2026-02-10", description: "Conversion-optimized copy framework" },
+    { name: "Bio Optimizer", icon: AtSign, category: "Content", personalized: false, popularity: 65, addedDate: "2026-02-10", description: "Social media bio templates that convert" },
+    { name: "Pricing Calculator", icon: DollarSign, category: "Analytics", personalized: false, popularity: 77, addedDate: "2026-02-11", description: "Data-driven pricing strategy" },
+    { name: "Analytics Dashboard", icon: BarChart3, category: "Analytics", personalized: false, popularity: 73, addedDate: "2026-02-12", description: "Weekly KPI tracking spreadsheet" },
+    { name: "Slides Brand Kit", icon: Sparkles, category: "Branding", personalized: false, popularity: 60, addedDate: "2026-02-13", description: "Canva-ready brand guidelines" },
+    { name: "SEO Keyword Pack", icon: Search, category: "Growth", personalized: true, popularity: 87, addedDate: "2026-02-14", description: "High-intent keywords for your niche" },
+    { name: "Journey Map", icon: Map, category: "Growth", personalized: false, popularity: 62, addedDate: "2026-02-15", description: "Customer journey visualization" },
+    { name: "Apps Script Automations", icon: Zap, category: "Automation", personalized: false, popularity: 78, addedDate: "2026-02-16", description: "3 no-code automation workflows" },
 ];
+
+type SortMode = "popular" | "recent" | "az";
 
 const categories = ["All", "Content", "Analytics", "Growth", "Branding", "Automation"];
 
 export function DominanceVault() {
     const [activeCategory, setActiveCategory] = useState("All");
+    const [sortMode, setSortMode] = useState<SortMode>("popular");
     const [currency, setCurrency] = useState<"KES" | "USD">("KES");
     const [showSurvey, setShowSurvey] = useState(false);
-    const [showAllTools, setShowAllTools] = useState(false);
+    const [showAllTools, setShowAllTools] = useState(true);
     const [showPayment, setShowPayment] = useState(false);
 
 
@@ -101,10 +104,20 @@ export function DominanceVault() {
     };
 
     const filtered = activeCategory === "All"
-        ? vaultTools
+        ? [...vaultTools]
         : vaultTools.filter(t => t.category === activeCategory);
 
-    const displayedTools = showAllTools ? filtered : filtered.slice(0, 4);
+    // Apply sorting
+    const sorted = filtered.sort((a, b) => {
+        switch (sortMode) {
+            case "popular": return b.popularity - a.popularity;
+            case "recent": return new Date(b.addedDate).getTime() - new Date(a.addedDate).getTime();
+            case "az": return a.name.localeCompare(b.name);
+            default: return 0;
+        }
+    });
+
+    const displayedTools = showAllTools ? sorted : sorted.slice(0, 8);
 
     return (
         <section className="py-24 relative overflow-hidden" id="vault">
@@ -160,6 +173,27 @@ export function DominanceVault() {
                     </motion.p>
                 </div>
 
+                {/* Sort Filters */}
+                <div className="flex justify-center gap-2 mb-4">
+                    {(["popular", "recent", "az"] as SortMode[]).map((mode) => {
+                        const labels: Record<SortMode, string> = { popular: "🔥 Most Popular", recent: "🕐 Recent", az: "🔤 A–Z" };
+                        return (
+                            <button
+                                key={mode}
+                                onClick={() => setSortMode(mode)}
+                                className={cn(
+                                    "px-4 py-2 text-[10px] font-mono uppercase tracking-widest border rounded-full transition-all duration-300",
+                                    sortMode === mode
+                                        ? "border-zeniac-gold bg-zeniac-gold/10 text-zeniac-gold"
+                                        : "border-white/10 text-white/40 hover:border-white/30 hover:text-white/70"
+                                )}
+                            >
+                                {labels[mode]}
+                            </button>
+                        );
+                    })}
+                </div>
+
                 {/* Category Filter */}
                 <div className="flex flex-wrap justify-center gap-2 mb-10">
                     {categories.map((cat) => (
@@ -179,82 +213,84 @@ export function DominanceVault() {
                 </div>
 
                 {/* Tool Grid */}
-                <div className={cn(
-                    "grid grid-cols-2 gap-3 max-w-5xl mx-auto mb-12",
-                    showAllTools
-                        ? "sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
-                        : "sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4"
-                )}>
-                    {displayedTools.map((tool, i) => {
-                        const Icon = tool.icon;
-                        const gradient = categoryGradients[tool.category] || "from-white/5 to-white/5";
-                        return (
-                            <div
-                                key={tool.name}
-                                className={cn(
-                                    "group relative flex flex-col items-center justify-center p-5 border transition-all duration-300 cursor-default aspect-square",
-                                    "bg-zeniac-charcoal/30",
-                                    "border-white/10 hover:border-zeniac-gold/50 hover:shadow-[0_0_30px_rgba(255,215,0,0.08)] hover:-translate-y-1"
-                                )}
-                            >
-                                {/* Lock/unlock icon overlay */}
-                                <div className="absolute top-2 right-2">
-                                    <Lock className="w-3 h-3 text-white/20 group-hover:hidden" />
-                                    <Unlock className="w-3 h-3 text-zeniac-gold/60 hidden group-hover:block" />
-                                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-w-5xl mx-auto mb-12">
+                    <AnimatePresence mode="popLayout">
+                        {displayedTools.map((tool, i) => {
+                            const Icon = tool.icon;
+                            const gradient = categoryGradients[tool.category] || "from-white/5 to-white/5";
+                            return (
+                                <motion.div
+                                    key={tool.name}
+                                    layout
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    transition={{ duration: 0.2, delay: i * 0.02 }}
+                                    className={cn(
+                                        "group relative flex flex-col items-center justify-center p-5 border transition-all duration-300 cursor-default aspect-square",
+                                        "bg-zeniac-charcoal/30",
+                                        "border-white/10 hover:border-zeniac-gold/50 hover:shadow-[0_0_30px_rgba(255,215,0,0.08)] hover:-translate-y-1"
+                                    )}
+                                >
+                                    {/* Popularity badge */}
+                                    {sortMode === "popular" && tool.popularity >= 85 && (
+                                        <div className="absolute top-2 left-2 bg-zeniac-gold/10 px-1.5 py-0.5 rounded">
+                                            <span className="text-[8px] font-mono font-bold text-zeniac-gold">🔥 {tool.popularity}%</span>
+                                        </div>
+                                    )}
 
-                                {/* Personalized badge */}
-                                {tool.personalized && (
-                                    <div className="absolute top-2 left-2">
-                                        <Sparkles className="w-3 h-3 text-zeniac-gold/40" />
+                                    {/* Lock/unlock icon overlay */}
+                                    <div className="absolute top-2 right-2">
+                                        <Lock className="w-3 h-3 text-white/20 group-hover:hidden" />
+                                        <Unlock className="w-3 h-3 text-zeniac-gold/60 hidden group-hover:block" />
                                     </div>
-                                )}
 
-                                {/* Tool Visual — category-colored gradient */}
-                                <div className="mb-3 transition-transform duration-300 group-hover:scale-110">
-                                    <div className={cn(
-                                        "w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br border border-white/10 transition-colors duration-300 group-hover:border-zeniac-gold/50",
-                                        gradient
-                                    )}>
-                                        <Icon className="w-5 h-5 text-white/40 transition-colors duration-300 group-hover:text-zeniac-gold" />
+                                    {/* Personalized badge (when not showing popularity) */}
+                                    {tool.personalized && sortMode !== "popular" && (
+                                        <div className="absolute top-2 left-2">
+                                            <Sparkles className="w-3 h-3 text-zeniac-gold/40" />
+                                        </div>
+                                    )}
+
+                                    {/* Tool Visual */}
+                                    <div className="mb-3 transition-transform duration-300 group-hover:scale-110">
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br border border-white/10 transition-colors duration-300 group-hover:border-zeniac-gold/50",
+                                            gradient
+                                        )}>
+                                            <Icon className="w-5 h-5 text-white/40 transition-colors duration-300 group-hover:text-zeniac-gold" />
+                                        </div>
                                     </div>
-                                </div>
 
-                                <span className="text-[10px] font-mono text-center uppercase tracking-wide leading-tight transition-colors duration-300 text-white/40 group-hover:text-zeniac-white">
-                                    {tool.name}
-                                </span>
+                                    <span className="text-[10px] font-mono text-center uppercase tracking-wide leading-tight transition-colors duration-300 text-white/40 group-hover:text-zeniac-white">
+                                        {tool.name}
+                                    </span>
 
-                                {/* Category tag */}
-                                <span className="mt-2 text-[8px] font-mono uppercase px-2 py-0.5 border transition-all duration-300 border-white/5 text-white/20 group-hover:border-zeniac-gold/30 group-hover:text-zeniac-gold/60">
-                                    {tool.category}
-                                </span>
+                                    {/* Description on hover */}
+                                    <span className="mt-1 text-[8px] font-mono text-center leading-tight text-white/0 group-hover:text-white/40 transition-colors duration-300 line-clamp-2 px-1">
+                                        {tool.description}
+                                    </span>
 
-                                {/* Hover glow */}
-                                <div className="absolute inset-0 bg-gradient-to-b from-zeniac-gold/5 to-transparent opacity-0 transition-opacity duration-300 pointer-events-none group-hover:opacity-100" />
-                            </div>
-                        );
-                    })}
+                                    {/* Category tag */}
+                                    <span className="mt-1 text-[8px] font-mono uppercase px-2 py-0.5 border transition-all duration-300 border-white/5 text-white/20 group-hover:border-zeniac-gold/30 group-hover:text-zeniac-gold/60">
+                                        {tool.category}
+                                    </span>
+
+                                    {/* Hover glow */}
+                                    <div className="absolute inset-0 bg-gradient-to-b from-zeniac-gold/5 to-transparent opacity-0 transition-opacity duration-300 pointer-events-none group-hover:opacity-100" />
+                                </motion.div>
+                            );
+                        })}
+                    </AnimatePresence>
                 </div>
 
-                {/* Toggle Button */}
-                {filtered.length > 4 && (
-                    <div className="flex justify-center mb-12 -mt-6 relative z-10">
-                        {!showAllTools && (
-                            <div className="absolute inset-x-0 bottom-full h-24 bg-gradient-to-t from-zeniac-black to-transparent pointer-events-none" />
-                        )}
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowAllTools(!showAllTools)}
-                            className="bg-zeniac-black/80 backdrop-blur border-zeniac-gold/30 text-zeniac-gold hover:bg-zeniac-gold/10 font-mono text-xs uppercase tracking-widest"
-                        >
-                            {showAllTools ? (
-                                <>Show Less <ArrowRight className="w-3 h-3 ml-2 rotate-180" /></>
-                            ) : (
-                                <>View All {filtered.length} Tools <ArrowRight className="w-3 h-3 ml-2" /></>
-                            )}
-                        </Button>
-                    </div>
-                )}
+                {/* Results count */}
+                <div className="text-center mb-8 -mt-6">
+                    <span className="text-[10px] font-mono text-white/30 uppercase tracking-widest">
+                        Showing {displayedTools.length} of {vaultTools.length} tools
+                        {activeCategory !== "All" && ` in ${activeCategory}`}
+                    </span>
+                </div>
 
                 {/* CTA Box */}
                 <motion.div
