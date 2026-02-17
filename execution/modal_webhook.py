@@ -887,35 +887,108 @@ def generate_toolkit_impl(industry: str, struggle: str, revenueRange: str, email
         drive_service.files().update(fileId=doc_id, addParents=folder_id, removeParents=previous_parents, fields='id, parents').execute()
         print(f"✅ Moved doc to {folder_name}")
         
-        # 4. Content Content - AI Generated
-        prompt = f"""
-        Generate a 'Dominance Toolkit' for a business in the {industry} industry.
-        They are currently struggling with: {struggle}.
-        Their revenue range is: {revenueRange}.
-        
-        Provide a structured strategy in 3 modules:
-        1. Brand Strategy & Positioning (Specific to their industry and struggle)
-        2. 30-Day Growth Roadmap (Weekly milestones)
-        3. Recommended Dominance Tools (Specific to their needs)
-        
-        Keep it professional, high-impact, and concise. Use a 'Zeniac' brand tone (premium, authoritative, operational).
-        Format purely as plain text for a Google Doc.
-        """
+        # 4. Content Content - AI Generated (Full Funnel)
+        prompt = f"""You are a premium business strategy AI for Zeniac, a digital dominance agency.
+
+Generate a comprehensive 'Dominance Toolkit' for a business with these details:
+- Industry: {industry}
+- Primary Struggle: {struggle}
+- Revenue Range: {revenueRange}
+- Email: {email}
+
+Structure the toolkit into these 6 MODULES covering the ENTIRE business funnel:
+
+MODULE 1: BRAND IDENTITY & POSITIONING
+- Brand voice guidelines (tone, vocabulary, personality)
+- Color palette recommendation (hex codes) specific to their industry
+- Positioning statement template
+- Tagline suggestions (3 options)
+
+MODULE 2: SOCIAL MEDIA DOMINATION
+- Platform priority ranking for their industry
+- Content pillars (5 specific to their niche)
+- 10 viral hook templates customized to their struggle
+- Optimal posting schedule with times
+- Hashtag strategy (20 industry-specific hashtags)
+
+MODULE 3: SALES & CLOSING SYSTEM
+- Sales script template for their service type
+- Objection handling framework (top 5 objections in their industry)
+- Pricing presentation strategy based on their revenue range
+- Follow-up sequence (5-touch framework)
+
+MODULE 4: CLIENT ONBOARDING
+- Welcome email template
+- Onboarding checklist (first 7 days)
+- Expectations-setting framework
+- Client intake questionnaire template
+
+MODULE 5: LEAD NURTURING & RETENTION
+- Email drip sequence outline (9 emails)
+- WhatsApp broadcast templates (5 messages)
+- Re-engagement campaign for cold leads
+- Loyalty program framework
+
+MODULE 6: AUTOMATION & SYSTEMS
+- Top 3 automations they should implement immediately
+- CRM setup checklist
+- Analytics dashboard KPIs to track
+- Weekly review protocol
+
+RECOMMENDED TOOLS FROM ZENIAC VAULT:
+Based on their struggle of "{struggle}", recommend the top 5 most relevant tools from this list and explain WHY:
+1. 30-Day Content Calendar (Google Sheet)
+2. Instagram Reel Scripts (Google Doc)
+3. 200 Viral Hooks & Captions (Google Doc)
+4. Revenue Leak Calculator (Google Sheet)
+5. Competitor Spy Tracker (Google Sheet)
+6. GBP Optimization Checklist (PDF)
+7. WhatsApp Auto-Reply Templates (Google Doc)
+8. Email Newsletter Templates (Google Doc)
+9. Testimonial Request Scripts (Google Doc)
+10. Brand Voice Guide (Google Doc)
+11. Hashtag Strategy Vault - 500 tags (Google Sheet)
+12. Simple CRM Tracker (Google Sheet)
+13. Website Copy Framework (Google Doc)
+14. Social Media Bio Optimizer (Google Doc)
+15. Pricing Strategy Calculator (Google Sheet)
+16. Weekly Analytics Dashboard (Google Sheet)
+17. Canva Brand Kit Guide (PDF)
+18. SEO Keyword Starter Pack (Google Sheet)
+19. Customer Journey Map (Google Sheet)
+20. 3 No-Code Automation Workflows (PDF)
+
+Keep it professional, high-impact, and actionable. Use a premium, authoritative tone.
+Format as clean plain text for a Google Doc. Use clear headers and bullet points.
+Do NOT use markdown formatting (no **, no ##). Use UPPERCASE for headers.
+"""
         
         ai_content = "Dominance Toolkit Strategy - Loading..."
         try:
+            api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+            if api_key:
+                genai.configure(api_key=api_key)
             model = genai.GenerativeModel('gemini-1.5-flash')
             response = model.generate_content(prompt)
             ai_content = response.text
         except Exception as ai_err:
             print(f"⚠️ AI Content Generation failed: {ai_err}")
             ai_content = (
-                f"MODULE 1: STRATEGY\n"
-                f"Your primary struggle is {struggle}. Here is your 30-day action plan:\n"
-                f"- Week 1: Audit & Foundation\n"
-                f"- Week 2: Content Batching\n"
-                f"- Week 3: Distribution & Ads\n"
-                f"- Week 4: Review & Scale\n"
+                f"MODULE 1: BRAND IDENTITY & POSITIONING\n"
+                f"Your industry: {industry}\n"
+                f"Recommended: Develop a clear brand voice guide and visual identity system.\n\n"
+                f"MODULE 2: SOCIAL MEDIA DOMINATION\n"
+                f"Your struggle: {struggle}\n"
+                f"Focus: Platform-specific content strategy with viral hooks.\n\n"
+                f"MODULE 3: SALES & CLOSING SYSTEM\n"
+                f"Revenue target: {revenueRange}\n"
+                f"Implement: Objection-handling scripts and follow-up sequences.\n\n"
+                f"MODULE 4: CLIENT ONBOARDING\n"
+                f"Create a 7-day onboarding flow with welcome sequence.\n\n"
+                f"MODULE 5: LEAD NURTURING & RETENTION\n"
+                f"Set up email drip and WhatsApp broadcast automations.\n\n"
+                f"MODULE 6: AUTOMATION & SYSTEMS\n"
+                f"Priority: CRM setup, analytics dashboard, weekly review protocol.\n"
             )
 
         requests = [

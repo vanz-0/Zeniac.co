@@ -17,6 +17,7 @@ import { useWizard } from "@/context/wizard-context";
 import { Navbar } from "@/components/marketing/navbar";
 import { BookingModal } from "@/components/marketing/booking-modal";
 import { DominanceVault, VaultPopup } from "@/components/marketing/dominance-vault";
+import { TemplatePoll } from "@/components/marketing/template-poll";
 
 const processData = [
   {
@@ -114,6 +115,7 @@ export default function Home() {
         <Pricing onOpenBooking={() => openBooking()} />
 
         <DominanceVault />
+        <TemplatePoll />
 
         <Reviews />
 
