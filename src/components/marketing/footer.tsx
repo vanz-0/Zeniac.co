@@ -25,7 +25,8 @@ export function MinimalFooter() {
         setMounted(true);
     }, []);
 
-    const logoSrc = mounted && theme === 'light' ? '/logo-for-dark-mode.png' : '/logo-for-light-mode.png';
+    const isLight = mounted && theme === 'light';
+    const logoSrc = isLight ? '/logo-for-light-mode.png' : '/logo-for-dark-mode.png';
 
     const company = [
         { title: 'The Zeniac Vision', href: '#' },
@@ -63,8 +64,12 @@ export function MinimalFooter() {
         },
     ];
 
+
     return (
-        <footer id="contact" className="relative bg-zeniac-black border-t border-white/10 mt-24">
+        <footer
+            id="contact"
+            className="relative bg-zeniac-black border-t border-zeniac-white/10 mt-24 transition-colors duration-300"
+        >
             <div className="mx-auto max-w-7xl px-4 py-12 md:py-16 lg:py-20">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8">
                     <div className="col-span-1 md:col-span-5 flex flex-col gap-6">
@@ -72,7 +77,7 @@ export function MinimalFooter() {
                             <img src={logoSrc} alt="Zeniac Logo" className="h-8 w-auto" />
                             <span className="font-mono text-xl font-bold tracking-tighter text-zeniac-white">ZENIAC</span>
                         </Link>
-                        <p className="text-muted-foreground max-w-sm font-mono text-sm leading-relaxed">
+                        <p className="max-w-sm font-mono text-sm leading-relaxed text-zeniac-white/70">
                             The operating system for high-growth small businesses. Dedicated to scaling local brands struggling with social platforms, digital marketing, and overall online presence.
                         </p>
 
@@ -85,7 +90,10 @@ export function MinimalFooter() {
                             {socialLinks.map((item, i) => (
                                 <a
                                     key={i}
-                                    className="bg-white/5 hover:bg-zeniac-gold/20 hover:text-zeniac-gold border border-white/10 rounded-full p-2.5 transition-all text-white/70"
+                                    className={`border rounded-full p-2.5 transition-all text-zeniac-white/70 ${isLight
+                                        ? "bg-black/5 border-black/10 hover:bg-zeniac-gold/20 hover:text-zeniac-gold"
+                                        : "bg-white/5 border-white/10 hover:bg-zeniac-gold/20 hover:text-zeniac-gold"
+                                        }`}
                                     target="_blank"
                                     href={item.link}
                                 >
@@ -103,7 +111,7 @@ export function MinimalFooter() {
                             {resources.map(({ href, title }, i) => (
                                 <a
                                     key={i}
-                                    className="w-max text-sm md:text-base text-gray-400 hover:text-zeniac-gold duration-200 font-mono"
+                                    className="w-max text-sm md:text-base duration-200 font-mono text-zeniac-white/60 hover:text-zeniac-gold"
                                     href={href}
                                 >
                                     {title}
@@ -118,7 +126,7 @@ export function MinimalFooter() {
                             {company.map(({ href, title }, i) => (
                                 <a
                                     key={i}
-                                    className="w-max text-sm md:text-base text-gray-400 hover:text-zeniac-gold duration-200 font-mono"
+                                    className="w-max text-sm md:text-base duration-200 font-mono text-zeniac-white/60 hover:text-zeniac-gold"
                                     href={href}
                                 >
                                     {title}
@@ -133,7 +141,7 @@ export function MinimalFooter() {
                             {contactLinks.map(({ href, title }, i) => (
                                 <a
                                     key={i}
-                                    className="w-max text-sm md:text-base text-gray-400 hover:text-zeniac-gold duration-200 font-mono"
+                                    className="w-max text-sm md:text-base duration-200 font-mono text-zeniac-white/60 hover:text-zeniac-gold"
                                     href={href}
                                 >
                                     {title}
@@ -143,11 +151,11 @@ export function MinimalFooter() {
                     </div>
                 </div>
 
-                <div className="border-t border-white/10 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className="text-gray-500 text-xs font-mono">
+                <div className="mt-16 pt-8 border-t border-zeniac-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <p className="text-xs font-mono text-zeniac-white/50">
                         &copy; {year} Zeniac.Co. All rights reserved.
                     </p>
-                    <div className="flex items-center gap-1 text-xs text-gray-600 font-mono">
+                    <div className="flex items-center gap-1 text-xs font-mono text-zeniac-white/40">
                         <span>DESIGNED BY ZENIAC INTELLIGENCE</span>
                     </div>
                 </div>

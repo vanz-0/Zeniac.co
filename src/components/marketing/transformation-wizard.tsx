@@ -509,57 +509,60 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                 </Button>
                             </div>
                             <div className="grid md:grid-cols-2 gap-6 mt-8">
-                                <div className="bg-white/5 border border-white/10 rounded-xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                                <div className="bg-zeniac-white/5 border border-zeniac-white/10 rounded-xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden">
                                     <div className="absolute top-0 right-0 p-2 opacity-50">
                                         <Activity className="w-4 h-4 text-zeniac-gold" />
                                     </div>
-                                    <div className="text-5xl font-mono font-bold text-red-500 mb-2">{analysisData?.score || 0}<span className="text-xl text-gray-500">/100</span></div>
-                                    <div className="text-xs uppercase tracking-widest text-gray-400">Digital Health Score</div>
-                                    <div className="mt-4 text-xs text-red-300 bg-red-900/20 px-3 py-1 rounded-full">
+                                    <div className="text-5xl font-mono font-bold text-red-500 mb-2" style={{ WebkitTextStroke: '0.5px rgba(0,0,0,0.8)' }}>
+                                        {analysisData?.score || 0}
+                                        <span className="text-xl text-zeniac-white dark:text-gray-500" style={{ WebkitTextStroke: '0px' }}>/100</span>
+                                    </div>
+                                    <div className="text-xs uppercase tracking-widest text-zeniac-white dark:text-gray-400">Digital Health Score</div>
+                                    <div className="mt-4 text-xs text-red-400 dark:text-red-300 bg-red-500/10 dark:bg-red-900/20 px-3 py-1 rounded-full font-bold" style={{ WebkitTextStroke: '0.3px rgba(0,0,0,0.6)' }}>
                                         Tech Stack: {analysisData?.techStack || "Unknown"}
                                     </div>
                                 </div>
-                                <div className="bg-white/5 border border-white/10 rounded-xl p-6 relative overflow-hidden">
-                                    <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Competitor Landscape</h4>
+                                <div className="bg-zeniac-white/5 border border-zeniac-white/10 rounded-xl p-6 relative overflow-hidden">
+                                    <h4 className="text-sm font-bold text-zeniac-white dark:text-gray-400 uppercase tracking-widest mb-4">Competitor Landscape</h4>
                                     <div className="space-y-3">
                                         <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-300">You</span>
+                                            <span className="text-zeniac-white dark:text-gray-300">You</span>
                                             <div className="w-24 h-2 bg-red-500/30 rounded-full overflow-hidden">
                                                 <div className="h-full bg-red-500" style={{ width: `${(analysisData?.score || 42) * 0.8}%` }} />
                                             </div>
                                         </div>
                                         <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-300">Rival A</span>
-                                            <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
-                                                <div className="h-full bg-gray-400 w-[78%]" />
+                                            <span className="text-zeniac-white dark:text-gray-300">Rival A</span>
+                                            <div className="w-24 h-2 bg-zeniac-white/10 rounded-full overflow-hidden">
+                                                <div className="h-full bg-zeniac-white dark:bg-gray-400 w-[78%]" />
                                             </div>
                                         </div>
                                         <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-300">Rival B</span>
-                                            <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
+                                            <span className="text-zeniac-white dark:text-gray-300">Rival B</span>
+                                            <div className="w-24 h-2 bg-zeniac-white/10 rounded-full overflow-hidden">
                                                 <div className="h-full bg-zeniac-gold w-[91%]" />
                                             </div>
                                         </div>
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-4 italic">
+                                    <p className="text-xs text-zeniac-white dark:text-gray-500 mt-4 italic">
                                         "Competitors are currently capturing {analysisData?.competitorGap || "high"} search traffic."
                                     </p>
                                 </div>
                             </div>
-                            <div className="bg-white/5 border border-white/10 rounded-lg p-4 mt-6">
-                                <h5 className="text-white font-bold text-sm mb-2">Identify Business Profile</h5>
+                            <div className="bg-zeniac-white/5 border border-zeniac-white/10 rounded-lg p-4 mt-6">
+                                <h5 className="text-zeniac-white font-bold text-sm mb-2">Identify Business Profile</h5>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
-                                        <span className="text-gray-500 text-xs uppercase">Type</span>
-                                        <p className="text-gray-300">{analysisData?.businessType || "Scanning..."}</p>
+                                        <span className="text-zeniac-white/80 dark:text-gray-500 text-xs uppercase font-bold">Type</span>
+                                        <p className="text-zeniac-white dark:text-gray-300">{analysisData?.businessType || "Scanning..."}</p>
                                     </div>
                                     <div>
-                                        <span className="text-gray-500 text-xs uppercase">Location</span>
-                                        <p className="text-gray-300">{analysisData?.location || "Global/Unknown"}</p>
+                                        <span className="text-zeniac-white/80 dark:text-gray-500 text-xs uppercase font-bold">Location</span>
+                                        <p className="text-zeniac-white dark:text-gray-300">{analysisData?.location || "Global/Unknown"}</p>
                                     </div>
                                     <div className="col-span-2">
-                                        <span className="text-gray-500 text-xs uppercase">Core Services</span>
-                                        <p className="text-gray-300">{analysisData?.services?.join(", ") || "Detecting..."}</p>
+                                        <span className="text-zeniac-white/80 dark:text-gray-500 text-xs uppercase font-bold">Core Services</span>
+                                        <p className="text-zeniac-white dark:text-gray-300">{analysisData?.services?.join(", ") || "Detecting..."}</p>
                                     </div>
                                 </div>
                             </div>
@@ -583,13 +586,13 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                 <Button
                                     variant="outline"
                                     onClick={() => closeWizard()}
-                                    className="flex-1 border-white/10 hover:bg-white/5 text-gray-400 order-2 sm:order-1"
+                                    className="flex-1 border-zeniac-white/20 hover:bg-zeniac-white/5 text-zeniac-white/80 dark:text-gray-400 order-2 sm:order-1"
                                 >
                                     Close
                                 </Button>
                                 <Button
                                     onClick={handleNext}
-                                    className="flex-[2] bg-zeniac-gold text-black hover:bg-zeniac-gold/90 font-bold order-1 sm:order-2"
+                                    className="flex-[2] bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-bold order-1 sm:order-2 shadow-[0_0_15px_rgba(212,175,55,0.4)] animate-[pulse_2s_ease-in-out_infinite]"
                                 >
                                     Preview Full Report
                                 </Button>
@@ -603,13 +606,13 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                 title="Report Preview"
                                 subtitle="Review your strategic roadmap before downloading."
                             />
-                            <div className="mt-4 border border-white/10 rounded-lg p-1 bg-white/5 h-[300px] md:h-[450px] overflow-hidden relative group flex items-center justify-center">
+                            <div className="mt-4 border border-zeniac-white/10 rounded-lg p-1 bg-zeniac-white/5 h-[300px] md:h-[450px] overflow-hidden relative group flex items-center justify-center">
                                 {generatingPdf ? (
                                     <div className="flex flex-col items-center justify-center h-full text-zeniac-gold animate-pulse gap-6">
                                         <Loader2 className="w-16 h-16 animate-spin" />
                                         <div className="text-center space-y-2">
                                             <div className="text-xl font-mono uppercase tracking-widest font-bold">Generating Report</div>
-                                            <p className="text-sm text-gray-400">Compiling 18-page strategic analysis...</p>
+                                            <p className="text-sm text-zeniac-white/80 dark:text-gray-400">Compiling 18-page strategic analysis...</p>
                                         </div>
                                     </div>
                                 ) : previewUrl ? (
@@ -635,8 +638,8 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <h4 className="text-xl font-mono font-bold text-white uppercase tracking-tight">Intelligence Report</h4>
-                                                    <p className="text-sm text-zeniac-gray font-mono">18-Page Comprehensive Analysis Generated</p>
+                                                    <h4 className="text-xl font-mono font-bold text-white dark:text-white uppercase tracking-tight">Intelligence Report</h4>
+                                                    <p className="text-sm text-white/80 font-mono">18-Page Comprehensive Analysis Generated</p>
                                                 </div>
                                                 <div className="w-full h-px bg-gradient-to-r from-transparent via-zeniac-gold/30 to-transparent" />
                                                 <div className="space-y-4 w-full">
@@ -649,11 +652,11 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                                             a.click();
                                                             document.body.removeChild(a);
                                                         }}
-                                                        className="w-full bg-zeniac-gold text-black hover:bg-white transition-all duration-300 font-mono font-bold py-6 text-lg shadow-[0_0_20px_rgba(212,175,55,0.3)] gap-2"
+                                                        className="w-full bg-zeniac-gold text-zeniac-black hover:bg-white transition-all duration-300 font-mono font-bold py-6 text-lg shadow-[0_0_20px_rgba(212,175,55,0.7)] animate-[pulse_2s_ease-in-out_infinite] gap-2"
                                                     >
                                                         TAP TO VIEW REPORT <ExternalLink className="w-4 h-4" />
                                                     </Button>
-                                                    <p className="text-[10px] text-zeniac-gray/60 font-mono uppercase tracking-[0.2em]">
+                                                    <p className="text-[10px] text-white/60 font-mono uppercase tracking-[0.2em]">
                                                         Optimized for full-screen viewing
                                                     </p>
                                                 </div>
@@ -662,12 +665,12 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center gap-4 text-center p-4">
-                                        <p className="text-red-400">Preview Failed to Load</p>
+                                        <p className="text-red-500 font-bold" style={{ WebkitTextStroke: '0.2px rgba(0,0,0,0.5)' }}>Preview Failed to Load</p>
                                         <Button
                                             variant="outline"
                                             onClick={() => window.open(previewUrl || '', '_blank')}
                                             disabled={!previewUrl}
-                                            className="text-white border-white/20"
+                                            className="text-zeniac-white border-zeniac-white/20 hover:bg-zeniac-white/10"
                                         >
                                             View Full Report <ArrowRight className="ml-2 w-4 h-4" />
                                         </Button>
@@ -678,7 +681,7 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                 <Button
                                     variant="outline"
                                     onClick={() => setStep("details")}
-                                    className="flex-1 border-white/10 hover:bg-white/5 text-gray-400 order-3 sm:order-1"
+                                    className="flex-1 border-zeniac-white/20 hover:bg-zeniac-white/5 text-zeniac-white/80 dark:text-gray-400 order-3 sm:order-1"
                                 >
                                     Iterate / Edit
                                 </Button>
@@ -694,13 +697,13 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                         }
                                     }}
                                     disabled={!previewUrl}
-                                    className="flex-1 bg-white/10 hover:bg-white/20 text-white order-2 sm:order-2"
+                                    className="flex-1 bg-zeniac-white/10 hover:bg-zeniac-white/20 text-zeniac-white order-2 sm:order-2"
                                 >
                                     Download PDF
                                 </Button>
                                 <Button
                                     onClick={handleNext}
-                                    className="flex-1 bg-zeniac-gold text-black hover:bg-zeniac-gold/90 font-bold order-1 sm:order-3"
+                                    className="flex-1 bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-bold order-1 sm:order-3 shadow-[0_0_15px_rgba(212,175,55,0.4)] animate-[pulse_2s_ease-in-out_infinite]"
                                 >
                                     Email Report
                                 </Button>
@@ -716,10 +719,10 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                             />
                             <div className="space-y-6 mt-8 max-w-md mx-auto w-full">
                                 <div className="space-y-2">
-                                    <Label>Email Address</Label>
+                                    <Label className="text-zeniac-white font-bold">Email Address</Label>
                                     <Input
                                         type="email"
-                                        className="bg-white/5 border-white/10 focus:border-zeniac-gold text-lg py-6 relative z-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="bg-zeniac-white/5 border-zeniac-white/20 focus:border-zeniac-gold text-zeniac-white text-lg py-6 relative z-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                         placeholder="ceo@company.com"
                                         value={formData.email}
                                         onChange={(e) => {
@@ -730,7 +733,7 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                         autoComplete="email"
                                     />
                                     {sendError && (
-                                        <p className="text-xs text-red-500 mt-2 font-mono uppercase">
+                                        <p className="text-xs text-red-500 mt-2 font-mono font-bold uppercase" style={{ WebkitTextStroke: '0.2px rgba(0,0,0,0.5)' }}>
                                             ⚠️ {sendError}
                                         </p>
                                     )}
@@ -739,7 +742,7 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                     <Button
                                         onClick={handleNext}
                                         size="lg"
-                                        className="w-full bg-zeniac-gold text-black hover:bg-zeniac-gold/90 font-bold h-14"
+                                        className="w-full bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-bold h-14 shadow-[0_0_15px_rgba(212,175,55,0.4)] animate-[pulse_2s_ease-in-out_infinite]"
                                         disabled={!formData.email.includes("@") || isSending}
                                     >
                                         {isSending ? (
@@ -752,7 +755,7 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                         )}
                                     </Button>
                                 </div>
-                                <p className="text-xs text-center text-gray-500 mt-4 leading-relaxed">
+                                <p className="text-xs text-center text-zeniac-white/80 dark:text-gray-500 mt-4 leading-relaxed">
                                     This report includes the complete Architecture Overhaul plan.<br />
                                     Check your spam folder if it doesn't arrive in 2 minutes.
                                 </p>
@@ -766,18 +769,18 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                 <div className="p-4 rounded-full bg-green-500/10 border border-green-500/20 mb-4 animate-in zoom-in duration-500">
                                     <Check className="w-12 h-12 text-green-500" />
                                 </div>
-                                <h2 className="text-3xl font-mono font-bold text-white">
+                                <h2 className="text-3xl font-mono font-bold text-zeniac-white">
                                     Sent.
                                 </h2>
-                                <p className="text-gray-400">
+                                <p className="text-zeniac-white/80 dark:text-gray-400">
                                     Check your inbox for a document titled <strong>&quot;Zeniac_Intelligence_Report.pdf&quot;</strong>.
                                 </p>
-                                <div className="bg-white/5 p-6 rounded-lg border border-white/10 w-full mt-6 space-y-4">
+                                <div className="bg-zeniac-white/5 p-6 rounded-lg border border-zeniac-white/10 w-full mt-6 space-y-4">
                                     <div className="flex items-start gap-3">
                                         <div className="w-5 h-5 rounded-full bg-zeniac-gold/20 flex items-center justify-center shrink-0 mt-0.5">
                                             <span className="text-zeniac-gold text-xs font-bold">1</span>
                                         </div>
-                                        <p className="text-sm text-gray-300">
+                                        <p className="text-sm text-zeniac-white/80 dark:text-gray-300">
                                             Check your <strong>Spam/Junk</strong> folder if it doesn&apos;t appear in 1-2 minutes.
                                         </p>
                                     </div>
@@ -785,7 +788,7 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                         <div className="w-5 h-5 rounded-full bg-zeniac-gold/20 flex items-center justify-center shrink-0 mt-0.5">
                                             <span className="text-zeniac-gold text-xs font-bold">2</span>
                                         </div>
-                                        <p className="text-sm text-gray-300">
+                                        <p className="text-sm text-zeniac-white/80 dark:text-gray-300">
                                             Mark it as <strong>&quot;Not Spam&quot;</strong> to ensure you receive future competitive updates.
                                         </p>
                                     </div>
@@ -800,7 +803,7 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                                 website: formData.website
                                             });
                                         }}
-                                        className="bg-zeniac-gold text-black hover:bg-zeniac-gold/90 font-bold h-12"
+                                        className="bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-bold h-12 shadow-[0_0_15px_rgba(212,175,55,0.4)] animate-[pulse_2s_ease-in-out_infinite]"
                                     >
                                         BOOK STRATEGY CALL <ArrowRight className="ml-2 w-4 h-4" />
                                     </Button>
@@ -842,7 +845,7 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                     <Button
                                         onClick={() => closeWizard()}
                                         variant="ghost"
-                                        className="text-gray-400 hover:text-white"
+                                        className="text-zeniac-white/80 dark:text-gray-400 hover:text-zeniac-white mt-4"
                                     >
                                         Return to Site
                                     </Button>
@@ -874,8 +877,8 @@ function StepContainer({ children }: { children: React.ReactNode }) {
 function WizardHeader({ title, subtitle }: { title: string, subtitle: string }) {
     return (
         <div className="text-center space-y-2">
-            <h3 className="text-2xl md:text-3xl font-bold font-typewriter text-white">{title}</h3>
-            <p className="text-gray-400 text-sm md:text-base">{subtitle}</p>
+            <h3 className="text-2xl md:text-3xl font-bold font-typewriter text-zeniac-white">{title}</h3>
+            <p className="text-zeniac-white/80 dark:text-gray-400 text-sm md:text-base">{subtitle}</p>
         </div>
     );
 }

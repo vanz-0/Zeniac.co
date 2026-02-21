@@ -185,7 +185,7 @@ export default function RadialOrbitalTimeline({
 
     return (
         <div
-            className="w-full min-h-[800px] flex flex-col items-center justify-center bg-zinc-200/60 dark:bg-transparent relative overflow-hidden"
+            className="w-full min-h-[800px] flex flex-col items-center justify-center bg-zinc-200/90 dark:bg-zeniac-black relative overflow-hidden"
             ref={containerRef}
             onClick={handleContainerClick}
         >
@@ -300,9 +300,10 @@ export default function RadialOrbitalTimeline({
                                             className={`
                   absolute top-20 left-1/2 -translate-x-1/2 whitespace-nowrap
                   text-xs font-mono font-bold tracking-wider
-                  transition-all duration-300 bg-black/50 px-2 py-1 rounded
-                  ${isExpanded ? "text-zeniac-gold scale-110" : "text-white/60"}
+                  transition-all duration-300 bg-black/50 dark:bg-black/50 px-2 py-1 rounded
+                  ${isExpanded ? "text-zeniac-gold scale-110" : "text-white/80 dark:text-white/60"}
                 `}
+                                            style={{ WebkitTextStroke: mounted && theme === 'light' ? '0.2px rgba(0,0,0,0.5)' : 'none' }}
                                         >
                                             {item.title}
                                         </div>
@@ -323,7 +324,7 @@ export default function RadialOrbitalTimeline({
                             >
                                 <div className="pointer-events-auto">
                                     <Card
-                                        className="w-[280px] sm:w-[320px] rounded-none border border-white/10 bg-zeniac-charcoal/80 backdrop-blur-md shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in duration-300 relative overflow-hidden"
+                                        className="w-[280px] sm:w-[320px] rounded-none border border-black/10 dark:border-white/10 bg-white/95 dark:bg-zeniac-charcoal/80 backdrop-blur-md shadow-[0_0_50px_rgba(0,0,0,0.4)] dark:shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in duration-300 relative overflow-hidden"
                                         onClick={(e) => e.stopPropagation()}
                                     >
                                         {/* Texture from BentoGrid */}
@@ -348,15 +349,15 @@ export default function RadialOrbitalTimeline({
                                                     {item.status.toUpperCase().replace("-", " ")}
                                                 </Badge>
                                             </div>
-                                            <CardTitle className="text-2xl md:text-3xl text-zeniac-white font-mono tracking-tight">
+                                            <CardTitle className="text-2xl md:text-3xl text-zeniac-black dark:text-zeniac-white font-mono tracking-tight">
                                                 {item.title}
                                             </CardTitle>
-                                            <span className="text-xs font-mono text-zeniac-gold/70 tracking-widest uppercase block mt-1">
+                                            <span className="text-xs font-mono text-zeniac-gold tracking-widest uppercase block mt-1">
                                                 {item.date}
                                             </span>
                                         </CardHeader>
                                         <CardContent className="pt-6 text-center">
-                                            <p className="leading-relaxed mb-6 text-gray-300 text-sm md:text-base">
+                                            <p className="leading-relaxed mb-6 text-black/80 dark:text-gray-300 text-sm md:text-base font-medium">
                                                 {item.content}
                                             </p>
 
@@ -377,10 +378,10 @@ export default function RadialOrbitalTimeline({
                                             </div>
 
                                             {item.relatedIds.length > 0 && (
-                                                <div className="mt-6 pt-4 border-t border-white/10">
+                                                <div className="mt-6 pt-4 border-t border-black/10 dark:border-white/10">
                                                     <div className="flex items-center justify-center mb-3">
-                                                        <Link size={12} className="text-white/50 mr-2" />
-                                                        <h4 className="text-[10px] uppercase tracking-wider font-bold text-white/50">
+                                                        <Link size={12} className="text-black/50 dark:text-white/50 mr-2" />
+                                                        <h4 className="text-[10px] uppercase tracking-wider font-bold text-black/50 dark:text-white/50">
                                                             Linked Modules
                                                         </h4>
                                                     </div>

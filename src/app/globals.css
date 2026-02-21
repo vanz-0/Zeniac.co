@@ -26,10 +26,6 @@
   --color-zeniac-white: var(--zeniac-white);
   --color-zeniac-charcoal: var(--zeniac-charcoal);
 
-  /* Override default white/black to automatically invert on theme toggle */
-  --color-white: var(--zeniac-white);
-  --color-black: var(--zeniac-black);
-
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
