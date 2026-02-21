@@ -614,43 +614,51 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                     </div>
                                 ) : previewUrl ? (
                                     <div className="w-full h-full relative">
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center h-full gap-6 p-8 text-center bg-gradient-to-b from-black/60 to-black/90">
-                                            <div className="relative">
-                                                <div className="w-24 h-24 rounded-full bg-zeniac-gold/10 flex items-center justify-center border border-zeniac-gold/20">
-                                                    <FileText className="w-12 h-12 text-zeniac-gold animate-bounce" />
+                                        {/* Desktop Preview: Iframe */}
+                                        {!isMobile && (
+                                            <iframe
+                                                src={previewUrl}
+                                                className="w-full h-full rounded bg-white"
+                                                title="Report Preview"
+                                            />
+                                        )}
+
+                                        {/* Mobile Preview: Tap to Download */}
+                                        {isMobile && (
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center h-full gap-6 p-8 text-center bg-gradient-to-b from-black/60 to-black/90">
+                                                <div className="relative">
+                                                    <div className="w-24 h-24 rounded-full bg-zeniac-gold/10 flex items-center justify-center border border-zeniac-gold/20">
+                                                        <FileText className="w-12 h-12 text-zeniac-gold animate-bounce" />
+                                                    </div>
+                                                    <div className="absolute -top-2 -right-2 bg-zeniac-gold text-black text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg">
+                                                        READY
+                                                    </div>
                                                 </div>
-                                                <div className="absolute -top-2 -right-2 bg-zeniac-gold text-black text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg">
-                                                    READY
+                                                <div className="space-y-2">
+                                                    <h4 className="text-xl font-mono font-bold text-white uppercase tracking-tight">Intelligence Report</h4>
+                                                    <p className="text-sm text-zeniac-gray font-mono">18-Page Comprehensive Analysis Generated</p>
                                                 </div>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <h4 className="text-xl font-mono font-bold text-white uppercase tracking-tight">Intelligence Report</h4>
-                                                <p className="text-sm text-zeniac-gray font-mono">18-Page Comprehensive Analysis Generated</p>
-                                            </div>
-                                            <div className="w-full h-px bg-gradient-to-r from-transparent via-zeniac-gold/30 to-transparent" />
-                                            <div className="space-y-4 w-full">
-                                                <Button
-                                                    onClick={() => {
-                                                        if (isMobile) {
+                                                <div className="w-full h-px bg-gradient-to-r from-transparent via-zeniac-gold/30 to-transparent" />
+                                                <div className="space-y-4 w-full">
+                                                    <Button
+                                                        onClick={() => {
                                                             const a = document.createElement("a");
                                                             a.href = previewUrl;
                                                             a.download = `Zeniac_Intelligence_Report_${formData.website.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
                                                             document.body.appendChild(a);
                                                             a.click();
                                                             document.body.removeChild(a);
-                                                        } else {
-                                                            window.open(previewUrl, '_blank');
-                                                        }
-                                                    }}
-                                                    className="w-full bg-zeniac-gold text-black hover:bg-white transition-all duration-300 font-mono font-bold py-6 text-lg shadow-[0_0_20px_rgba(212,175,55,0.3)] gap-2"
-                                                >
-                                                    TAP TO VIEW REPORT <ExternalLink className="w-4 h-4" />
-                                                </Button>
-                                                <p className="text-[10px] text-zeniac-gray/60 font-mono uppercase tracking-[0.2em]">
-                                                    Optimized for full-screen viewing
-                                                </p>
+                                                        }}
+                                                        className="w-full bg-zeniac-gold text-black hover:bg-white transition-all duration-300 font-mono font-bold py-6 text-lg shadow-[0_0_20px_rgba(212,175,55,0.3)] gap-2"
+                                                    >
+                                                        TAP TO VIEW REPORT <ExternalLink className="w-4 h-4" />
+                                                    </Button>
+                                                    <p className="text-[10px] text-zeniac-gray/60 font-mono uppercase tracking-[0.2em]">
+                                                        Optimized for full-screen viewing
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center gap-4 text-center p-4">

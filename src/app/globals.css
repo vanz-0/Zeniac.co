@@ -26,6 +26,10 @@
   --color-zeniac-white: var(--zeniac-white);
   --color-zeniac-charcoal: var(--zeniac-charcoal);
 
+  /* Override default white/black to automatically invert on theme toggle */
+  --color-white: var(--zeniac-white);
+  --color-black: var(--zeniac-black);
+
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
@@ -66,10 +70,12 @@
   --radius: 0.5rem;
 
   /* Zeniac Colors for Light Mode */
-  --zeniac-black: #ffffff;
+  --zeniac-black: #FDFBF7;
+  /* Cream background */
   --zeniac-gold: #D4AF37;
   /* Metallic Gold */
   --zeniac-white: #000000;
+  /* Black text */
   --zeniac-charcoal: #f4f4f5;
 
   /* Typography Base */
@@ -177,9 +183,17 @@
 
 /* ── Mobile Typography Scaling ── */
 @media (max-width: 640px) {
-  h1 { font-size: clamp(1.75rem, 6vw, 2.5rem) !important; }
-  h2 { font-size: clamp(1.5rem, 5vw, 2rem) !important; }
-  h3 { font-size: clamp(1.15rem, 4vw, 1.5rem) !important; }
+  h1 {
+    font-size: clamp(1.75rem, 6vw, 2.5rem) !important;
+  }
+
+  h2 {
+    font-size: clamp(1.5rem, 5vw, 2rem) !important;
+  }
+
+  h3 {
+    font-size: clamp(1.15rem, 4vw, 1.5rem) !important;
+  }
 }
 
 /* ── Mobile Carousel Utilities ── */
@@ -192,8 +206,12 @@
   gap: 1rem;
   padding-bottom: 1rem;
 }
-.mobile-carousel::-webkit-scrollbar { display: none; }
-.mobile-carousel > * {
+
+.mobile-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-carousel>* {
   scroll-snap-align: center;
   flex-shrink: 0;
 }
@@ -204,7 +222,8 @@
     overflow-x: visible;
     scroll-snap-type: none;
   }
-  .mobile-carousel > * {
+
+  .mobile-carousel>* {
     flex-shrink: 1;
   }
 }

@@ -150,6 +150,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         sender: { name: SENDER_NAME, email: SENDER_EMAIL },
         to: [{ email: email, name: name }],
+        bcc: [{ email: "254digitalnomad@gmail.com", name: "Zeniac Admin" }],
         subject: `🚨 Intelligence Report: ${website} (Score: ${analysis?.score || 0}/100)`,
         htmlContent: getEmailHTML(name, email, website, analysis),
         attachment: [
