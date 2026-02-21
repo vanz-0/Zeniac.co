@@ -101,7 +101,7 @@ export function Pricing({ onOpenBooking }: { onOpenBooking?: (data?: any) => voi
             <div className="container px-4 md:px-6 mx-auto relative z-10">
                 <div className="text-center max-w-3xl mx-auto mb-12">
                     <h2 className="text-3xl md:text-5xl font-typewriter font-black text-zeniac-white mb-6">
-                        INVEST IN <span className="text-zeniac-gold">DOMINANCE</span>
+                        INVEST IN <span className="text-zeniac-gold" style={{ WebkitTextStroke: '0.5px rgba(0,0,0,0.5)' }}>DOMINANCE</span>
                     </h2>
                     <p className="text-muted-foreground font-mono text-lg mb-10">
                         Contract-based pricing determined by your specific goals. No hidden fees, just results.
@@ -123,7 +123,7 @@ export function Pricing({ onOpenBooking }: { onOpenBooking?: (data?: any) => voi
                     </div>
                 </div>
 
-                <div className="mobile-carousel md:flex md:flex-wrap md:justify-center gap-6 max-w-7xl mx-auto mb-16">
+                <div className="mobile-carousel md:grid md:grid-cols-2 lg:grid-cols-4 items-stretch gap-6 max-w-7xl mx-auto mb-16">
                     {tiers.map((tier) => (
                         <motion.div
                             key={tier.id}

@@ -373,8 +373,10 @@ export function Portfolio() {
                 {/* 2. Mobile: horizontal carousel. Desktop: symmetric 3x2 grid */}
                 <div className="mobile-carousel md:grid md:grid-cols-3 gap-6">
                     {/* Item 1: Search Dominance */}
-                    <div className="w-[85vw] md:w-auto bg-zinc-900/30 border border-white/5 rounded-2xl overflow-hidden h-full min-h-[400px] flex flex-col">
-                        <SearchDominance />
+                    <div className="w-[85vw] md:w-auto bg-zinc-900/30 border border-white/5 rounded-2xl overflow-hidden h-full min-h-[400px] flex flex-col relative">
+                        <div className="absolute inset-0">
+                            <SearchDominance />
+                        </div>
                     </div>
 
                     {/* Item 2: Deliverables */}
@@ -403,6 +405,6 @@ export function Portfolio() {
                     </div>
                 </div>
             </div>
-        </section>
+        </section >
     );
 }

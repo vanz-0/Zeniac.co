@@ -174,7 +174,7 @@ export function DominanceVault() {
                         transition={{ delay: 0.1 }}
                         className="text-3xl md:text-5xl font-typewriter font-black text-zeniac-white mb-4 uppercase"
                     >
-                        THE <span className="text-zeniac-gold">DOMINANCE</span> VAULT
+                        THE <span className="text-zeniac-gold" style={{ WebkitTextStroke: '0.5px rgba(0,0,0,0.5)' }}>DOMINANCE</span> VAULT
                     </motion.h2>
 
                     <motion.p
