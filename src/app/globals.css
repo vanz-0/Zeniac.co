@@ -66,13 +66,13 @@
   --radius: 0.5rem;
 
   /* Zeniac Colors for Light Mode */
-  --zeniac-black: #FDFBF7;
-  /* Cream background */
+  --zeniac-black: #f4f4f5;
+  /* Semi-grey background */
   --zeniac-gold: #D4AF37;
   /* Metallic Gold */
   --zeniac-white: #000000;
   /* Black text */
-  --zeniac-charcoal: #f4f4f5;
+  --zeniac-charcoal: #e4e4e7;
 
   /* Typography Base */
   font-size: 14px;

@@ -209,7 +209,7 @@ export function DominanceVault() {
                                 "px-4 py-2 text-[10px] font-mono uppercase tracking-widest border transition-all duration-300",
                                 activeCategory === cat
                                     ? "border-zeniac-gold bg-zeniac-gold/10 text-zeniac-gold"
-                                    : "border-white/10 text-white/40 hover:border-white/30 hover:text-white/70"
+                                    : "border-black/10 text-black/40 dark:border-white/10 dark:text-white/40 hover:border-black/30 hover:text-black/70 dark:hover:border-white/30 dark:hover:text-white/70"
                             )}
                         >
                             {cat}
@@ -232,13 +232,13 @@ export function DominanceVault() {
                                 key={tool.name}
                                 className={cn(
                                     "group relative flex flex-col items-center justify-center p-5 border transition-all duration-300 cursor-default aspect-square",
-                                    "bg-zeniac-charcoal/30",
-                                    "border-white/10 hover:border-zeniac-gold/50 hover:shadow-[0_0_30px_rgba(255,215,0,0.08)] hover:-translate-y-1"
+                                    "bg-black/5 dark:bg-zeniac-charcoal/30",
+                                    "border-black/5 dark:border-white/10 hover:border-zeniac-gold/50 dark:hover:border-zeniac-gold/50 hover:shadow-[0_0_30px_rgba(255,215,0,0.15)] dark:hover:shadow-[0_0_30px_rgba(255,215,0,0.08)] hover:-translate-y-1"
                                 )}
                             >
                                 {/* Lock/unlock icon overlay */}
                                 <div className="absolute top-2 right-2">
-                                    <Lock className="w-3 h-3 text-white/20 group-hover:hidden" />
+                                    <Lock className="w-3 h-3 text-black/20 dark:text-white/20 group-hover:hidden" />
                                     <Unlock className="w-3 h-3 text-zeniac-gold/60 hidden group-hover:block" />
                                 </div>
 
@@ -252,19 +252,19 @@ export function DominanceVault() {
                                 {/* Tool Visual — category-colored gradient */}
                                 <div className="mb-3 transition-transform duration-300 group-hover:scale-110">
                                     <div className={cn(
-                                        "w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br border border-white/10 transition-colors duration-300 group-hover:border-zeniac-gold/50",
+                                        "w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br border border-black/10 dark:border-white/10 transition-colors duration-300 group-hover:border-zeniac-gold/50",
                                         gradient
                                     )}>
-                                        <Icon className="w-5 h-5 text-white/40 transition-colors duration-300 group-hover:text-zeniac-gold" />
+                                        <Icon className="w-5 h-5 text-black/40 dark:text-white/40 transition-colors duration-300 group-hover:text-zeniac-gold" />
                                     </div>
                                 </div>
 
-                                <span className="text-[10px] font-mono text-center uppercase tracking-wide leading-tight transition-colors duration-300 text-white/40 group-hover:text-zeniac-white">
+                                <span className="text-[10px] font-mono text-center uppercase tracking-wide leading-tight transition-colors duration-300 text-black/60 dark:text-white/40 group-hover:text-black dark:group-hover:text-zeniac-white">
                                     {tool.name}
                                 </span>
 
                                 {/* Category tag */}
-                                <span className="mt-2 text-[8px] font-mono uppercase px-2 py-0.5 border transition-all duration-300 border-white/5 text-white/20 group-hover:border-zeniac-gold/30 group-hover:text-zeniac-gold/60">
+                                <span className="mt-2 text-[8px] font-mono uppercase px-2 py-0.5 border transition-all duration-300 border-black/10 dark:border-white/5 text-black/50 dark:text-white/20 group-hover:border-zeniac-gold/50 dark:group-hover:border-zeniac-gold/30 group-hover:text-zeniac-gold dark:group-hover:text-zeniac-gold/60">
                                     {tool.category}
                                 </span>
 
@@ -384,13 +384,13 @@ export function DominanceVault() {
                             {process.env.NODE_ENV === "development" && (
                                 <button
                                     onClick={() => setShowSurvey(true)}
-                                    className="w-full mt-4 py-2 border border-dashed border-white/20 text-[10px] font-mono text-white/30 hover:text-zeniac-gold hover:border-zeniac-gold/50 transition-all uppercase tracking-widest"
+                                    className="w-full mt-4 py-2 border border-dashed border-black/20 dark:border-white/20 text-[10px] font-mono text-black/40 dark:text-white/30 hover:text-zeniac-gold hover:border-zeniac-gold/50 transition-all uppercase tracking-widest"
                                 >
                                     Developer: Skip Payment (Test Mode)
                                 </button>
                             )}
 
-                            <p className="text-[10px] font-mono text-white/30 mt-3">
+                            <p className="text-[10px] font-mono text-black/40 dark:text-white/30 mt-3">
                                 Backed by our 100% satisfaction guarantee
                             </p>
                         </div>
@@ -492,10 +492,10 @@ export function VaultPopup() {
                                     return (
                                         <div
                                             key={tool.name}
-                                            className="flex flex-col items-center p-2 border border-white/5 bg-white/[0.02]"
+                                            className="flex flex-col items-center p-2 border border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]"
                                         >
-                                            <Icon className="w-4 h-4 text-white/30 mb-1" />
-                                            <span className="text-[7px] font-mono text-white/30 text-center leading-tight truncate w-full">
+                                            <Icon className="w-4 h-4 text-black/30 dark:text-white/30 mb-1" />
+                                            <span className="text-[7px] font-mono text-black/50 dark:text-white/30 text-center leading-tight truncate w-full">
                                                 {tool.name}
                                             </span>
                                         </div>
@@ -503,7 +503,7 @@ export function VaultPopup() {
                                 })}
                             </div>
 
-                            <p className="text-center text-[10px] font-mono text-white/40 mb-4">
+                            <p className="text-center text-[10px] font-mono text-black/40 dark:text-white/40 mb-4">
                                 ...and 12 more tools
                             </p>
 

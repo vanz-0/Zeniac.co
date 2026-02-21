@@ -185,7 +185,7 @@ export default function RadialOrbitalTimeline({
 
     return (
         <div
-            className="w-full min-h-[800px] flex flex-col items-center justify-center bg-zinc-200/90 dark:bg-zeniac-black relative overflow-hidden"
+            className="w-full min-h-[800px] flex flex-col items-center justify-center bg-zeniac-black relative overflow-hidden"
             ref={containerRef}
             onClick={handleContainerClick}
         >
@@ -225,8 +225,8 @@ export default function RadialOrbitalTimeline({
                         } as React.CSSProperties}
                     >
 
-                        <div className={`absolute w-[480px] h-[480px] rounded-full border border-white/5 border-dashed ${autoRotate ? 'animate-spin-slow' : ''}`} style={{ animationDuration: "60s" }}></div>
-                        <div className="absolute w-[600px] h-[600px] rounded-full border border-white/5 opacity-30"></div>
+                        <div className={`absolute w-[480px] h-[480px] rounded-full border border-black/5 dark:border-white/5 border-dashed ${autoRotate ? 'animate-spin-slow' : ''}`} style={{ animationDuration: "60s" }}></div>
+                        <div className="absolute w-[600px] h-[600px] rounded-full border border-black/5 dark:border-white/5 opacity-30"></div>
 
                         {timelineData.map((item, index) => {
                             const position = calculateNodePosition(index, timelineData.length);
@@ -286,7 +286,7 @@ export default function RadialOrbitalTimeline({
                                                     ? "border-zeniac-gold shadow-[0_0_20px_rgba(255,215,0,0.5)]"
                                                     : isRelated
                                                         ? "border-zeniac-gold animate-pulse"
-                                                        : "border-white/10"
+                                                        : "border-black/10 dark:border-white/10"
                                                 }
                   transition-all duration-300 transform
                   ${isExpanded ? "scale-125" : "hover:scale-110 hover:border-zeniac-gold/50"}
@@ -300,10 +300,9 @@ export default function RadialOrbitalTimeline({
                                             className={`
                   absolute top-20 left-1/2 -translate-x-1/2 whitespace-nowrap
                   text-xs font-mono font-bold tracking-wider
-                  transition-all duration-300 bg-black/50 dark:bg-black/50 px-2 py-1 rounded
-                  ${isExpanded ? "text-zeniac-gold scale-110" : "text-white/80 dark:text-white/60"}
+                  transition-all duration-300 bg-white/50 dark:bg-black/50 backdrop-blur-md px-2 py-1 border border-black/10 dark:border-white/10 rounded
+                  ${isExpanded ? "text-zeniac-gold scale-110" : "text-black/80 dark:text-white/60"}
                 `}
-                                            style={{ WebkitTextStroke: mounted && theme === 'light' ? '0.2px rgba(0,0,0,0.5)' : 'none' }}
                                         >
                                             {item.title}
                                         </div>
