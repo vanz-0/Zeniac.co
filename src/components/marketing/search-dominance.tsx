@@ -126,64 +126,66 @@ export function SearchDominance() {
             </div>
 
             {/* Templates List */}
-            <div className="space-y-1 flex-1 overflow-y-auto pr-1 custom-scrollbar">
-                <AnimatePresence mode="popLayout">
-                    {sorted.map((template, idx) => {
-                        const Icon = template.icon;
-                        return (
-                            <Dialog key={template.id}>
-                                <DialogTrigger asChild>
-                                    <motion.button
-                                        layout
-                                        initial={{ opacity: 0, y: 5 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -5 }}
-                                        transition={{ duration: 0.15, delay: idx * 0.02 }}
-                                        className="w-full group flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0 hover:bg-white/5 transition-all text-left px-2 rounded-md"
-                                    >
-                                        {/* Number / Icon */}
-                                        <div className="w-8 h-8 rounded bg-zinc-800 overflow-hidden shrink-0 relative flex items-center justify-center">
-                                            <div className="absolute inset-0 bg-zeniac-gold/5 group-hover:bg-zeniac-gold/10 transition-colors" />
-                                            <Icon className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zeniac-gold transition-colors relative z-10" />
-                                        </div>
-
-                                        {/* Content */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <h4 className="text-xs font-bold text-zinc-300 group-hover:text-zeniac-gold truncate transition-colors">
-                                                    {template.title}
-                                                </h4>
-                                                {sortMode === "popular" && template.popularity >= 85 && (
-                                                    <span className="text-[8px] font-mono text-orange-400 shrink-0">
-                                                        🔥
-                                                    </span>
-                                                )}
+            <div className="flex-1 overflow-y-auto pr-1 min-h-0 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
+                <div className="space-y-1">
+                    <AnimatePresence mode="popLayout">
+                        {sorted.map((template, idx) => {
+                            const Icon = template.icon;
+                            return (
+                                <Dialog key={template.id}>
+                                    <DialogTrigger asChild>
+                                        <motion.button
+                                            layout
+                                            initial={{ opacity: 0, y: 5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -5 }}
+                                            transition={{ duration: 0.15, delay: idx * 0.02 }}
+                                            className="w-full group flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0 hover:bg-white/5 transition-all text-left px-2 rounded-md"
+                                        >
+                                            {/* Number / Icon */}
+                                            <div className="w-8 h-8 rounded bg-zinc-800 overflow-hidden shrink-0 relative flex items-center justify-center">
+                                                <div className="absolute inset-0 bg-zeniac-gold/5 group-hover:bg-zeniac-gold/10 transition-colors" />
+                                                <Icon className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zeniac-gold transition-colors relative z-10" />
                                             </div>
-                                            <p className="text-[9px] text-zinc-500 truncate">
-                                                <span className={cn("uppercase tracking-tighter", tagColors[template.tag] || "text-zinc-500")}>
-                                                    {template.tag}
-                                                </span>
-                                                <span className="mx-1 text-zinc-700">—</span>
-                                                {template.description}
-                                            </p>
-                                        </div>
 
-                                        {/* Download badge */}
-                                        <span className="text-[9px] font-mono text-zinc-600 border border-zinc-800 px-2 py-0.5 rounded-full group-hover:border-zeniac-gold/30 group-hover:text-zeniac-gold transition-colors shrink-0">
-                                            DOWNLOAD
-                                        </span>
-                                    </motion.button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-[425px] bg-zinc-950 border-zinc-900">
-                                    <LeadForm
-                                        serviceId="resource-download"
-                                        resourceName={template.title}
-                                    />
-                                </DialogContent>
-                            </Dialog>
-                        );
-                    })}
-                </AnimatePresence>
+                                            {/* Content */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <h4 className="text-xs font-bold text-zinc-300 group-hover:text-zeniac-gold truncate transition-colors">
+                                                        {template.title}
+                                                    </h4>
+                                                    {sortMode === "popular" && template.popularity >= 85 && (
+                                                        <span className="text-[8px] font-mono text-orange-400 shrink-0">
+                                                            🔥
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[9px] text-zinc-500 truncate">
+                                                    <span className={cn("uppercase tracking-tighter", tagColors[template.tag] || "text-zinc-500")}>
+                                                        {template.tag}
+                                                    </span>
+                                                    <span className="mx-1 text-zinc-700">—</span>
+                                                    {template.description}
+                                                </p>
+                                            </div>
+
+                                            {/* Download badge */}
+                                            <span className="text-[9px] font-mono text-zinc-600 border border-zinc-800 px-2 py-0.5 rounded-full group-hover:border-zeniac-gold/30 group-hover:text-zeniac-gold transition-colors shrink-0">
+                                                DOWNLOAD
+                                            </span>
+                                        </motion.button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-[425px] bg-zinc-950 border-zinc-900">
+                                        <LeadForm
+                                            serviceId="resource-download"
+                                            resourceName={template.title}
+                                        />
+                                    </DialogContent>
+                                </Dialog>
+                            );
+                        })}
+                    </AnimatePresence>
+                </div>
             </div>
 
             {/* Footer count */}

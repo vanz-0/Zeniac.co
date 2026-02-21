@@ -172,6 +172,12 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       console.error('❌ Brevo API Error Status:', response.status);
       console.error('❌ Brevo API Error details:', JSON.stringify(result, null, 2));
+
+      // Specific check for account validation limits
+      if (result.code === 'account_under_validation' || result.message?.includes('validation')) {
+        console.warn('⚠️ BREVO ACCOUNT LIMIT: Account is likely under validation or in Sandbox mode. Emails may only be sent to verified senders.');
+      }
+
       return NextResponse.json({
         error: result.message || `Brevo Error (${response.status})`,
         details: result

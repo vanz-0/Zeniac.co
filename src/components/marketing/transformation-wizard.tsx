@@ -6,11 +6,12 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Activity, ArrowRight, Check, ChevronRight, FileText, Loader2, Search, Trophy, Zap, Minimize2 } from "lucide-react";
+import { Activity, ArrowRight, Check, ChevronRight, FileText, Loader2, Search, Trophy, Zap, Minimize2, ExternalLink } from "lucide-react";
 import { pdf } from '@react-pdf/renderer';
 import { AuditPDF } from '@/components/reports/AuditPDF';
 import { useWizard } from "@/context/wizard-context";
-import { CountingNumber } from "../ui/counting-number"; // Relative import to avoid alias issues
+import { CountingNumber } from "../ui/counting-number";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface WizardProps {
     // open prop is now controlled by context, but we keep the interface for compatibility if needed, 
@@ -43,8 +44,59 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
     const [isForceRefreshing, setIsForceRefreshing] = React.useState(false);
 
     const [queueStatus, setQueueStatus] = React.useState<string | null>(null);
+    const [isWaking, setIsWaking] = React.useState(true);
+    const isMobile = useMediaQuery("(max-width: 768px)");
 
-    // We no longer reset on close inside useEffect because the Context handles it (or doesn't, if minimized)
+    // Initial Warm-up
+    React.useEffect(() => {
+        if (isOpen) {
+            const wakeUp = async () => {
+                try {
+                    await fetch('/api/wake');
+                    // Add a small artificial delay to show the "Initializing" state comfortably
+                    await new Promise(r => setTimeout(r, 1500));
+                } catch (e) {
+                    console.warn("Wake up failed", e);
+                } finally {
+                    setIsWaking(false);
+                }
+            };
+            wakeUp();
+        } else {
+            setIsWaking(true); // Reset for next open
+        }
+    }, [isOpen]);
+
+    // Inactivity Timeout Watchdog
+    React.useEffect(() => {
+        let watchdog: NodeJS.Timeout;
+
+        const resetWatchdog = () => {
+            if (watchdog) clearTimeout(watchdog);
+            if (isOpen && step === "details" && !formData.name && !formData.website) {
+                // Only timeout on details step if empty, to prevent abandoning.
+                // Actually user wanted revert if "stalls". 
+                // Let's set a global inactivity for the wizard if user hasn't typed in 2 mins.
+            }
+        };
+
+        const handleActivity = () => {
+            // simpler approach: just auto-close if on "details" for > 3 minutes?
+            // Or strictly sticky to the user request: "Inactivity timeout"
+        };
+
+        if (isOpen && step !== "processing" && step !== "results") {
+            // specific timeout for "details" step to avoid stalling overlay
+            watchdog = setTimeout(() => {
+                // If still on details after 3 minutes with no progress, close it
+                if (step === "details") {
+                    closeWizard();
+                }
+            }, 180000); // 3 minutes
+        }
+
+        return () => clearTimeout(watchdog);
+    }, [isOpen, step, closeWizard, formData]);
 
     const performAnalysis = async (retryCount = 0, force = false) => {
         try {
@@ -272,7 +324,7 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
 
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-            <DialogContent className="sm:max-w-[700px] w-full sm:w-[95vw] h-full sm:h-auto sm:max-h-[95vh] bg-zeniac-black border-none sm:border-white/10 text-white backdrop-blur-xl p-0 overflow-hidden flex flex-col">
+            <DialogContent className="sm:max-w-[700px] w-full sm:w-[95vw] h-full sm:h-auto sm:max-h-[95vh] bg-zeniac-black border-none sm:border-white/10 text-white backdrop-blur-xl p-0 overflow-y-auto overflow-x-hidden flex flex-col z-[100] focus:outline-none scrollbar-hide">
                 <DialogTitle className="sr-only">Zeniac Transformation Wizard</DialogTitle>
                 <DialogDescription className="sr-only">
                     Interactive questionnaire to analyze your digital presence.
@@ -307,6 +359,15 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                     >
                         <Minimize2 className="w-4 h-4" />
                     </button>
+                )}
+
+                {/* Loading State Overlay */}
+                {isOpen && isWaking && step === "intro" && (
+                    <div className="absolute inset-0 z-[60] bg-black flex flex-col items-center justify-center p-4 text-center">
+                        <Loader2 className="w-12 h-12 text-zeniac-gold animate-spin mb-4" />
+                        <h3 className="text-xl font-mono text-white font-bold">Initializing Engine...</h3>
+                        <p className="text-sm text-gray-500 mt-2">Connecting to secure analysis nodes.</p>
+                    </div>
                 )}
 
                 <AnimatePresence mode="wait">
@@ -553,12 +614,7 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                     </div>
                                 ) : previewUrl ? (
                                     <div className="w-full h-full relative">
-                                        <iframe
-                                            src={previewUrl}
-                                            className="hidden md:block w-full h-full rounded bg-white"
-                                            title="Report Preview"
-                                        />
-                                        <div className="md:hidden flex flex-col items-center justify-center h-full gap-6 p-8 text-center bg-gradient-to-b from-black/60 to-black/90">
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center h-full gap-6 p-8 text-center bg-gradient-to-b from-black/60 to-black/90">
                                             <div className="relative">
                                                 <div className="w-24 h-24 rounded-full bg-zeniac-gold/10 flex items-center justify-center border border-zeniac-gold/20">
                                                     <FileText className="w-12 h-12 text-zeniac-gold animate-bounce" />
@@ -574,10 +630,21 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                             <div className="w-full h-px bg-gradient-to-r from-transparent via-zeniac-gold/30 to-transparent" />
                                             <div className="space-y-4 w-full">
                                                 <Button
-                                                    onClick={() => window.open(previewUrl, '_blank')}
-                                                    className="w-full bg-zeniac-gold text-black hover:bg-white transition-all duration-300 font-mono font-bold py-6 text-lg shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+                                                    onClick={() => {
+                                                        if (isMobile) {
+                                                            const a = document.createElement("a");
+                                                            a.href = previewUrl;
+                                                            a.download = `Zeniac_Intelligence_Report_${formData.website.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+                                                            document.body.appendChild(a);
+                                                            a.click();
+                                                            document.body.removeChild(a);
+                                                        } else {
+                                                            window.open(previewUrl, '_blank');
+                                                        }
+                                                    }}
+                                                    className="w-full bg-zeniac-gold text-black hover:bg-white transition-all duration-300 font-mono font-bold py-6 text-lg shadow-[0_0_20px_rgba(212,175,55,0.3)] gap-2"
                                                 >
-                                                    TAP TO VIEW REPORT
+                                                    TAP TO VIEW REPORT <ExternalLink className="w-4 h-4" />
                                                 </Button>
                                                 <p className="text-[10px] text-zeniac-gray/60 font-mono uppercase tracking-[0.2em]">
                                                     Optimized for full-screen viewing
@@ -644,7 +711,7 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                     <Label>Email Address</Label>
                                     <Input
                                         type="email"
-                                        className="bg-white/5 border-white/10 focus:border-zeniac-gold text-lg py-6"
+                                        className="bg-white/5 border-white/10 focus:border-zeniac-gold text-lg py-6 relative z-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                         placeholder="ceo@company.com"
                                         value={formData.email}
                                         onChange={(e) => {
@@ -652,6 +719,7 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                             setSendError(null);
                                         }}
                                         disabled={isSending}
+                                        autoComplete="email"
                                     />
                                     {sendError && (
                                         <p className="text-xs text-red-500 mt-2 font-mono uppercase">

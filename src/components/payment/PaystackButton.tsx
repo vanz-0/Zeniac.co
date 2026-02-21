@@ -1,30 +1,56 @@
 "use client";
 
 import React from "react";
+import { usePaystackPayment } from "react-paystack";
 import { Button } from "@/components/ui/button";
 
-// Payment integration placeholder — react-paystack will be installed when payment flow is activated.
-// This stub ensures the build passes without the dependency.
-
 interface PaystackProps {
-    amount: number;
+    amount: number; // In KES
     email: string;
-    planName: string;
-    onSuccess?: (reference: any) => void;
-    onClose?: () => void;
+    onSuccess: (reference: string) => void;
+    onClose: () => void;
     className?: string;
     children?: React.ReactNode;
 }
 
 export default function PaystackTrigger({
+    amount,
+    email,
+    onSuccess,
+    onClose,
     className,
     children,
 }: PaystackProps) {
+    const config = {
+        reference: new Date().getTime().toString(),
+        email: email,
+        amount: amount * 100, // Paystack expects amount in Kobo/Cents
+        publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "",
+        currency: "KES",
+    };
+
+    const initializePayment = usePaystackPayment(config);
+
+    const handlePaystackSuccessAction = (reference: any) => {
+        onSuccess(reference.reference);
+    };
+
+    const handlePaystackCloseAction = () => {
+        onClose();
+    };
+
     return (
         <Button
             className={className}
             onClick={() => {
-                alert("Payment integration coming soon. Contact us directly to get started!");
+                if (!config.publicKey) {
+                    alert("Paystack Public Key is missing. Please check your environment variables.");
+                    return;
+                }
+                initializePayment({
+                    onSuccess: handlePaystackSuccessAction,
+                    onClose: handlePaystackCloseAction,
+                });
             }}
         >
             {children || "Pay Now"}

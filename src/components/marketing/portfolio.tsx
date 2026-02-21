@@ -66,7 +66,7 @@ function CarouselItem({ item, isActive }: { item: CarouselItemType, isActive: bo
             )}
             {/* Attribution for Deliverables/Templates if folder is present */}
             {item.folder && (
-                <div 
+                <div
                     className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 z-30 cursor-pointer hover:bg-zeniac-gold hover:text-black transition-colors"
                     onClick={(e) => {
                         e.stopPropagation();
@@ -156,7 +156,7 @@ function ProjectCard({ project, index }: { project: PortfolioItem, index: number
                         </div>
                     </div>
                 ) : project.carousel ? (
-                    <div 
+                    <div
                         className="w-full h-full relative group/carousel cursor-pointer"
                         onClick={nextSlide}
                     >
@@ -370,10 +370,10 @@ export function Portfolio() {
                     </a>
                 </div>
 
-                {/* 2. Mobile: horizontal carousel. Desktop: asymmetric grid */}
-                <div className="mobile-carousel md:grid-cols-3 gap-6">
-                    {/* Item 1: Search Dominance (2 cols on desktop) */}
-                    <div className="w-[85vw] md:w-auto md:col-span-2 bg-zinc-900/30 border border-white/5 rounded-2xl overflow-hidden min-h-[400px]">
+                {/* 2. Mobile: horizontal carousel. Desktop: symmetric 3x2 grid */}
+                <div className="mobile-carousel md:grid md:grid-cols-3 gap-6">
+                    {/* Item 1: Search Dominance */}
+                    <div className="w-[85vw] md:w-auto bg-zinc-900/30 border border-white/5 rounded-2xl overflow-hidden h-[400px] flex flex-col">
                         <SearchDominance />
                     </div>
 
@@ -387,13 +387,13 @@ export function Portfolio() {
                         <ProjectCard project={portfolioData[1] as PortfolioItem} index={2} />
                     </div>
 
-                    {/* Item 4: Ads & Promotions (2 cols on desktop) */}
-                    <div className="w-[85vw] md:w-auto md:col-span-2">
+                    {/* Item 4: Ads & Promotions */}
+                    <div className="w-[85vw] md:w-auto">
                         <ProjectCard project={portfolioData[2] as PortfolioItem} index={3} />
                     </div>
 
-                    {/* Item 5: Evidence of Impact (2 cols on desktop) */}
-                    <div className="w-[85vw] md:w-auto md:col-span-2">
+                    {/* Item 5: Evidence of Impact */}
+                    <div className="w-[85vw] md:w-auto">
                         <ProjectCard project={portfolioData[3] as PortfolioItem} index={4} />
                     </div>
 

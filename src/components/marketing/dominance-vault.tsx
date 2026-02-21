@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,8 @@ import {
     Check,
 } from "lucide-react";
 import { ToolkitSurvey, SurveyData } from "./toolkit-survey";
+
+const PaystackTrigger = dynamic(() => import("../payment/PaystackButton"), { ssr: false });
 
 // Category-to-gradient map: Gold / Purple / Black palette
 const categoryGradients: Record<string, string> = {
@@ -71,6 +74,42 @@ export function DominanceVault() {
     const [showSurvey, setShowSurvey] = useState(false);
     const [showAllTools, setShowAllTools] = useState(false);
     const [showPayment, setShowPayment] = useState(false);
+    const [email, setEmail] = useState("");
+    const [verifying, setVerifying] = useState(false);
+    const [hasStoredEmail, setHasStoredEmail] = useState(true); // Default to true to avoid flash, update in useEffect
+
+    useEffect(() => {
+        // Try to get email from localStorage (from audit wizard)
+        const storedEmail = localStorage.getItem("zeniac_lead_email");
+        if (storedEmail) {
+            setEmail(storedEmail);
+            setHasStoredEmail(true);
+        } else {
+            setHasStoredEmail(false);
+        }
+    }, []);
+
+    const handlePaymentSuccess = async (reference: string) => {
+        setVerifying(true);
+        try {
+            const res = await fetch("/api/paystack/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ reference }),
+            });
+            const result = await res.json();
+            if (result.success) {
+                setShowSurvey(true);
+            } else {
+                alert("Payment verification failed. Please contact support.");
+            }
+        } catch (err) {
+            console.error("Verification error:", err);
+            alert("Error verifying payment.");
+        } finally {
+            setVerifying(false);
+        }
+    };
 
 
     const handleSurveyComplete = async (data: SurveyData) => {
@@ -318,15 +357,38 @@ export function DominanceVault() {
                                 <span>✦ Instant delivery</span>
                             </div>
 
-                            <Button
-                                className="w-full bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-typewriter font-black uppercase py-6 text-base tracking-tight transition-all hover:scale-[1.02] active:scale-[0.98] rounded-none"
-                                onClick={() => {
-                                    // Start mock payment flow
-                                    setShowPayment(true);
-                                }}
+                            {/* Email collection if not present */}
+                            {!hasStoredEmail && (
+                                <div className="mb-4">
+                                    <input
+                                        type="email"
+                                        placeholder="Enter your email to receive tools"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 p-3 text-xs font-mono text-white placeholder:text-white/20 focus:border-zeniac-gold/50 outline-none transition-all"
+                                    />
+                                </div>
+                            )}
+
+                            <PaystackTrigger
+                                amount={currency === "KES" ? 3000 : 20 * 150} // Rough conversion if USD, but Paystack here is KES
+                                email={email}
+                                onSuccess={handlePaymentSuccess}
+                                onClose={() => console.log("Payment closed")}
+                                className="w-full bg-zeniac-gold text-zeniac-black hover:bg-zeniac-gold/90 font-typewriter font-black uppercase py-6 text-base tracking-tight transition-all hover:scale-[1.02] active:scale-[0.98] rounded-none disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                UNLOCK THE VAULT <ArrowRight className="w-5 h-5 ml-2" />
-                            </Button>
+                                {verifying ? "VERIFYING..." : <>UNLOCK THE VAULT <ArrowRight className="w-5 h-5 ml-2" /></>}
+                            </PaystackTrigger>
+
+                            {/* Testing Bypass */}
+                            {process.env.NODE_ENV === "development" && (
+                                <button
+                                    onClick={() => setShowSurvey(true)}
+                                    className="w-full mt-4 py-2 border border-dashed border-white/20 text-[10px] font-mono text-white/30 hover:text-zeniac-gold hover:border-zeniac-gold/50 transition-all uppercase tracking-widest"
+                                >
+                                    Developer: Skip Payment (Test Mode)
+                                </button>
+                            )}
 
                             <p className="text-[10px] font-mono text-white/30 mt-3">
                                 Backed by our 100% satisfaction guarantee
@@ -340,82 +402,8 @@ export function DominanceVault() {
                     onClose={() => setShowSurvey(false)}
                     onComplete={handleSurveyComplete}
                 />
-
-                <PaymentSimulation
-                    isOpen={showPayment}
-                    onClose={() => setShowPayment(false)}
-                    onSuccess={() => {
-                        setShowPayment(false);
-                        setShowSurvey(true);
-                    }}
-                />
             </div>
         </section>
-    );
-}
-
-function PaymentSimulation({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) {
-    const [step, setStep] = useState<"processing" | "success">("processing");
-
-    useEffect(() => {
-        if (isOpen) {
-            setStep("processing");
-            // Simulate Payment Gateway delay
-            const timer1 = setTimeout(() => {
-                setStep("success");
-            }, 2500);
-
-            // Simulate Redirect back
-            const timer2 = setTimeout(() => {
-                onSuccess();
-            }, 4000); // 1.5s success message
-
-            return () => {
-                clearTimeout(timer1);
-                clearTimeout(timer2);
-            };
-        }
-    }, [isOpen, onSuccess]);
-
-    return (
-        <AnimatePresence>
-            {isOpen && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 backdrop-blur-sm">
-                    <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.9, opacity: 0 }}
-                        className="bg-zeniac-black border border-white/10 p-8 max-w-sm w-full text-center relative overflow-hidden"
-                    >
-                        <div className="absolute inset-0 bg-blue-500/5 animate-pulse pointer-events-none" />
-
-                        {step === "processing" ? (
-                            <div className="flex flex-col items-center gap-4">
-                                <div className="w-12 h-12 border-2 border-zeniac-gold border-t-transparent rounded-full animate-spin" />
-                                <div>
-                                    <h3 className="font-typewriter font-bold text-lg text-white mb-1">
-                                        SECURE CHECKOUT
-                                    </h3>
-                                    <p className="font-mono text-xs text-white/50">Processing payment...</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-center gap-4">
-                                <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center border border-green-500/30">
-                                    <Check className="w-6 h-6 text-green-500" />
-                                </div>
-                                <div>
-                                    <h3 className="font-typewriter font-bold text-lg text-white mb-1">
-                                        PAYMENT SUCCESSFUL
-                                    </h3>
-                                    <p className="font-mono text-xs text-white/50">Redirecting to toolkit setup...</p>
-                                </div>
-                            </div>
-                        )}
-                    </motion.div>
-                </div>
-            )}
-        </AnimatePresence>
     );
 }
 

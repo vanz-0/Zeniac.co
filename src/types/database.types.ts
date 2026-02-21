@@ -50,6 +50,7 @@ export interface Database {
                     display_name: string | null
                     source: string | null
                     onboarding_stage: string | null
+                    paid_vault: boolean | null
                 }
                 Insert: {
                     id?: string

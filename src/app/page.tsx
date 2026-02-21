@@ -18,6 +18,7 @@ import { Navbar } from "@/components/marketing/navbar";
 import { BookingModal } from "@/components/marketing/booking-modal";
 import { DominanceVault, VaultPopup } from "@/components/marketing/dominance-vault";
 import { TemplatePoll } from "@/components/marketing/template-poll";
+import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
 
 const processData = [
   {
@@ -88,6 +89,27 @@ const processData = [
   },
 ];
 
+const teamData = [
+  {
+    quote: "Operational sovereignty isn't a luxury; it's a requirement for surviving the modern digital landscape. We build systems that don't just compete, they dominate.",
+    name: "Director's Name",
+    designation: "Director of Operations",
+    src: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=3149&auto=format&fit=crop", // Placeholder image
+  },
+  {
+    quote: "Our architecture is designed around one core principle: ruthless efficiency. If a process can be automated or optimized, we will find a way to make it happen.",
+    name: "Co-Director's Name",
+    designation: "Technical Co-Director",
+    src: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=3088&auto=format&fit=crop", // Placeholder image
+  },
+  {
+    quote: "Zeniac completely overhauled our digital footprint. We went from being invisible in a crowded market to owning the top spots for our most valuable keywords within 6 months.",
+    name: "Client Name",
+    designation: "CEO, Acme Corp",
+    src: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=3174&auto=format&fit=crop", // Placeholder image
+  }
+];
+
 export default function Home() {
   const { openWizard } = useWizard();
   const [bookingOpen, setBookingOpen] = useState(false);
@@ -113,6 +135,18 @@ export default function Home() {
 
         <Portfolio />
         <Pricing onOpenBooking={() => openBooking()} />
+
+        <div className="py-24" id="team">
+          <div className="container mx-auto px-4 text-center mb-8">
+            <h2 className="text-3xl md:text-5xl font-typewriter font-black text-zeniac-white mb-6 uppercase">
+              THE <span className="text-zeniac-gold">BOARD</span>
+            </h2>
+            <p className="text-muted-foreground font-mono text-lg max-w-2xl mx-auto">
+              Meet the architects behind the dominance engine.
+            </p>
+          </div>
+          <AnimatedTestimonials testimonials={teamData} autoplay={true} />
+        </div>
 
         <DominanceVault />
         <TemplatePoll />
