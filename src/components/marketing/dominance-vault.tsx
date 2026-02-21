@@ -147,6 +147,7 @@ export function DominanceVault() {
 
     return (
         <section className="py-24 relative overflow-hidden" id="vault">
+            {/* FORCE-VERCEL-CACHE-BUST-02-21-2026 */}
             {/* Background effects */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.03)_0%,transparent_70%)]" />
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zeniac-gold/30 to-transparent" />
