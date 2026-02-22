@@ -404,7 +404,7 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                 <div className="space-y-2">
                                     <Label>Company / Brand Name</Label>
                                     <Input
-                                        className="bg-white/5 border-white/10 focus:border-zeniac-gold text-lg py-6"
+                                        className="bg-white/5 border-white/10 focus:border-zeniac-gold text-white text-lg py-6"
                                         placeholder="Acme Corp"
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -413,7 +413,7 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                                 <div className="space-y-2">
                                     <Label>Website URL</Label>
                                     <Input
-                                        className="bg-white/5 border-white/10 focus:border-zeniac-gold text-lg py-6"
+                                        className="bg-white/5 border-white/10 focus:border-zeniac-gold text-white text-lg py-6"
                                         placeholder="zeniac.co"
                                         value={formData.website}
                                         onChange={(e) => setFormData({ ...formData, website: e.target.value })}
@@ -719,10 +719,10 @@ export function TransformationWizard({ onOpenBooking }: WizardProps) {
                             />
                             <div className="space-y-6 mt-8 max-w-md mx-auto w-full">
                                 <div className="space-y-2">
-                                    <Label className="text-zeniac-white font-bold">Email Address</Label>
+                                    <Label className="text-white font-bold">Email Address</Label>
                                     <Input
                                         type="email"
-                                        className="bg-zeniac-white/5 border-zeniac-white/20 focus:border-zeniac-gold text-zeniac-white text-lg py-6 relative z-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="bg-white/5 border-white/20 focus:border-zeniac-gold text-white text-lg py-6 relative z-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                         placeholder="ceo@company.com"
                                         value={formData.email}
                                         onChange={(e) => {
