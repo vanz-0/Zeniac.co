@@ -117,7 +117,7 @@ function ProjectCard({ project, index }: { project: PortfolioItem, index: number
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: index * 0.1 }}
-            className={`group relative bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden hover:border-zeniac-gold/30 transition-all duration-500 flex flex-col h-full`}
+            className={`group relative bg-zinc-900/50 border border-zeniac-gold/30 rounded-2xl overflow-hidden flex flex-col h-full`}
         >
             {/* Visual Header */}
             <div className={`relative ${isTestimonial ? "aspect-video" : "aspect-square md:aspect-[4/3]"} overflow-hidden bg-zinc-950 shrink-0`}>
@@ -129,7 +129,7 @@ function ProjectCard({ project, index }: { project: PortfolioItem, index: number
                             <img
                                 src={project.before_after[0]}
                                 alt="Before"
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                className="w-full h-full object-cover"
                             />
                             <div className="absolute top-2 left-2 z-20">
                                 <span className="bg-black/60 border border-white/10 text-zinc-400 px-1.5 py-0.5 rounded text-[8px] font-mono font-bold backdrop-blur-sm">
@@ -141,7 +141,7 @@ function ProjectCard({ project, index }: { project: PortfolioItem, index: number
                             <img
                                 src={project.before_after[1]}
                                 alt="After"
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                className="w-full h-full object-cover"
                             />
                             <div className="absolute top-2 right-2 z-20">
                                 <span className="bg-zeniac-gold text-black px-1.5 py-0.5 rounded text-[8px] font-mono font-bold">
@@ -191,7 +191,7 @@ function ProjectCard({ project, index }: { project: PortfolioItem, index: number
                     <img
                         src={project.image}
                         alt={project.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        className="w-full h-full object-cover"
                     />
                 )}
 
@@ -207,7 +207,7 @@ function ProjectCard({ project, index }: { project: PortfolioItem, index: number
 
 
                 {/* External Link for Non-Testimonials */}
-                {!isTestimonial && <div className="absolute top-4 right-4 translate-x-4 -translate-y-4 opacity-0 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-30">
+                {!isTestimonial && <div className="absolute top-4 right-4 z-30">
                     <div className="w-8 h-8 rounded-full bg-zinc-900/80 backdrop-blur border border-white/10 flex items-center justify-center">
                         <ExternalLink className="w-4 h-4 text-zeniac-gold" />
                     </div>
@@ -224,7 +224,7 @@ function ProjectCard({ project, index }: { project: PortfolioItem, index: number
                             </span>
                             <div className="h-px w-8 bg-zinc-800" />
                         </div>
-                        <h3 className="text-xl font-bold font-typewriter text-zinc-100 group-hover:text-zeniac-gold transition-colors">
+                        <h3 className="text-xl font-bold font-typewriter text-zeniac-gold">
                             {project.title}
                         </h3>
                     </div>
@@ -354,17 +354,17 @@ function ProjectCard({ project, index }: { project: PortfolioItem, index: number
 
 export function Portfolio() {
     return (
-        <section className="py-24 bg-zinc-950 relative overflow-hidden" id="portfolio">
+        <section className="py-24 bg-zinc-700 dark:bg-zinc-950 relative overflow-hidden" id="portfolio">
             <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
             <div className="container mx-auto px-4 relative z-10">
                 {/* 1. Header is now full width */}
                 <div className="text-center mb-16">
                     <a href="https://drive.google.com/drive/folders/15azvnK4VvLTTXOmBez2Oe64uVVeMYL41?usp=sharing" target="_blank" rel="noopener noreferrer" className="block group">
-                        <h2 className="text-3xl md:text-5xl font-typewriter font-black text-zeniac-white mb-4 group-hover:text-zeniac-gold transition-colors">
-                            EVIDENCE OF <span className="text-zeniac-gold group-hover:text-white transition-colors">DOMINANCE</span>
+                        <h2 className="text-3xl md:text-5xl font-typewriter font-black text-white mb-4">
+                            EVIDENCE OF <span className="text-zeniac-gold">DOMINANCE</span>
                         </h2>
-                        <p className="text-muted-foreground font-mono text-sm max-w-sm mx-auto group-hover:text-zinc-300 transition-colors">
+                        <p className="text-white/70 font-mono text-sm max-w-sm mx-auto">
                             Strategic operations and brand architecture that scales.
                         </p>
                     </a>

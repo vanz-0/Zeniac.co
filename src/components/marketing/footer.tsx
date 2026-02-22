@@ -77,7 +77,7 @@ export function MinimalFooter() {
                             <img src={logoSrc} alt="Zeniac Logo" className="h-8 w-auto" />
                             <span className="font-mono text-xl font-bold tracking-tighter text-zeniac-white">ZENIAC</span>
                         </Link>
-                        <p className="max-w-sm font-mono text-sm leading-relaxed text-zeniac-white/70">
+                        <p className="max-w-sm font-mono text-sm leading-relaxed text-zeniac-white/70 dark:text-black/70">
                             The operating system for high-growth small businesses. Dedicated to scaling local brands struggling with social platforms, digital marketing, and overall online presence.
                         </p>
 

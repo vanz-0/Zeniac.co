@@ -163,7 +163,7 @@ export function DominanceVault() {
                         className="inline-flex items-center gap-2 px-4 py-2 border border-zeniac-gold/30 bg-zeniac-gold/5 mb-6"
                     >
                         <Shield className="w-4 h-4 text-zeniac-gold" />
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-zeniac-gold">
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-zeniac-gold dark:text-zeniac-gold">
                             Not ready for our plans? Start here.
                         </span>
                     </motion.div>
@@ -194,7 +194,7 @@ export function DominanceVault() {
                         whileInView={{ opacity: 1 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.3 }}
-                        className="text-xs font-mono text-zeniac-gold/60"
+                        className="text-xs font-mono text-zeniac-gold dark:text-zeniac-gold/60"
                     >
                         Personalized to YOUR business using AI analysis
                     </motion.p>
@@ -260,12 +260,12 @@ export function DominanceVault() {
                                     </div>
                                 </div>
 
-                                <span className="text-[10px] font-mono text-center uppercase tracking-wide leading-tight transition-colors duration-300 text-black/60 dark:text-white/40 group-hover:text-black dark:group-hover:text-zeniac-white">
+                                <span className="text-[10px] font-mono text-center uppercase tracking-wide leading-tight transition-colors duration-300 text-black/80 dark:text-white/40 group-hover:text-black dark:group-hover:text-zeniac-white">
                                     {tool.name}
                                 </span>
 
                                 {/* Category tag */}
-                                <span className="mt-2 text-[8px] font-mono uppercase px-2 py-0.5 border transition-all duration-300 border-black/10 dark:border-white/5 text-black/50 dark:text-white/20 group-hover:border-zeniac-gold/50 dark:group-hover:border-zeniac-gold/30 group-hover:text-zeniac-gold dark:group-hover:text-zeniac-gold/60">
+                                <span className="mt-2 text-[8px] font-mono uppercase px-2 py-0.5 border transition-all duration-300 border-black/20 dark:border-white/5 text-black/70 dark:text-white/20 group-hover:border-zeniac-gold/50 dark:group-hover:border-zeniac-gold/30 group-hover:text-zeniac-gold dark:group-hover:text-zeniac-gold/60">
                                     {tool.category}
                                 </span>
 
